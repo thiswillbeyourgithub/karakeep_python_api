@@ -1,0 +1,2 @@
+# Include the OpenAPI specification file in the distribution
+include karakeep_python_api/openapi_reference.json
