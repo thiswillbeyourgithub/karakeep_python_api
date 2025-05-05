@@ -1,3 +1,4 @@
+import time
 import os
 import requests
 import time
@@ -435,15 +436,32 @@ class KarakeepAPI:
                 request_params = None
 
             # Using requests.request directly for simplicity, session might be better for performance
-            response = requests.request(
-                method=method,
-                url=url,
-                params=request_params,  # Use params with stringified booleans
-                data=request_body_arg,  # Serialized data (bytes or str)
-                headers=headers,
-                verify=self.verify_ssl,
-                timeout=60,  # Increased default timeout
-            )
+            response = None
+            trial = 0
+            max_trial = 3
+            while response is None:
+                trial += 1
+                try:
+                    response = requests.request(
+                        method=method,
+                        url=url,
+                        params=request_params,  # Use params with stringified booleans
+                        data=request_body_arg,  # Serialized data (bytes or str)
+                        headers=headers,
+                        verify=self.verify_ssl,
+                        timeout=60,  # Increased default timeout
+                    )
+                except Exception as e:
+                    if trial >= max_trial:
+                        logger.error("Too many retries. Crashing.")
+                        raise
+                    if "max retries exceeded" in str(e).lower():
+                        logger.warning(
+                            f"Error encounterd during requests. Trial={trial}/{max_trial}. Retrying after a small wait.\nError: {e}"
+                        )
+                        time.sleep(trial * 2)
+                    else:
+                        raise
 
             if self.verbose:
                 logger.debug(f"API Response:")
