@@ -445,4 +445,52 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                 "\nSkipping deletion because bookmark creation failed or ID was not obtained."
             )
 
+
+# --- Test User Info/Stats Endpoints ---
+
+def test_get_current_user_stats(karakeep_client: KarakeepAPI):
+    """Test retrieving statistics for the current user."""
+    try:
+        stats = karakeep_client.get_current_user_stats()
+        assert isinstance(stats, dict), "Response should be a dictionary"
+        # Check for the presence of expected keys (adjust based on actual API response)
+        assert "numBookmarks" in stats, "Stats should contain 'numBookmarks'"
+        assert "numHighlights" in stats, "Stats should contain 'numHighlights'"
+        assert "numLists" in stats, "Stats should contain 'numLists'"
+        assert "numTags" in stats, "Stats should contain 'numTags'"
+        # Check that values are non-negative integers
+        assert isinstance(stats["numBookmarks"], int) and stats["numBookmarks"] >= 0
+        assert isinstance(stats["numHighlights"], int) and stats["numHighlights"] >= 0
+        assert isinstance(stats["numLists"], int) and stats["numLists"] >= 0
+        assert isinstance(stats["numTags"], int) and stats["numTags"] >= 0
+
+        print(f"✓ Successfully retrieved user stats: {stats}")
+
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during user stats retrieval: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred during user stats retrieval: {e}")
+
+    # --- Add CLI call ---
+    try:
+        print("\n  Running CLI equivalent: get-current-user-stats")
+        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        subprocess.run(
+            "python -m karakeep_python_api get-current-user-stats",
+            shell=True,
+            check=True,
+            capture_output=True, # Capture output to avoid printing it during tests unless verbose
+            text=True,
+        )
+        print("✓ CLI command executed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"  CLI command failed with exit code {e.returncode}")
+        # Print stdout/stderr only if the command failed to aid debugging
+        print(f"  Stdout: {e.stdout}")
+        print(f"  Stderr: {e.stderr}")
+        pytest.fail(f"CLI command 'get-current-user-stats' failed: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred running the CLI command: {e}")
+
+
 # --- End of Tests ---
