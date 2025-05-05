@@ -41,39 +41,39 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 
 | Method Name                      | Tested | Remarks                                      |
 | -------------------------------- | :----: | -------------------------------------------- |
-| `get_all_bookmarks`              |  Yes   | Tested with pagination.                      |
-| `create_a_new_bookmark`          |  Yes   | Only tested for `type="link"`.               |
-| `search_bookmarks`               |   No   |                                              |
-| `get_a_single_bookmark`          |  Yes   | Tested as part of create/delete flow.        |
-| `delete_a_bookmark`              |  Yes   | Tested as part of create/delete flow.        |
-| `update_a_bookmark`              |   No   |                                              |
-| `summarize_a_bookmark`           |   No   |                                              |
-| `attach_tags_to_a_bookmark`      |   No   |                                              |
-| `detach_tags_from_a_bookmark`    |   No   |                                              |
-| `get_highlights_of_a_bookmark`   |   No   |                                              |
-| `attach_asset`                   |   No   |                                              |
-| `replace_asset`                  |   No   |                                              |
-| `detach_asset`                   |   No   |                                              |
-| `get_all_lists`                  |  Yes   |                                              |
-| `create_a_new_list`              |  Yes   | Tested as part of create/delete flow.        |
-| `get_a_single_list`              |  Yes   | Tested as part of create/delete flow.        |
-| `delete_a_list`                  |  Yes   | Tested as part of create/delete flow.        |
-| `update_a_list`                  |   No   |                                              |
-| `get_a_bookmarks_in_a_list`      |   No   |                                              |
-| `add_a_bookmark_to_a_list`       |   No   |                                              |
-| `remove_a_bookmark_from_a_list`  |   No   |                                              |
-| `get_all_tags`                   |  Yes   |                                              |
-| `get_a_single_tag`               |   No   |                                              |
-| `delete_a_tag`                   |   No   |                                              |
-| `update_a_tag`                   |   No   |                                              |
-| `get_a_bookmarks_with_the_tag`   |   No   |                                              |
-| `get_all_highlights`             |  Yes   | Tested with pagination.                      |
-| `create_a_new_highlight`         |   No   |                                              |
-| `get_a_single_highlight`         |   No   |                                              |
-| `delete_a_highlight`             |   No   |                                              |
-| `update_a_highlight`             |   No   |                                              |
-| `get_current_user_info`          |  Yes   | Tested indirectly during client initialization. |
-| `get_current_user_stats`         |  Yes   |                                              |
+| `get_all_bookmarks`              |   ✅   | Tested with pagination.                      |
+| `create_a_new_bookmark`          |   ✅   | Only tested for `type="link"`.               |
+| `search_bookmarks`               |   ❌   |                                              |
+| `get_a_single_bookmark`          |   ✅   | Tested as part of create/delete flow.        |
+| `delete_a_bookmark`              |   ✅   | Tested as part of create/delete flow.        |
+| `update_a_bookmark`              |   ❌   |                                              |
+| `summarize_a_bookmark`           |   ❌   |                                              |
+| `attach_tags_to_a_bookmark`      |   ❌   |                                              |
+| `detach_tags_from_a_bookmark`    |   ❌   |                                              |
+| `get_highlights_of_a_bookmark`   |   ❌   |                                              |
+| `attach_asset`                   |   ❌   |                                              |
+| `replace_asset`                  |   ❌   |                                              |
+| `detach_asset`                   |   ❌   |                                              |
+| `get_all_lists`                  |   ✅   |                                              |
+| `create_a_new_list`              |   ✅   | Tested as part of create/delete flow.        |
+| `get_a_single_list`              |   ✅   | Tested as part of create/delete flow.        |
+| `delete_a_list`                  |   ✅   | Tested as part of create/delete flow.        |
+| `update_a_list`                  |   ❌   |                                              |
+| `get_a_bookmarks_in_a_list`      |   ❌   |                                              |
+| `add_a_bookmark_to_a_list`       |   ❌   |                                              |
+| `remove_a_bookmark_from_a_list`  |   ❌   |                                              |
+| `get_all_tags`                   |   ✅   |                                              |
+| `get_a_single_tag`               |   ❌   |                                              |
+| `delete_a_tag`                   |   ❌   |                                              |
+| `update_a_tag`                   |   ❌   |                                              |
+| `get_a_bookmarks_with_the_tag`   |   ❌   |                                              |
+| `get_all_highlights`             |   ✅   | Tested with pagination.                      |
+| `create_a_new_highlight`         |   ❌   |                                              |
+| `get_a_single_highlight`         |   ❌   |                                              |
+| `delete_a_highlight`             |   ❌   |                                              |
+| `update_a_highlight`             |   ❌   |                                              |
+| `get_current_user_info`          |   ✅   | Tested indirectly during client initialization. |
+| `get_current_user_stats`         |   ✅   |                                              |
 
 ## Installation
 
