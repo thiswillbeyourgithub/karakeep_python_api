@@ -83,8 +83,8 @@ python -m karakeep_python_api --base-url https://my.karakeep.com/api/v1/ --api-k
 # Get all lists and pipe the JSON output to jq to extract the first list
 python -m karakeep_python_api get-all-lists | jq '.[0]'
 
-# Create a new bookmark from a URL (body provided as JSON string)
-python -m karakeep_python_api create-a-new-bookmark --data '{"type": "url", "url": "https://example.com"}'
+# Create a new bookmark from a link (body provided as JSON string)
+python -m karakeep_python_api create-a-new-bookmark --data '{"type": "link", "url": "https://example.com"}'
 
 # Dump the raw OpenAPI spec used by the client
 python -m karakeep_python_api --dump-openapi-specification
