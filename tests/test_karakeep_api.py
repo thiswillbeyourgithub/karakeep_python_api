@@ -356,7 +356,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         assert isinstance(
             created_bookmark, datatypes.Bookmark
         ), "Response should be a Bookmark model"
-        assert created_bookmark.url == test_url, "Created bookmark URL should match"
+        assert created_bookmark.content.url == test_url, "Created bookmark URL should match"
         assert created_bookmark.id, "Created bookmark must have an ID"
         created_bookmark_id = created_bookmark.id
         print(f"✓ Successfully created bookmark with ID: {created_bookmark_id}")
@@ -367,7 +367,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         )
         assert isinstance(retrieved_bookmark, datatypes.Bookmark)
         assert retrieved_bookmark.id == created_bookmark_id
-        assert retrieved_bookmark.url == test_url
+        assert retrieved_bookmark.content.url == test_url
         print(f"✓ Successfully retrieved the created bookmark by ID.")
 
     except (APIError, AuthenticationError) as e:
@@ -418,7 +418,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         # We need to capture the output to potentially get the ID for cleanup if needed,
         # but for simplicity, we'll just run it and assume it works or fails.
         # A more robust test might parse the output JSON to get the ID and then delete it.
-        cli_command = f'python -m karakeep_python_api create-a-new-bookmark --url "{test_url}"'
+        cli_command = f'python -m karakeep_python_api create-a-new-bookmark --type link --url "{test_url}"'
         result = subprocess.run(
             cli_command,
             shell=True,
