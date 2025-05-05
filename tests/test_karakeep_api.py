@@ -413,10 +413,10 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         pytest.fail(f"API error during bookmark creation/verification/search: {e}")
     except Exception as e:
         pytest.fail(
-            f"An unexpected error occurred during bookmark creation/verification: {e}"
+            f"An unexpected error occurred during bookmark creation/verification/search: {e}"
         )
     finally:
-        # 4. Delete the bookmark (ensure cleanup)
+        # 5. Delete the bookmark (ensure cleanup)
         if created_bookmark_id:
             print(f"\nAttempting to delete bookmark with ID: {created_bookmark_id}")
             try:
