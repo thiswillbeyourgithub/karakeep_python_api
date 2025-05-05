@@ -1,6 +1,9 @@
 import pytest
 import os
 import subprocess
+import random
+import string
+import time
 
 # Import API, errors, and datatypes from the main package
 from karakeep_python_api import KarakeepAPI, APIError, AuthenticationError, datatypes
@@ -240,6 +243,98 @@ def test_openapi_spec_accessible(karakeep_client: KarakeepAPI):
         pytest.fail(f"CLI command '--dump-openapi-specification' failed: {e}")
     except Exception as e:
         pytest.fail(f"An unexpected error occurred running the CLI command: {e}")
+
+
+# --- Test Create/Delete Operations ---
+
+
+def test_create_and_delete_list(karakeep_client: KarakeepAPI):
+    """Test creating a new list and then deleting it."""
+    created_list_id = None  # Initialize to ensure it's available in finally block
+    try:
+        # 1. Generate a unique list name
+        timestamp = int(time.time())
+        random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        list_name = f"Test List {timestamp}-{random_suffix}"
+        list_icon = "🧪"  # Test tube icon
+
+        print(f"\nAttempting to create list: Name='{list_name}', Icon='{list_icon}'")
+
+        # 2. Get initial list count (optional, for comparison)
+        initial_lists = karakeep_client.get_all_lists()
+        initial_list_count = len(initial_lists)
+        print(f"  Initial list count: {initial_list_count}")
+
+        # 3. Create the new list
+        create_payload = {"name": list_name, "icon": list_icon, "type": "manual"}
+        created_list = karakeep_client.create_a_new_list(list_data=create_payload)
+        assert isinstance(
+            created_list, datatypes.ListModel
+        ), "Response should be a ListModel"
+        assert created_list.name == list_name, "Created list name should match"
+        assert created_list.icon == list_icon, "Created list icon should match"
+        assert created_list.id, "Created list must have an ID"
+        created_list_id = created_list.id  # Store the ID for deletion
+        print(f"✓ Successfully created list with ID: {created_list_id}")
+
+        # 4. Verify the list exists by getting it directly
+        retrieved_list = karakeep_client.get_a_single_list(list_id=created_list_id)
+        assert isinstance(retrieved_list, datatypes.ListModel)
+        assert retrieved_list.id == created_list_id
+        print(f"✓ Successfully retrieved the created list by ID.")
+
+        # 5. Verify the list count increased (optional check)
+        current_lists_after_create = karakeep_client.get_all_lists()
+        assert (
+            len(current_lists_after_create) == initial_list_count + 1
+        ), "List count should increase by one after creation"
+        assert any(
+            lst.id == created_list_id for lst in current_lists_after_create
+        ), "Created list should be present in the list of all lists"
+        print(f"  List count after creation: {len(current_lists_after_create)}")
+
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during list creation/verification: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred during list creation/verification: {e}")
+    finally:
+        # 6. Delete the list (ensure cleanup even if assertions fail)
+        if created_list_id:
+            print(f"\nAttempting to delete list with ID: {created_list_id}")
+            try:
+                karakeep_client.delete_a_list(list_id=created_list_id)
+                print(f"✓ Successfully deleted list with ID: {created_list_id}")
+
+                # 7. Verify the list is gone by trying to get it (should fail)
+                try:
+                    karakeep_client.get_a_single_list(list_id=created_list_id)
+                    pytest.fail(
+                        f"List with ID {created_list_id} should not exist after deletion, but get_a_single_list succeeded."
+                    )
+                except APIError as e:
+                    assert (
+                        e.status_code == 404
+                    ), f"Expected 404 Not Found when getting deleted list, but got status {e.status_code}"
+                    print(
+                        f"✓ Confirmed list {created_list_id} is deleted (received 404)."
+                    )
+
+                # 8. Verify list count decreased (optional check)
+                final_lists = karakeep_client.get_all_lists()
+                assert (
+                    len(final_lists) == initial_list_count
+                ), "List count should return to initial count after deletion"
+                assert not any(
+                    lst.id == created_list_id for lst in final_lists
+                ), "Deleted list should not be present in the final list of all lists"
+                print(f"  Final list count: {len(final_lists)}")
+
+            except (APIError, AuthenticationError) as e:
+                pytest.fail(f"API error during list deletion: {e}")
+            except Exception as e:
+                pytest.fail(f"An unexpected error occurred during list deletion: {e}")
+        else:
+            print("\nSkipping deletion because list creation failed or ID was not obtained.")
 
 
 # --- End of Tests ---
