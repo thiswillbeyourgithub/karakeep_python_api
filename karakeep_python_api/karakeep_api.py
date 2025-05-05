@@ -209,6 +209,7 @@ class KarakeepAPI:
         self.strict_response_parsing = (
             strict_response_parsing  # Currently unused but kept
         )
+        self.last_request_time: float = 0.0  # Initialize timestamp for rate limiting
 
         # --- Response Validation Setting ---
         # Argument takes precedence over environment variable
@@ -442,6 +443,9 @@ class KarakeepAPI:
             while response is None:
                 trial += 1
                 try:
+                    # Enforce rate limit before making the request
+                    self._enforce_rate_limit()
+
                     response = requests.request(
                         method=method,
                         url=url,
@@ -584,6 +588,32 @@ class KarakeepAPI:
             raise APIError(
                 message=f"API request failed for {method} {url}: {str(e)}"
             ) from e
+
+    @optional_typecheck
+    def _enforce_rate_limit(self, min_interval_sec: float = 1.0) -> None:
+        """
+        Ensures a minimum time interval between consecutive API calls.
+
+        If the time since the last call is less than `min_interval_sec`, this method
+        will sleep for the remaining duration. It then updates the timestamp of the
+        last request.
+
+        Args:
+            min_interval_sec: The minimum desired interval between requests in seconds.
+        """
+        current_time = time.monotonic()
+        time_since_last = current_time - self.last_request_time
+
+        if time_since_last < min_interval_sec:
+            sleep_duration = min_interval_sec - time_since_last
+            if self.verbose:
+                logger.debug(
+                    f"Rate limit triggered. Sleeping for {sleep_duration:.3f} seconds."
+                )
+            time.sleep(sleep_duration)
+
+        # Update last request time *after* potential sleep
+        self.last_request_time = time.monotonic()
 
     # --- Dynamically Generated API Methods ---
 
