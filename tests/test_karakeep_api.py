@@ -277,13 +277,7 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
         created_list_id = created_list.id  # Store the ID for deletion
         print(f"✓ Successfully created list with ID: {created_list_id}")
 
-        # 4. Verify the list exists by getting it directly
-        retrieved_list = karakeep_client.get_a_single_list(list_id=created_list_id)
-        assert isinstance(retrieved_list, datatypes.ListModel)
-        assert retrieved_list.id == created_list_id
-        print(f"✓ Successfully retrieved the created list by ID.")
-
-        # 5. Verify the list count increased (optional check)
+        # 4. Verify the list appears in get_all_lists
         current_lists_after_create = karakeep_client.get_all_lists()
         assert (
             len(current_lists_after_create) == initial_list_count + 1
@@ -292,6 +286,14 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
             lst.id == created_list_id for lst in current_lists_after_create
         ), "Created list should be present in the list of all lists"
         print(f"  List count after creation: {len(current_lists_after_create)}")
+        print(f"✓ Verified list {created_list_id} is present in get_all_lists.")
+
+
+        # 5. Verify the list exists by getting it directly (redundant but good check)
+        retrieved_list = karakeep_client.get_a_single_list(list_id=created_list_id)
+        assert isinstance(retrieved_list, datatypes.ListModel)
+        assert retrieved_list.id == created_list_id
+        print(f"✓ Successfully retrieved the created list by ID.")
 
     except (APIError, AuthenticationError) as e:
         pytest.fail(f"API error during list creation/verification: {e}")
