@@ -22,6 +22,46 @@ The development process involved:
 *   **Experimental Methods:** The included Pytest suite currently only covers a subset of the available API methods (primarily 'get all' endpoints and client initialization). Methods *not* explicitly tested should be considered **experimental**.
 *   **Ongoing Development:** The author intends to improve and validate methods as they are needed for personal use cases. Contributions and bug reports are welcome!
 
+## API Method Coverage
+
+The following table lists the public methods available in the `KarakeepAPI` class and indicates whether they are currently covered by the automated test suite (`tests/test_karakeep_api.py`). Methods marked as "No" should be used with caution as their behavior has not been automatically verified.
+
+| Method Name                      | Tested | Remarks                                      |
+| -------------------------------- | :----: | -------------------------------------------- |
+| `get_all_bookmarks`              |  Yes   | Tested with pagination.                      |
+| `create_a_new_bookmark`          |  Yes   | Only tested for `type="link"`.               |
+| `search_bookmarks`               |   No   |                                              |
+| `get_a_single_bookmark`          |  Yes   | Tested as part of create/delete flow.        |
+| `delete_a_bookmark`              |  Yes   | Tested as part of create/delete flow.        |
+| `update_a_bookmark`              |   No   |                                              |
+| `summarize_a_bookmark`           |   No   |                                              |
+| `attach_tags_to_a_bookmark`      |   No   |                                              |
+| `detach_tags_from_a_bookmark`    |   No   |                                              |
+| `get_highlights_of_a_bookmark`   |   No   |                                              |
+| `attach_asset`                   |   No   |                                              |
+| `replace_asset`                  |   No   |                                              |
+| `detach_asset`                   |   No   |                                              |
+| `get_all_lists`                  |  Yes   |                                              |
+| `create_a_new_list`              |  Yes   | Tested as part of create/delete flow.        |
+| `get_a_single_list`              |  Yes   | Tested as part of create/delete flow.        |
+| `delete_a_list`                  |  Yes   | Tested as part of create/delete flow.        |
+| `update_a_list`                  |   No   |                                              |
+| `get_a_bookmarks_in_a_list`      |   No   |                                              |
+| `add_a_bookmark_to_a_list`       |   No   |                                              |
+| `remove_a_bookmark_from_a_list`  |   No   |                                              |
+| `get_all_tags`                   |  Yes   |                                              |
+| `get_a_single_tag`               |   No   |                                              |
+| `delete_a_tag`                   |   No   |                                              |
+| `update_a_tag`                   |   No   |                                              |
+| `get_a_bookmarks_with_the_tag`   |   No   |                                              |
+| `get_all_highlights`             |  Yes   | Tested with pagination.                      |
+| `create_a_new_highlight`         |   No   |                                              |
+| `get_a_single_highlight`         |   No   |                                              |
+| `delete_a_highlight`             |   No   |                                              |
+| `update_a_highlight`             |   No   |                                              |
+| `get_current_user_info`          |  Yes   | Tested indirectly during client initialization. |
+| `get_current_user_stats`         |   No   |                                              |
+
 ## Installation
 
 It is recommended to use `uv` for faster installation:
