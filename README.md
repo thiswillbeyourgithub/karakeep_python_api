@@ -7,6 +7,19 @@ A community-developed Python client for the [Karakeep](https://karakeep.app/) AP
 
 **Disclaimer:** This is an unofficial, community-driven project. The developers of Karakeep were not consulted during its creation. Use at your own discretion.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Current Status & Caveats](#current-status--caveats)
+- [API Method Coverage](#api-method-coverage)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Environment Variables](#environment-variables)
+  - [Command Line Interface (CLI)](#command-line-interface-cli)
+  - [Python Library](#python-library)
+- [Development](#development)
+- [License](#license)
+
 ## Overview
 
 This library provides a Python interface (both a class and a command-line tool) to interact with a Karakeep instance's API.
