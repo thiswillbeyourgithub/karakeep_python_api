@@ -73,7 +73,7 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `delete_a_highlight`             |   No   |                                              |
 | `update_a_highlight`             |   No   |                                              |
 | `get_current_user_info`          |  Yes   | Tested indirectly during client initialization. |
-| `get_current_user_stats`         |   No   |                                              |
+| `get_current_user_stats`         |  Yes   |                                              |
 
 ## Installation
 
