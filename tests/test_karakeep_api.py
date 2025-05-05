@@ -349,8 +349,9 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         print(f"\nAttempting to create bookmark for URL: {test_url}")
 
         # 2. Create the bookmark
+        # Call the method with keyword arguments matching its signature
         created_bookmark = karakeep_client.create_a_new_bookmark(
-            bookmark_data=bookmark_payload
+            type="link", url=test_url
         )
         assert isinstance(
             created_bookmark, datatypes.Bookmark
