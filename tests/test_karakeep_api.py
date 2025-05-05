@@ -345,7 +345,6 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
     test_url = "https://en.wikipedia.org/wiki/Example"
     try:
         # 1. Define bookmark payload
-        bookmark_payload = {"type": "url", "url": test_url}
         print(f"\nAttempting to create bookmark for URL: {test_url}")
 
         # 2. Create the bookmark
@@ -372,8 +371,8 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
 
         # 4. Search for the created bookmark
         print(f"\nAttempting to search for bookmark with query: 'wikipedia'")
-        search_query = "wikipedia"
-        search_results = karakeep_client.search_bookmarks(q=search_query, limit=10)
+        search_query = "Example - Wikipedia"
+        search_results = karakeep_client.search_bookmarks(q=search_query, limit=50)
         assert isinstance(
             search_results, datatypes.PaginatedBookmarks
         ), "Search response should be PaginatedBookmarks model"
