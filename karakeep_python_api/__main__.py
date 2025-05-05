@@ -5,7 +5,7 @@ import os
 import functools
 import click
 import traceback  # Moved import to top
-from typing import Any, List, Dict, Optional, Callable, Union, get_origin, get_args
+from typing import Any, List, Dict, Optional, Callable, Union, get_origin, get_args, Literal
 from pydantic import BaseModel, ValidationError
 from loguru import logger  # Import logger
 
