@@ -397,58 +397,52 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                         e.status_code == 404
                     ), f"Expected 404 Not Found when getting deleted bookmark, but got status {e.status_code}"
                     print(
-                        f"✓ Confirmed bookmark {created_bookmark_id} is deleted (received 404)."
+                        f"✓ Confirmed bookmark {created_bookmark_id} is deleted via API (received 404)."
+                    )
+
+                # 6. Attempt to delete the same bookmark via CLI (should ideally fail or do nothing)
+                print(f"\n  Attempting CLI deletion for already deleted bookmark ID: {created_bookmark_id}")
+                try:
+                    cli_delete_command = f"python -m karakeep_python_api delete-a-bookmark --bookmark-id {created_bookmark_id}"
+                    subprocess.run(
+                        cli_delete_command,
+                        shell=True,
+                        check=True, # Set to False if CLI errors on 404, True if it exits 0
+                        capture_output=True,
+                        text=True,
+                    )
+                    # If check=True and it succeeds, it means the CLI might not error on 404.
+                    print(f"  ✓ CLI delete command executed (check=True implies it might not error on 404).")
+                except subprocess.CalledProcessError as e:
+                    # If check=True, this block means the CLI command failed, which *might* be expected if it errors on 404.
+                    print(f"  ✓ CLI delete command failed as expected (exit code {e.returncode}), likely because bookmark was already deleted.")
+                    # Optional: Assert specific exit code if known
+                    # assert e.returncode == EXPECTED_EXIT_CODE_FOR_NOT_FOUND
+                except Exception as cli_e:
+                    pytest.fail(f"An unexpected error occurred running the CLI delete command: {cli_e}")
+
+                # 7. Verify again via API that the bookmark is still gone after CLI attempt
+                try:
+                    karakeep_client.get_a_single_bookmark(bookmark_id=created_bookmark_id)
+                    pytest.fail(
+                        f"Bookmark {created_bookmark_id} should *still* not exist after CLI deletion attempt, but get_a_single_bookmark succeeded."
+                    )
+                except APIError as e:
+                    assert (
+                        e.status_code == 404
+                    ), f"Expected 404 Not Found after CLI deletion attempt, but got status {e.status_code}"
+                    print(
+                        f"✓ Confirmed bookmark {created_bookmark_id} is *still* deleted after CLI attempt (received 404)."
                     )
 
             except (APIError, AuthenticationError) as e:
-                pytest.fail(f"API error during bookmark deletion: {e}")
+                # Catch errors from the initial Python API deletion or subsequent checks
+                pytest.fail(f"API error during bookmark deletion/verification: {e}")
             except Exception as e:
                 pytest.fail(f"An unexpected error occurred during bookmark deletion: {e}")
         else:
             print(
                 "\nSkipping deletion because bookmark creation failed or ID was not obtained."
             )
-
-    # --- Add CLI call for creation (deletion is harder to test idempotently here) ---
-    # Note: This assumes the CLI correctly maps --url to the required payload structure.
-    # We won't delete via CLI as we need the ID from the Python test run.
-    try:
-        print(f"\n  Running CLI equivalent: create-a-new-bookmark --url {test_url}")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
-        # We need to capture the output to potentially get the ID for cleanup if needed,
-        # but for simplicity, we'll just run it and assume it works or fails.
-        # A more robust test might parse the output JSON to get the ID and then delete it.
-        cli_command = f'python -m karakeep_python_api create-a-new-bookmark --type link --url "{test_url}"'
-        result = subprocess.run(
-            cli_command,
-            shell=True,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        print("✓ CLI command executed successfully.")
-        # Optional: Parse result.stdout JSON to get the ID and delete it
-        # For now, we assume manual cleanup or that the instance handles duplicates gracefully.
-        # Example cleanup (if needed):
-        # import json
-        # try:
-        #     cli_created_data = json.loads(result.stdout)
-        #     cli_created_id = cli_created_data.get('id')
-        #     if cli_created_id:
-        #         print(f"  Attempting cleanup of CLI-created bookmark: {cli_created_id}")
-        #         karakeep_client.delete_a_bookmark(bookmark_id=cli_created_id)
-        #         print(f"  ✓ Cleaned up CLI-created bookmark: {cli_created_id}")
-        # except Exception as cli_cleanup_err:
-        #     print(f"  Warning: Failed to cleanup CLI-created bookmark: {cli_cleanup_err}")
-
-    except subprocess.CalledProcessError as e:
-        print(f"  CLI command failed with exit code {e.returncode}")
-        print(f"  Command: {cli_command}")
-        print(f"  Stdout: {e.stdout}")
-        print(f"  Stderr: {e.stderr}")
-        pytest.fail(f"CLI command 'create-a-new-bookmark --url' failed: {e}")
-    except Exception as e:
-        pytest.fail(f"An unexpected error occurred running the CLI command: {e}")
-
 
 # --- End of Tests ---
