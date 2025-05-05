@@ -225,108 +225,22 @@ def create_click_command(
                 call_args = {}
                 sig_params = signature.parameters  # Use captured signature
 
-                # Find the parameter designated for the request body (mapped from --data)
-                body_param_name = None
-                for p_name, p_obj in sig_params.items():
-                    # Heuristic: Find param annotated as dict, BaseModel, or Union containing them
-                    # This assumes only one such parameter exists for the body.
-                    # More robust: Use a specific marker/convention if possible.
-                    is_body_type = False
-                    if (
-                        p_obj.annotation is dict
-                        or isinstance(p_obj.annotation, type)
-                        and issubclass(p_obj.annotation, BaseModel)
-                    ):
-                        is_body_type = True
-                    elif get_origin(p_obj.annotation) is Union:
-                        union_args = get_args(p_obj.annotation)
-                        if any(
-                            arg is dict
-                            or (isinstance(arg, type) and issubclass(arg, BaseModel))
-                            for arg in union_args
-                        ):
-                            is_body_type = True
-
-                    # Use the same heuristic as in create_click_command
-                    is_body_type = False
-                    param_annotation = p_obj.annotation
-                    if param_annotation is dict or (
-                        isinstance(param_annotation, type)
-                        and issubclass(param_annotation, BaseModel)
-                    ):
-                        is_body_type = True
-                    elif get_origin(param_annotation) is Union:
-                        union_args = get_args(param_annotation)
-                        if any(
-                            arg is dict or (isinstance(arg, type) and issubclass(arg, BaseModel))
-                            for arg in union_args
-                        ):
-                            is_body_type = True
-
-                    if is_body_type:
-                        if body_param_name is not None:
-                            # Found a second body candidate - this logic assumes only one.
-                            logger.warning(f"Method '{method_name}' has multiple potential body parameters ('{body_param_name}', '{p_name}'). Using the first one found for '--data'.")
-                        else:
-                            body_param_name = p_name
-                            logger.debug(f"Identified '{p_name}' as the body parameter for method '{method_name}'.")
-
-                # If no body parameter was identified by type, but --data was potentially added
-                # (e.g., if the type hint was Any), we might have an issue.
-                # However, create_click_command should only add --data if is_body_candidate is True.
-
                 # Process Click kwargs into API call arguments
-                for cli_name, value in kwargs.items():
-                    py_name = cli_name.replace("-", "_") # Convert kebab-case back to snake_case
+                # Convert kebab-case keys from Click back to snake_case for Python call
+                call_args = {
+                    k.replace("-", "_"): v for k, v in kwargs.items() if v is not None
+                }
 
-                    # Handle the special '--data' argument
-                    if cli_name == "data" and body_param_name:
-                        if value is not None:
-                            try:
-                                # Parse JSON here, API method expects dict/list/model
-                                parsed_data = json.loads(value)
-                                call_args[body_param_name] = (
-                                    parsed_data  # Assign to correct param name
-                                )
-                            except json.JSONDecodeError:
-                                raise click.BadParameter(
-                                    f"Invalid JSON string provided for --data: {value}",
-                                    param_hint="--data",
-                                )
-                            # else: value is None (e.g., --data not provided but param optional?) - skip assignment
-                        else:
-                            # This case should ideally not happen if create_click_command works correctly.
-                            # It means --data was passed but no body parameter was identified.
-                            logger.warning(f"Received '--data' argument but could not identify a body parameter for method '{method_name}'. Ignoring '--data'.")
+                # Remove arguments that are not part of the method signature
+                # (e.g., if extra options were somehow passed)
+                valid_arg_names = set(signature.parameters.keys())
+                call_args = {
+                    k: v for k, v in call_args.items() if k in valid_arg_names
+                }
 
-                    # Handle other arguments (non-body parameters)
-                    # Ensure we don't overwrite the body parameter if it somehow got into kwargs directly
-                    # (which it shouldn't if mapped to --data)
-                    elif py_name != body_param_name and py_name in sig_params:
-                        # Pass through non-None values. Click handles type conversion for basic types.
-                        # Boolean flags are handled correctly by Click (value is True/False/None).
-                        # Optional parameters will have value=None if not provided.
-                        if value is not None:
-                             # Re-evaluate the JSON parsing for list/dict here.
-                             # It might be better to let the API method handle the type if it expects str.
-                             # For now, keep the existing logic but ensure it doesn't apply to the body param.
-                            param_annotation = sig_params[py_name].annotation
-                            is_list_or_dict = False
-                            try:
-                                origin = get_origin(param_annotation)
-                                is_list_or_dict = origin in (list, dict, List, Dict) or param_annotation in (list, dict)
-                            except Exception: pass
-
-                            if is_list_or_dict and isinstance(value, str):
-                                try:
-                                    call_args[py_name] = json.loads(value)
-                                    logger.debug(f"Interpreted string value for '{cli_name}' as JSON.")
-                                except json.JSONDecodeError:
-                                    logger.warning(f"Failed to parse '{cli_name}' value as JSON for list/dict param. Passing as string.")
-                                    call_args[py_name] = value
-                            else:
-                                call_args[py_name] = value # Pass other types directly
-                        # else: value is None, don't add to call_args if API method uses defaults
+                # Note: No special '--data' handling needed anymore for create_a_new_bookmark
+                # Type conversion for basic types (str, int, bool) is handled by Click.
+                # List/Dict parameters still expect JSON strings if used elsewhere.
 
                 # Call the API method
                 try:
@@ -461,6 +375,17 @@ def create_click_command(
         # Handle List[T] or Dict[K, V] - expect JSON string
         elif origin in (list, dict, List, Dict) or annotation in (list, dict):
             click_type = click.STRING  # Expect JSON string
+        # Handle Literal[...] for choices
+        elif origin is Literal:
+            choices = get_args(annotation)
+            # Ensure all choices are strings for click.Choice
+            if all(isinstance(c, str) for c in choices):
+                click_type = click.Choice(choices, case_sensitive=False)
+            else:
+                logger.warning(
+                    f"Parameter '{param.name}' is Literal but contains non-string types. Treating as STRING."
+                )
+                click_type = click.STRING # Fallback
 
         # Determine option name(s) and help text
         option_names = [f"--{param_name_cli}"]
@@ -478,61 +403,23 @@ def create_click_command(
             origin in (list, dict) or annotation in (list, dict)
         ):
             param_help += " (Provide as JSON string)"
+        elif isinstance(click_type, click.Choice):
+             param_help += f" (Choices: {', '.join(click_type.choices)})"
 
-        # --- Determine if this parameter should be mapped to the '--data' option ---
-        # Heuristic: Check type annotation for dict, BaseModel, or Union containing them
-        is_body_candidate = False
-        param_annotation = param.annotation
-        if param_annotation is dict or (
-            isinstance(param_annotation, type)
-            and issubclass(param_annotation, BaseModel)
-        ):
-            is_body_candidate = True
-        elif get_origin(param_annotation) is Union:
-            union_args = get_args(param_annotation)
-            if any(
-                arg is dict or (isinstance(arg, type) and issubclass(arg, BaseModel))
-                for arg in union_args
-            ):
-                is_body_candidate = True
-        # TODO: Add more robust check? Maybe based on parameter name conventions?
+        # Standard parameter handling (no special '--data' mapping anymore)
+        click_required = is_required_in_sig and default_value is None and not is_flag
 
-        # If it's a body candidate, map it to '--data' and make it a required string
-        if is_body_candidate:
-            option_names = ["--data"]
-            click_type = click.STRING
-            param_help = f"JSON string for the request body ('{param.name}' parameter)."
-            # Body data is usually required if the parameter itself is required in the signature
-            click_required = is_required_in_sig
-            is_flag = False  # Body is never a flag
-            default_value = None  # Default is handled by parsing JSON string
-            # REMOVE THE MARKER LOGIC:
-            # param_name_cli += "_is_body" # Append marker to CLI name (won't be used directly)
-        else:
-            # Standard parameter handling (not the body)
-            click_required = (
-                is_required_in_sig and default_value is None and not is_flag
-            )
-
-        # Add the Click Option/Argument
+        # Add the Click Option
         click_params.append(
             click.Option(
-                option_names,  # This positional argument provides the parameter declarations
-                # param_decls=[param_name_cli], # REMOVED: Redundant keyword argument
-                # The `name` attribute of the Option object is derived from the first element in option_names
-                # unless explicitly set via `param_decls`. If option_names is ['--data'], the name becomes 'data'.
-                # If it's ['--bookmark-data'], the name becomes 'bookmark_data'.
-                # The marker logic `param_name_cli += "_is_body"` seems intended to pass information
-                # but it's not used correctly later.
+                option_names,
                 type=click_type,
                 required=click_required,
                 default=default_value if not is_flag else None,
                 help=param_help,
                 is_flag=(is_flag if len(option_names) == 1 else False),
-                show_default=True,
-                # We need to ensure the `name` passed to the command function corresponds
-                # to the original parameter name if it's the body parameter mapped to '--data'.
-                # Click uses the first long option name ('--data') to create the Python identifier ('data').
+                show_default=not is_flag and default_value is not None, # Show default unless it's a flag or None
+                # Click derives the Python identifier (e.g., 'bookmark_id') from the first long option name
             )
         )
 

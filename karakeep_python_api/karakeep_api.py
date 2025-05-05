@@ -633,27 +633,113 @@ class KarakeepAPI:
     @optional_typecheck
     def create_a_new_bookmark(
         self,
-        bookmark_data: Union[dict, BaseModel],  # Allow dict or Pydantic model input
+        type: Literal["link", "text", "asset"],
+        # Common optional fields
+        title: Optional[str] = None,
+        archived: Optional[bool] = None,
+        favourited: Optional[bool] = None,
+        note: Optional[str] = None,
+        summary: Optional[str] = None,
+        createdAt: Optional[str] = None,  # ISO 8601 format string
+        # Link specific
+        url: Optional[str] = None,
+        precrawledArchiveId: Optional[str] = None,
+        # Text specific
+        text: Optional[str] = None,
+        sourceUrl: Optional[str] = None,  # Also used by asset
+        # Asset specific
+        asset_type: Optional[Literal["image", "pdf"]] = None,
+        assetId: Optional[str] = None,
+        fileName: Optional[str] = None,
+        # size: Optional[int] = None, # Size is not in POST spec
+        # content: Optional[str] = None, # Content is not in POST spec
     ) -> Any:  # Returns Bookmark or raw dict/list
         """
         Create a new bookmark. Corresponds to POST /bookmarks.
 
-        The input `bookmark_data` should conform to the request body schema, which might involve
-        properties like 'type', 'url', 'text', 'assetId', 'title', 'archived', etc.
-
         Args:
-            bookmark_data: The bookmark data to create (dict or Pydantic model).
-                           See the OpenAPI spec for details on the request body structure.
+            type: The type of bookmark ('link', 'text', 'asset'). Required.
+            title: Optional title for the bookmark (max 1000 chars).
+            archived: Optional boolean indicating if the bookmark is archived.
+            favourited: Optional boolean indicating if the bookmark is favourited.
+            note: Optional note content for the bookmark.
+            summary: Optional summary content for the bookmark.
+            createdAt: Optional creation timestamp override (ISO 8601 format string).
+
+            --- Link Type Specific ---
+            url: The URL for the link bookmark. Required if type='link'.
+            precrawledArchiveId: Optional ID of a pre-crawled archive.
+
+            --- Text Type Specific ---
+            text: The text content for the text bookmark. Required if type='text'.
+            sourceUrl: Optional source URL where the text originated.
+
+            --- Asset Type Specific ---
+            asset_type: The type of asset ('image' or 'pdf'). Required if type='asset'.
+            assetId: The ID of the uploaded asset. Required if type='asset'.
+            fileName: Optional filename for the asset.
+            sourceUrl: Optional source URL where the asset originated.
 
         Returns:
             datatypes.Bookmark: The created bookmark.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
+            ValueError: If required arguments for the specified type are missing.
             APIError: If the API request fails (e.g., bad request).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
-        response_data = self._call("POST", "bookmarks", data=bookmark_data)
+        # --- Construct the request body ---
+        request_body: Dict[str, Any] = {"type": type}
+
+        # Add common optional fields if provided
+        if title is not None:
+            request_body["title"] = title
+        if archived is not None:
+            request_body["archived"] = archived
+        if favourited is not None:
+            request_body["favourited"] = favourited
+        if note is not None:
+            request_body["note"] = note
+        if summary is not None:
+            request_body["summary"] = summary
+        if createdAt is not None:
+            request_body["createdAt"] = createdAt
+
+        # Add type-specific fields and perform validation
+        if type == "link":
+            if url is None:
+                raise ValueError("Argument 'url' is required when type is 'link'.")
+            request_body["url"] = url
+            if precrawledArchiveId is not None:
+                request_body["precrawledArchiveId"] = precrawledArchiveId
+        elif type == "text":
+            if text is None:
+                raise ValueError("Argument 'text' is required when type is 'text'.")
+            request_body["text"] = text
+            if sourceUrl is not None:
+                request_body["sourceUrl"] = sourceUrl
+        elif type == "asset":
+            if asset_type is None:
+                raise ValueError(
+                    "Argument 'asset_type' ('image' or 'pdf') is required when type is 'asset'."
+                )
+            if assetId is None:
+                raise ValueError(
+                    "Argument 'assetId' is required when type is 'asset'."
+                )
+            request_body["assetType"] = asset_type
+            request_body["assetId"] = assetId
+            if fileName is not None:
+                request_body["fileName"] = fileName
+            if sourceUrl is not None:
+                request_body["sourceUrl"] = sourceUrl
+        else:
+            # Should not happen with Literal type hint, but defensive check
+            raise ValueError(f"Invalid bookmark type specified: {type}")
+
+        # --- Make the API call ---
+        response_data = self._call("POST", "bookmarks", data=request_body)
 
         if self.disable_response_validation:
             logger.debug("Skipping response validation as requested.")
