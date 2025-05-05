@@ -43,7 +43,7 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | -------------------------------- | :----: | -------------------------------------------- |
 | `get_all_bookmarks`              |   ✅   | Tested with pagination.                      |
 | `create_a_new_bookmark`          |   ✅   | Only tested for `type="link"`.               |
-| `search_bookmarks`               |   ❌   |                                              |
+| `search_bookmarks`               |   ✅   | Tested as part of create/delete flow.        |
 | `get_a_single_bookmark`          |   ✅   | Tested as part of create/delete flow.        |
 | `delete_a_bookmark`              |   ✅   | Tested as part of create/delete flow.        |
 | `update_a_bookmark`              |   ❌   |                                              |

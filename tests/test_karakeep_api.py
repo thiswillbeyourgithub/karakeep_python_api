@@ -370,8 +370,47 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
         assert retrieved_bookmark.content.url == test_url
         print(f"✓ Successfully retrieved the created bookmark by ID.")
 
+        # 4. Search for the created bookmark
+        print(f"\nAttempting to search for bookmark with query: 'wikipedia'")
+        search_query = "wikipedia"
+        search_results = karakeep_client.search_bookmarks(q=search_query, limit=10)
+        assert isinstance(
+            search_results, datatypes.PaginatedBookmarks
+        ), "Search response should be PaginatedBookmarks model"
+        assert isinstance(
+            search_results.bookmarks, list
+        ), "Search results bookmarks attribute should be a list"
+        assert any(
+            b.id == created_bookmark_id for b in search_results.bookmarks
+        ), f"Created bookmark {created_bookmark_id} not found in search results for '{search_query}'"
+        print(f"✓ Found created bookmark in search results for '{search_query}'.")
+
+        # 4a. Test CLI search equivalent
+        print(f"\n  Running CLI equivalent: search-bookmarks --q '{search_query}' --limit 10")
+        try:
+            cli_search_command = f"python -m karakeep_python_api search-bookmarks --q '{search_query}' --limit 10"
+            search_cli_output = subprocess.run(
+                cli_search_command,
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            # Basic check: Ensure the created ID is somewhere in the output JSON
+            # A more robust check would parse the JSON and verify structure/content
+            assert created_bookmark_id in search_cli_output.stdout, f"Created bookmark ID {created_bookmark_id} not found in CLI search output for '{search_query}'"
+            print("✓ CLI search command executed successfully and contained the bookmark ID.")
+        except subprocess.CalledProcessError as e:
+            print(f"  CLI search command failed with exit code {e.returncode}")
+            print(f"  Stdout: {e.stdout}")
+            print(f"  Stderr: {e.stderr}")
+            pytest.fail(f"CLI command 'search-bookmarks --q {search_query}' failed: {e}")
+        except Exception as e:
+            pytest.fail(f"An unexpected error occurred running the CLI search command: {e}")
+
+
     except (APIError, AuthenticationError) as e:
-        pytest.fail(f"API error during bookmark creation/verification: {e}")
+        pytest.fail(f"API error during bookmark creation/verification/search: {e}")
     except Exception as e:
         pytest.fail(
             f"An unexpected error occurred during bookmark creation/verification: {e}"
@@ -384,7 +423,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                 karakeep_client.delete_a_bookmark(bookmark_id=created_bookmark_id)
                 print(f"✓ Successfully deleted bookmark with ID: {created_bookmark_id}")
 
-                # 5. Verify the bookmark is gone by trying to get it (should fail)
+                # 6. Verify the bookmark is gone by trying to get it (should fail)
                 try:
                     karakeep_client.get_a_single_bookmark(
                         bookmark_id=created_bookmark_id
@@ -400,7 +439,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                         f"✓ Confirmed bookmark {created_bookmark_id} is deleted via API (received 404)."
                     )
 
-                # 6. Attempt to delete the same bookmark via CLI (should ideally fail or do nothing)
+                # 7. Attempt to delete the same bookmark via CLI (should ideally fail or do nothing)
                 print(f"\n  Attempting CLI deletion for already deleted bookmark ID: {created_bookmark_id}")
                 try:
                     cli_delete_command = f"python -m karakeep_python_api delete-a-bookmark --bookmark-id {created_bookmark_id}"
@@ -421,7 +460,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                 except Exception as cli_e:
                     pytest.fail(f"An unexpected error occurred running the CLI delete command: {cli_e}")
 
-                # 7. Verify again via API that the bookmark is still gone after CLI attempt
+                # 8. Verify again via API that the bookmark is still gone after CLI attempt
                 try:
                     karakeep_client.get_a_single_bookmark(bookmark_id=created_bookmark_id)
                     pytest.fail(
