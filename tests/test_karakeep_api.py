@@ -340,55 +340,62 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
             print("\nSkipping deletion because list creation failed or ID was not obtained.")
 
 
-def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
-    """Test creating a new URL bookmark and then deleting it."""
-    created_bookmark_id = None
-    test_url = "https://en.wikipedia.org/wiki/Example"
+def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookmark: datatypes.Bookmark):
+    """
+    Test verifying a created bookmark (via fixture) and searching for it.
+    The fixture handles creation and deletion.
+    """
+    created_bookmark_id = managed_bookmark.id
+    test_url = managed_bookmark.content.url # Get URL from fixture
+    original_title = managed_bookmark.title # Get title from fixture
+
     try:
-        # 1. Define bookmark payload
-        print(f"\nAttempting to create bookmark for URL: {test_url}")
+        # 1. Bookmark is already created by the 'managed_bookmark' fixture.
+        print(f"\nUsing managed bookmark ID: {created_bookmark_id}, URL: '{test_url}', Title: '{original_title}'")
 
-        # 2. Create the bookmark
-        # Call the method with keyword arguments matching its signature
-        created_bookmark = karakeep_client.create_a_new_bookmark(
-            type="link", url=test_url
-        )
-        assert isinstance(
-            created_bookmark, datatypes.Bookmark
-        ), "Response should be a Bookmark model"
-        assert created_bookmark.content.url == test_url, "Created bookmark URL should match"
-        assert created_bookmark.id, "Created bookmark must have an ID"
-        created_bookmark_id = created_bookmark.id
-        print(f"✓ Successfully created bookmark with ID: {created_bookmark_id}")
-
-        # 3. Verify the bookmark exists by getting it directly
+        # 2. Verify the bookmark exists by getting it directly
         retrieved_bookmark = karakeep_client.get_a_single_bookmark(
             bookmark_id=created_bookmark_id
         )
         assert isinstance(retrieved_bookmark, datatypes.Bookmark)
         assert retrieved_bookmark.id == created_bookmark_id
         assert retrieved_bookmark.content.url == test_url
-        print(f"✓ Successfully retrieved the created bookmark by ID.")
+        assert retrieved_bookmark.title == original_title
+        print(f"✓ Successfully retrieved the managed bookmark by ID.")
 
-        # 4. Search for the created bookmark
-        print(f"\nAttempting to search for bookmark with query: 'wikipedia'")
-        search_query = "Example - Wikipedia"
-        search_results = karakeep_client.search_bookmarks(q=search_query, limit=50)
+        # 3. Search for the created bookmark
+        # Use a search query that is likely to match the fixture's title
+        # The fixture title is "Managed Fixture Bookmark {timestamp}-{random_suffix}"
+        # A simple search for "Managed Fixture Bookmark" should work.
+        # If the title is very dynamic, searching by URL might be more robust if supported,
+        # or by a known part of the title.
+        search_query_component = original_title.split(" ")[0] + " " + original_title.split(" ")[1] + " " + original_title.split(" ")[2]
+        print(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'")
+        
+        search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=50)
         assert isinstance(
             search_results, datatypes.PaginatedBookmarks
         ), "Search response should be PaginatedBookmarks model"
         assert isinstance(
             search_results.bookmarks, list
         ), "Search results bookmarks attribute should be a list"
-        assert any(
-            b.id == created_bookmark_id for b in search_results.bookmarks
-        ), f"Created bookmark {created_bookmark_id} not found in search results for '{search_query}'"
-        print(f"✓ Found created bookmark in search results for '{search_query}'.")
+        
+        found_in_search = any(b.id == created_bookmark_id for b in search_results.bookmarks)
+        if not found_in_search and search_results.nextCursor:
+            # If not found and there's a next page, try fetching it.
+            # This is a simplified pagination check for search; real-world might need more robust looping.
+            print(f"  Bookmark not found on first page of search, trying next page with cursor: {search_results.nextCursor}")
+            search_results_page2 = karakeep_client.search_bookmarks(q=search_query_component, limit=50, cursor=search_results.nextCursor)
+            found_in_search = any(b.id == created_bookmark_id for b in search_results_page2.bookmarks)
 
-        # 4a. Test CLI search equivalent
-        print(f"\n  Running CLI equivalent: search-bookmarks --q '{search_query}' --limit 10")
+        assert found_in_search, \
+            f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in search results for '{search_query_component}'"
+        print(f"✓ Found managed bookmark in search results for '{search_query_component}'.")
+
+        # 4. Test CLI search equivalent
+        print(f"\n  Running CLI equivalent: search-bookmarks --q '{search_query_component}' --limit 10")
         try:
-            cli_search_command = f"python -m karakeep_python_api search-bookmarks --q '{search_query}' --limit 10"
+            cli_search_command = f"python -m karakeep_python_api search-bookmarks --q '{search_query_component}' --limit 10"
             search_cli_output = subprocess.run(
                 cli_search_command,
                 shell=True,
@@ -396,93 +403,25 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
                 capture_output=True,
                 text=True,
             )
-            # Basic check: Ensure the created ID is somewhere in the output JSON
-            # A more robust check would parse the JSON and verify structure/content
-            assert created_bookmark_id in search_cli_output.stdout, f"Created bookmark ID {created_bookmark_id} not found in CLI search output for '{search_query}'"
+            assert created_bookmark_id in search_cli_output.stdout, \
+                f"Managed bookmark ID {created_bookmark_id} not found in CLI search output for '{search_query_component}'"
             print("✓ CLI search command executed successfully and contained the bookmark ID.")
         except subprocess.CalledProcessError as e:
             print(f"  CLI search command failed with exit code {e.returncode}")
             print(f"  Stdout: {e.stdout}")
             print(f"  Stderr: {e.stderr}")
-            pytest.fail(f"CLI command 'search-bookmarks --q {search_query}' failed: {e}")
+            pytest.fail(f"CLI command 'search-bookmarks --q \"{search_query_component}\"' failed: {e}")
         except Exception as e:
             pytest.fail(f"An unexpected error occurred running the CLI search command: {e}")
 
-
     except (APIError, AuthenticationError) as e:
-        pytest.fail(f"API error during bookmark creation/verification/search: {e}")
+        pytest.fail(f"API error during bookmark verification/search: {e}")
     except Exception as e:
         pytest.fail(
-            f"An unexpected error occurred during bookmark creation/verification/search: {e}"
+            f"An unexpected error occurred during bookmark verification/search: {e}"
         )
-    finally:
-        # 5. Delete the bookmark (ensure cleanup)
-        if created_bookmark_id:
-            print(f"\nAttempting to delete bookmark with ID: {created_bookmark_id}")
-            try:
-                karakeep_client.delete_a_bookmark(bookmark_id=created_bookmark_id)
-                print(f"✓ Successfully deleted bookmark with ID: {created_bookmark_id}")
-
-                # 6. Verify the bookmark is gone by trying to get it (should fail)
-                try:
-                    karakeep_client.get_a_single_bookmark(
-                        bookmark_id=created_bookmark_id
-                    )
-                    pytest.fail(
-                        f"Bookmark with ID {created_bookmark_id} should not exist after deletion, but get_a_single_bookmark succeeded."
-                    )
-                except APIError as e:
-                    assert (
-                        e.status_code == 404
-                    ), f"Expected 404 Not Found when getting deleted bookmark, but got status {e.status_code}"
-                    print(
-                        f"✓ Confirmed bookmark {created_bookmark_id} is deleted via API (received 404)."
-                    )
-
-                # 7. Attempt to delete the same bookmark via CLI (should ideally fail or do nothing)
-                print(f"\n  Attempting CLI deletion for already deleted bookmark ID: {created_bookmark_id}")
-                try:
-                    cli_delete_command = f"python -m karakeep_python_api delete-a-bookmark --bookmark-id {created_bookmark_id}"
-                    subprocess.run(
-                        cli_delete_command,
-                        shell=True,
-                        check=True, # Set to False if CLI errors on 404, True if it exits 0
-                        capture_output=True,
-                        text=True,
-                    )
-                    # If check=True and it succeeds, it means the CLI might not error on 404.
-                    print(f"  ✓ CLI delete command executed (check=True implies it might not error on 404).")
-                except subprocess.CalledProcessError as e:
-                    # If check=True, this block means the CLI command failed, which *might* be expected if it errors on 404.
-                    print(f"  ✓ CLI delete command failed as expected (exit code {e.returncode}), likely because bookmark was already deleted.")
-                    # Optional: Assert specific exit code if known
-                    # assert e.returncode == EXPECTED_EXIT_CODE_FOR_NOT_FOUND
-                except Exception as cli_e:
-                    pytest.fail(f"An unexpected error occurred running the CLI delete command: {cli_e}")
-
-                # 8. Verify again via API that the bookmark is still gone after CLI attempt
-                try:
-                    karakeep_client.get_a_single_bookmark(bookmark_id=created_bookmark_id)
-                    pytest.fail(
-                        f"Bookmark {created_bookmark_id} should *still* not exist after CLI deletion attempt, but get_a_single_bookmark succeeded."
-                    )
-                except APIError as e:
-                    assert (
-                        e.status_code == 404
-                    ), f"Expected 404 Not Found after CLI deletion attempt, but got status {e.status_code}"
-                    print(
-                        f"✓ Confirmed bookmark {created_bookmark_id} is *still* deleted after CLI attempt (received 404)."
-                    )
-
-            except (APIError, AuthenticationError) as e:
-                # Catch errors from the initial Python API deletion or subsequent checks
-                pytest.fail(f"API error during bookmark deletion/verification: {e}")
-            except Exception as e:
-                pytest.fail(f"An unexpected error occurred during bookmark deletion: {e}")
-        else:
-            print(
-                "\nSkipping deletion because bookmark creation failed or ID was not obtained."
-            )
+    # No 'finally' block for deletion needed, as 'managed_bookmark' fixture handles it.
+    # The fixture also handles verification of deletion.
 
 
 def test_update_bookmark_title(karakeep_client: KarakeepAPI, managed_bookmark: datatypes.Bookmark):
