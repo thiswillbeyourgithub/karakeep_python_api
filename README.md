@@ -48,8 +48,8 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `delete_a_bookmark`              |   ✅   | Tested as part of create/delete flow.        |
 | `update_a_bookmark`              |   ✅   | Tested for title updates.                    |
 | `summarize_a_bookmark`           |   ❌   |                                              |
-| `attach_tags_to_a_bookmark`      |   ❌   |                                              |
-| `detach_tags_from_a_bookmark`    |   ❌   |                                              |
+| `attach_tags_to_a_bookmark`      |   ✅   | Tested as part of tag lifecycle.             |
+| `detach_tags_from_a_bookmark`    |   ✅   | Tested as part of tag lifecycle.             |
 | `get_highlights_of_a_bookmark`   |   ❌   | Works from the cli, not yet added to pytest  |
 | `attach_asset`                   |   ❌   |                                              |
 | `replace_asset`                  |   ❌   |                                              |
@@ -63,9 +63,9 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `add_a_bookmark_to_a_list`       |   ❌   |                                              |
 | `remove_a_bookmark_from_a_list`  |   ❌   |                                              |
 | `get_all_tags`                   |   ✅   |                                              |
-| `get_a_single_tag`               |   ❌   |                                              |
-| `delete_a_tag`                   |   ❌   |                                              |
-| `update_a_tag`                   |   ❌   |                                              |
+| `get_a_single_tag`               |   ✅   | Tested as part of tag lifecycle.             |
+| `delete_a_tag`                   |   ✅   | Tested as part of tag lifecycle.             |
+| `update_a_tag`                   |   ✅   | Tested as part of tag lifecycle.             |
 | `get_a_bookmarks_with_the_tag`   |   ❌   |                                              |
 | `get_all_highlights`             |   ✅   | Tested with pagination.                      |
 | `create_a_new_highlight`         |   ❌   |                                              |
