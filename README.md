@@ -46,7 +46,7 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `search_bookmarks`               |   ✅   | Tested as part of create/delete flow.        |
 | `get_a_single_bookmark`          |   ✅   | Tested as part of create/delete flow.        |
 | `delete_a_bookmark`              |   ✅   | Tested as part of create/delete flow.        |
-| `update_a_bookmark`              |   ❌   |                                              |
+| `update_a_bookmark`              |   ✅   | Tested for title updates.                    |
 | `summarize_a_bookmark`           |   ❌   |                                              |
 | `attach_tags_to_a_bookmark`      |   ❌   |                                              |
 | `detach_tags_from_a_bookmark`    |   ❌   |                                              |
@@ -102,6 +102,7 @@ The client can be configured using the following environment variables:
 *   `KARAKEEP_PYTHON_API_VERIFY_SSL`: Set to `false` to disable SSL certificate verification (default: `true`).
 *   `KARAKEEP_PYTHON_API_VERBOSE`: Set to `true` to enable verbose debug logging for the client and CLI (default: `false`).
 *   `KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION`: Set to `true` to disable Pydantic validation of API responses. The client will return raw dictionary/list data instead of Pydantic models (default: `false`).
+*   `KARAKEEP_PYTHON_API_ENSURE_ASCII`: Set to `true` to escape non-ASCII characters in the JSON output (default: `false`, which means Unicode characters are kept).
 
 ### Command Line Interface (CLI)
 
@@ -138,6 +139,9 @@ python -m karakeep_python_api get-all-lists | jq '.[0]'
 
 # Create a new bookmark from a link (body provided as JSON string)
 python -m karakeep_python_api create-a-new-bookmark --data '{"type": "link", "url": "https://example.com"}'
+
+# Get all tags and ensure ASCII output (e.g., for compatibility with systems that don't handle Unicode well)
+python -m karakeep_python_api --ascii get-all-tags
 
 # Dump the raw OpenAPI spec used by the client
 python -m karakeep_python_api --dump-openapi-specification
