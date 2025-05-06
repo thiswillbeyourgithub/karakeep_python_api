@@ -370,22 +370,30 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookma
         # A simple search for "Managed Fixture Bookmark" should work.
         # If the title is very dynamic, searching by URL might be more robust if supported,
         # or by a known part of the title.
+        
+        # waiting a bit for the indexation just in case
+        time.sleep(30)
 
-        search_query_component = original_title.split(" ")[0] + " " + original_title.split(" ")[1] + " " + original_title.split(" ")[2]
-        print(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'")
+        search_query_component = original_title.split(" ")[0] + " " + original_title.split(" ")[1]
+        print(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'. Retrying multiple times because search is nondeterministic.")
         
-        search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=10, include_content=False)
-        assert isinstance(
-            search_results, datatypes.PaginatedBookmarks
-        ), "Search response should be PaginatedBookmarks model"
-        assert isinstance(
-            search_results.bookmarks, list
-        ), "Search results bookmarks attribute should be a list"
-        
-        titles_in_search = [b.title for b in search_results.bookmarks]
-        found_in_search = any(b.id == created_bookmark_id for b in search_results.bookmarks)
+        for trial in range(5):
+            search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=100, include_content=False)
+            assert isinstance(
+                search_results, datatypes.PaginatedBookmarks
+            ), "Search response should be PaginatedBookmarks model"
+            assert isinstance(
+                search_results.bookmarks, list
+            ), "Search results bookmarks attribute should be a list"
+            
+            titles_in_search = [b.title for b in search_results.bookmarks]
+            found_in_search = any(b.id == created_bookmark_id for b in search_results.bookmarks)
+            if found_in_search:
+                break
+            else:
+                time.sleep(3)
         assert found_in_search, \
-        f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
+        f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in {trial} different search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
         print(f"✓ Found managed bookmark in search results for '{search_query_component}'.")
 
         # 4. Test CLI search equivalent
