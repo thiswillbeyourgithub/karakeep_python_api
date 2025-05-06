@@ -79,6 +79,14 @@ shared_options = [
         envvar="KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION",
         help="Disable Pydantic validation of API responses (returns raw data).",
     ),
+    click.option(
+        "--ascii",
+        "ensure_ascii", # Use 'ensure_ascii' as the destination variable name
+        is_flag=True,
+        default=False, # Default is False, meaning ensure_ascii=False by default
+        envvar="KARAKEEP_PYTHON_API_ENSURE_ASCII",
+        help="Escape non-ASCII characters in the JSON output (default: keep Unicode).",
+    ),
 ]
 
 
@@ -126,9 +134,9 @@ def print_openapi_spec(ctx, param, value):
     is_eager=True,  # Process this option before others
     help="Dump the OpenAPI specification JSON to stdout and exit.",
 )
-@add_options(shared_options)  # Apply shared options to the group
+@add_options(shared_options)  # Apply shared options to the group (ensure_ascii is now included)
 @click.pass_context
-def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation):
+def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation, ensure_ascii):
     """
     Karakeep Python API Command Line Interface.
 
@@ -162,6 +170,7 @@ def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation
     ctx.obj["DISABLE_RESPONSE_VALIDATION"] = (
         disable_response_validation  # Store the flag
     )
+    ctx.obj["ENSURE_ASCII"] = ensure_ascii # Store the ensure_ascii flag
 
     # --- Configure Logger ---
     log_level = "DEBUG" if verbose else "INFO"
@@ -198,6 +207,7 @@ def create_click_command(
             verify_ssl = ctx.obj["VERIFY_SSL"]
             verbose = ctx.obj["VERBOSE"]
             disable_validation = ctx.obj["DISABLE_RESPONSE_VALIDATION"]  # Retrieve flag
+            ensure_ascii_output = ctx.obj["ENSURE_ASCII"] # Retrieve ensure_ascii flag
 
             if not api_key:
                 click.echo(
@@ -285,9 +295,10 @@ def create_click_command(
                 # Serialize and print the result
                 if result is not None:
                     output_data = serialize_output(result)
+                    # Use ensure_ascii_output flag to control JSON encoding
                     click.echo(
-                        json.dumps(output_data, indent=2)
-                    )  # Keep this for stdout result
+                        json.dumps(output_data, indent=2, ensure_ascii=ensure_ascii_output)
+                    )
                 else:
                     # Handle None result (e.g., 204 No Content) gracefully
                     # Verbose check is implicitly handled by logger level
