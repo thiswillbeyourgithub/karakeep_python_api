@@ -340,7 +340,7 @@ def create_click_command(
     docstring = api_method.__doc__ or f"Execute the {api_method_name} API operation."
     docstring = dedent(docstring)
     docstring_lines = docstring.split("\n")
-    help_text = docstring_lines[0].strip()  # First line as short help
+    help_text = " ".join(docstring.split("\n\n")[0].splitlines()).strip()  # First lines as short help
     full_help = docstring  # Full docstring as help
 
     # Extract parameter descriptions from the Args section of the docstring
