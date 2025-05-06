@@ -531,9 +531,12 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
         updated_tag = karakeep_client.update_a_tag(
             tag_id=tag_id_to_manage, update_data=update_payload
         )
-        assert isinstance(updated_tag, datatypes.Tag1), "Update tag response should be Tag1 model"
-        assert updated_tag.name == updated_tag_name, "Tag name was not updated as expected"
-        print(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag.name}'")
+        # Do not check the type because karakeep 0.24.1 has a server side bug
+        # assert isinstance(updated_tag, datatypes.Tag1), "Update tag response should be Tag1 model"
+        # assert updated_tag.name == updated_tag_name, "Tag name was not updated as expected"
+        # print(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag.name}'")
+        assert updated_tag["name"] == updated_tag_name, "Tag name was not updated as expected"
+        print(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag['name']}'")
 
         # 3. Verify tag update by getting it directly
         print(f"\nFetching tag {tag_id_to_manage} to verify its name is '{updated_tag_name}'")

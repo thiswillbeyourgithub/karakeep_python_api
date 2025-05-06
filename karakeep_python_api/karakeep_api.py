@@ -1435,6 +1435,11 @@ class KarakeepAPI:
             logger.debug("Skipping response validation as requested.")
             return response_data
         else:
+            # As of version 0.24.1 of karakeep: we do not check the correct
+            # validation type because there is an error on the
+            # server side: https://github.com/karakeep-app/karakeep/issues/1365
+            return response_data
+
             # Response should match Tag1 schema
             return datatypes.Tag1.model_validate(response_data)
 
