@@ -68,7 +68,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_all_tags`                   |   ✅   |  ✅  |                                              |
 | `get_a_single_tag`               |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
 | `delete_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
-| `update_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `update_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not tested. No output validation due to [server bug](https://github.com/karakeep-app/karakeep/issues/1365). |
 | `get_a_bookmarks_with_the_tag`   |   ❌   |  ❌  |                                              |
 | `get_all_highlights`             |   ✅   |  ✅  | Tested with pagination.                      |
 | `create_a_new_highlight`         |   ❌   |  ❌  |                                              |
