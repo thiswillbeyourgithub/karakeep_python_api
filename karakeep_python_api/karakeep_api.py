@@ -855,6 +855,7 @@ class KarakeepAPI:
         """
         Delete a bookmark by its ID. Corresponds to DELETE /bookmarks/{bookmarkId}.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark to delete.
 
         Returns:
@@ -901,6 +902,7 @@ class KarakeepAPI:
         Summarize a bookmark by its ID. Corresponds to POST /bookmarks/{bookmarkId}/summarize.
         This triggers the summarization process and returns the updated bookmark record (partially).
 
+        Args:
             bookmark_id: The ID (string) of the bookmark to summarize.
 
         Returns:
@@ -924,6 +926,7 @@ class KarakeepAPI:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
             tags_data: Dictionary specifying the tags to attach. Must contain a "tags" key
                        which is a list of objects, each having *either* "tagId" (string) *or* "tagName" (string).
@@ -950,6 +953,7 @@ class KarakeepAPI:
         """
         Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
             tags_data: Dictionary specifying the tags to detach. Must contain a "tags" key
                        which is a list of objects, each having *either* "tagId" (string) *or* "tagName" (string).
@@ -976,6 +980,7 @@ class KarakeepAPI:
         """
         Get all highlights associated with a specific bookmark. Corresponds to GET /bookmarks/{bookmarkId}/highlights.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
 
         Returns:
@@ -1023,6 +1028,7 @@ class KarakeepAPI:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_data: Dictionary specifying the asset to attach. Must contain "id" (string) and "assetType" (string enum).
                         Example: `{"id": "asset_id_string", "assetType": "screenshot"}`
@@ -1054,6 +1060,7 @@ class KarakeepAPI:
         Replace an existing asset associated with a bookmark with a new one.
         Corresponds to PUT /bookmarks/{bookmarkId}/assets/{assetId}.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to be replaced.
             new_asset_data: Dictionary specifying the new asset ID. Must contain "assetId" (string).
@@ -1074,6 +1081,7 @@ class KarakeepAPI:
         """
         Detach an asset from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/assets/{assetId}.
 
+        Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to detach.
 
@@ -1092,6 +1100,7 @@ class KarakeepAPI:
         """
         Get all lists for the current user. Corresponds to GET /lists.
 
+        Returns:
             List[datatypes.ListModel]: A list of list objects.
             If response validation is disabled, returns the raw API response (dict/list).
 
@@ -1135,6 +1144,7 @@ class KarakeepAPI:
         """
         Create a new list (manual or smart). Corresponds to POST /lists.
 
+        Args:
             list_data: Dictionary containing the data for the new list. Requires "name" (string) and "icon" (string).
                        Optional fields include "description", "parentId", "type" ('manual' or 'smart'), "query".
                        See the OpenAPI spec for details. Example: `{"name": "My List", "icon": "📚"}`
@@ -1163,6 +1173,7 @@ class KarakeepAPI:
         """
         Get a single list by its ID. Corresponds to GET /lists/{listId}.
 
+        Args:
             list_id: The ID (string) of the list to retrieve.
 
         Returns:
@@ -1188,6 +1199,7 @@ class KarakeepAPI:
         """
         Delete a list by its ID. Corresponds to DELETE /lists/{listId}.
 
+        Args:
             list_id: The ID (string) of the list to delete.
 
         Returns:
@@ -1208,6 +1220,7 @@ class KarakeepAPI:
         Update a list by its ID. Corresponds to PATCH /lists/{listId}.
         Allows updating fields like "name", "description", "icon", "parentId", "query".
 
+        Args:
             list_id: The ID (string) of the list to update.
             update_data: A dictionary containing the fields to update (e.g., `{"name": "new name"}`).
                          See the OpenAPI spec for allowed fields.
@@ -1241,6 +1254,7 @@ class KarakeepAPI:
         """
         Get the bookmarks contained within a specific list. Corresponds to GET /lists/{listId}/bookmarks.
 
+        Args:
             list_id: The ID (string) of the list.
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
@@ -1274,6 +1288,7 @@ class KarakeepAPI:
         """
         Add a bookmark to a specific list. Corresponds to PUT /lists/{listId}/bookmarks/{bookmarkId}.
 
+        Args:
             list_id: The ID (string) of the list.
             bookmark_id: The ID (string) of the bookmark to add.
 
@@ -1292,6 +1307,7 @@ class KarakeepAPI:
         """
         Remove a bookmark from a specific list. Corresponds to DELETE /lists/{listId}/bookmarks/{bookmarkId}.
 
+        Args:
             list_id: The ID (string) of the list.
             bookmark_id: The ID (string) of the bookmark to remove.
 
@@ -1310,6 +1326,7 @@ class KarakeepAPI:
         """
         Get all tags for the current user. Corresponds to GET /tags.
 
+        Returns:
             List[datatypes.Tag1]: A list of tag objects, including bookmark counts.
             If response validation is disabled, returns the raw API response (dict/list).
 
@@ -1351,6 +1368,7 @@ class KarakeepAPI:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
 
+        Args:
             tag_id: The ID (string) of the tag to retrieve.
 
         Returns:
@@ -1376,6 +1394,7 @@ class KarakeepAPI:
         """
         Delete a tag by its ID. Corresponds to DELETE /tags/{tagId}.
 
+        Args:
             tag_id: The ID (string) of the tag to delete.
 
         Returns:
@@ -1396,6 +1415,7 @@ class KarakeepAPI:
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
 
+        Args:
             tag_id: The ID (string) of the tag to update.
             update_data: A dictionary containing the fields to update. Must include "name" (string).
                          Example: `{"name": "new tag name"}`
@@ -1429,6 +1449,7 @@ class KarakeepAPI:
         """
         Get the bookmarks associated with a specific tag. Corresponds to GET /tags/{tagId}/bookmarks.
 
+        Args:
             tag_id: The ID (string) of the tag.
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
@@ -1493,6 +1514,7 @@ class KarakeepAPI:
         """
         Create a new highlight on a bookmark. Corresponds to POST /highlights.
 
+        Args:
             highlight_data: Dictionary containing the data for the new highlight. Requires "bookmarkId" (string),
                             "startOffset" (number), "endOffset" (number). Optional fields include "color", "text", "note".
                             See the OpenAPI spec for details. Example: `{"bookmarkId": "...", "startOffset": 10, "endOffset": 25}`
@@ -1521,6 +1543,7 @@ class KarakeepAPI:
         """
         Get a single highlight by its ID. Corresponds to GET /highlights/{highlightId}.
 
+        Args:
             highlight_id: The ID (string) of the highlight to retrieve.
 
         Returns:
@@ -1549,6 +1572,7 @@ class KarakeepAPI:
         Delete a highlight by its ID. Corresponds to DELETE /highlights/{highlightId}.
         Note: Unlike most DELETE endpoints, this returns the deleted highlight object on success (status 200).
 
+        Args:
             highlight_id: The ID (string) of the highlight to delete.
 
         Returns:
@@ -1577,6 +1601,7 @@ class KarakeepAPI:
         Update a highlight by its ID. Currently only supports updating the "color".
         Corresponds to PATCH /highlights/{highlightId}.
 
+        Args:
             highlight_id: The ID (string) of the highlight to update.
             update_data: A dictionary containing the fields to update. Must include "color" (string enum).
                          See `datatypes.Color` enum. Example: `{"color": "red"}`
@@ -1604,6 +1629,7 @@ class KarakeepAPI:
         """
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
+        Returns:
             dict: A dictionary containing user information ('id', 'name', 'email').
                   Validation is not performed on this response type by default.
 
@@ -1619,6 +1645,7 @@ class KarakeepAPI:
         """
         Get statistics about the current authenticated user's data. Corresponds to GET /users/me/stats.
 
+        Returns:
             dict: A dictionary containing user statistics ('numBookmarks', 'numFavorites', 'numArchived', etc.).
                   Validation is not performed on this response type by default.
 

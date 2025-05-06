@@ -1,3 +1,4 @@
+from textwrap import dedent
 import inspect
 import json
 import sys
@@ -337,6 +338,7 @@ def create_click_command(
     click_params = []
     # Use the docstring from the original method (captured by functools.update_wrapper)
     docstring = api_method.__doc__ or f"Execute the {api_method_name} API operation."
+    docstring = dedent(docstring)
     docstring_lines = docstring.split("\n")
     help_text = docstring_lines[0].strip()  # First line as short help
     full_help = docstring  # Full docstring as help
@@ -344,8 +346,9 @@ def create_click_command(
     # Extract parameter descriptions from the Args section of the docstring
     param_descriptions = {}
     in_args_section = False
-    last_indent = 0
     args_section_lines = []
+    assert "Returns:" in docstring
+    assert "Raises:" in docstring
     for line in docstring_lines:
         stripped_line = line.strip()
         if stripped_line == "Args:":
@@ -353,22 +356,19 @@ def create_click_command(
         elif (
             stripped_line == "Returns:" or stripped_line == "Raises:"
         ):
-            in_args_section = False  # Stop capturing when Returns/Raises section starts # Corrected indentation
+            in_args_section = False  # Stop capturing when Returns/Raises section starts
         elif in_args_section and stripped_line:
             args_section_lines.append(stripped_line)
             # Use regex to capture 'param_name: description' structure, allowing leading whitespace
-            # Pattern: ^\s* (parameter_name) \s* : \s* (description) $
-            match = re.match(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$", stripped_line)
-            if match:
+            # Pattern: ^\s+ (parameter_name): \s* (description) $
+            match = re.match(r"^\s+([a-zA-Z_][a-zA-Z0-9_]*):\s+(.*)$", line)
+            if match and match.group(1) != "Example":
                 param_name = match.group(1)
                 description = match.group(2).strip()
                 param_descriptions[param_name] = description
                 logger.trace(f"Parsed docstring param: '{param_name}' -> '{description}'")
             else:
-                # Log a warning if a line in the Args section doesn't match the expected format
-                logger.warning(
-                    f"Could not parse parameter description from docstring line using regex: '{stripped_line}'"
-                )
+                param_descriptions[param_name] += " " + stripped_line
 
     # Removed breakpoint() that was added for debugging
     # Add parameters from signature to Click command
