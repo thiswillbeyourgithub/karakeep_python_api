@@ -343,27 +343,28 @@ def create_click_command(
     # Extract parameter descriptions from the Args section of the docstring
     param_descriptions = {}
     in_args_section = False
+    last_indent = 0
     args_section_lines = []
     for line in docstring_lines:
-        stripped_line = line.strip()  # Corrected indentation
-        if stripped_line == "Args:":  # Corrected indentation
-            in_args_section = True  # Corrected indentation
+        stripped_line = line.strip()
+        if stripped_line == "Args:":
+            in_args_section = True
         elif (
             stripped_line == "Returns:" or stripped_line == "Raises:"
-        ):  # Corrected indentation
+        ):
             in_args_section = False  # Stop capturing when Returns/Raises section starts # Corrected indentation
-        elif in_args_section and stripped_line:  # Corrected indentation
-            args_section_lines.append(stripped_line)  # Corrected indentation
+        elif in_args_section and stripped_line:
+            args_section_lines.append(stripped_line)
             # Try parsing the parameter name and description
-            parts = stripped_line.split(":", 1)  # Corrected indentation
-            if len(parts) == 2:  # Corrected indentation
+            parts = stripped_line.split(":", 1)
+            if len(parts) == 2:
                 # Extract name, assuming format "name (type): description"
-                name_part = parts[0].split(" ")[0]  # Corrected indentation
+                name_part = parts[0].split(" ")[0]
                 # Clean potential trailing parenthesis from type hint parsing
-                name_part = name_part.rstrip(")")  # Corrected indentation
+                name_part = name_part.rstrip(")")
                 param_descriptions[name_part] = parts[
                     1
-                ].strip()  # Corrected indentation
+                ].strip()
 
     # Add parameters from signature to Click command
     for param in params:  # Use the filtered list from signature inspection
