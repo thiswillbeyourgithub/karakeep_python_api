@@ -485,31 +485,20 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI):
             )
 
 
-def test_update_bookmark_title(karakeep_client: KarakeepAPI):
-    """Test updating a bookmark's title via API and CLI."""
-    created_bookmark_id = None
-    # Generate a unique suffix for the initial title to avoid collisions
-    timestamp = int(time.time())
-    random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
-    original_title = f"Initial Test Title {timestamp}-{random_suffix}"
-    test_url = "https://en.wikipedia.org/wiki/PageForBookmarkUpdateTest" # A distinct URL for this test
+def test_update_bookmark_title(karakeep_client: KarakeepAPI, managed_bookmark: datatypes.Bookmark):
+    """Test updating a bookmark's title via API and CLI, using a managed bookmark."""
+    created_bookmark_id = managed_bookmark.id
+    original_title = managed_bookmark.title # Get the original title from the fixture
     
     target_api_title = "this is a test title"
     target_cli_title = "this is a test title (CLI)"
 
     try:
-        # 1. Create a bookmark with an initial title
-        print(f"\nAttempting to create bookmark for URL: {test_url} with original title: '{original_title}'")
-        created_bookmark = karakeep_client.create_a_new_bookmark(
-            type="link", url=test_url, title=original_title
-        )
-        assert isinstance(created_bookmark, datatypes.Bookmark), "Response should be a Bookmark model"
-        created_bookmark_id = created_bookmark.id
-        assert created_bookmark.id, "Created bookmark must have an ID"
-        assert created_bookmark.title == original_title, f"Initial title '{created_bookmark.title}' does not match expected '{original_title}'"
-        print(f"✓ Successfully created bookmark ID: {created_bookmark_id}, Title: '{created_bookmark.title}'")
+        # The bookmark is already created by the 'managed_bookmark' fixture.
+        # We have its ID in created_bookmark_id and its original title.
+        print(f"\nUsing managed bookmark ID: {created_bookmark_id}, Original Title: '{original_title}'")
 
-        # 2. Update the bookmark's title using the API client
+        # 1. Update the bookmark's title using the API client
         print(f"\nAttempting to update bookmark ID {created_bookmark_id} title to: '{target_api_title}' via API")
         update_payload_api = {"title": target_api_title}
         updated_bookmark_partial = karakeep_client.update_a_bookmark(
@@ -520,7 +509,7 @@ def test_update_bookmark_title(karakeep_client: KarakeepAPI):
             f"Partial response title '{updated_bookmark_partial.get('title')}' does not match target API title '{target_api_title}'"
         print(f"✓ API call to update_a_bookmark successful. Partial response title: '{updated_bookmark_partial.get('title')}'")
 
-        # 3. Verify the API update by fetching the bookmark again
+        # 2. Verify the API update by fetching the bookmark again
         print(f"\nFetching bookmark ID {created_bookmark_id} to verify API title update.")
         retrieved_bookmark_after_api_update = karakeep_client.get_a_single_bookmark(
             bookmark_id=created_bookmark_id
@@ -530,7 +519,7 @@ def test_update_bookmark_title(karakeep_client: KarakeepAPI):
             f"Retrieved bookmark title '{retrieved_bookmark_after_api_update.title}' does not match expected API-updated title '{target_api_title}'"
         print(f"✓ Successfully verified bookmark title updated by API to: '{retrieved_bookmark_after_api_update.title}'")
 
-        # 4. Test CLI equivalent for updating the bookmark's title
+        # 3. Test CLI equivalent for updating the bookmark's title
         print(f"\n  Running CLI equivalent to update title to: '{target_cli_title}'")
         cli_update_payload_json = json.dumps({"title": target_cli_title})
         # Ensure the JSON string is properly quoted for the shell command
@@ -546,7 +535,7 @@ def test_update_bookmark_title(karakeep_client: KarakeepAPI):
             )
             print("✓ CLI update command executed successfully.")
 
-            # 5. Verify CLI update by fetching the bookmark again
+            # 4. Verify CLI update by fetching the bookmark again
             print(f"\nFetching bookmark ID {created_bookmark_id} to verify CLI title update.")
             retrieved_bookmark_after_cli_update = karakeep_client.get_a_single_bookmark(
                 bookmark_id=created_bookmark_id
@@ -569,18 +558,7 @@ def test_update_bookmark_title(karakeep_client: KarakeepAPI):
         pytest.fail(f"API error during bookmark title update test: {e}")
     except Exception as e:
         pytest.fail(f"An unexpected error occurred during bookmark title update test: {e}")
-    finally:
-        # 6. Delete the bookmark (ensure cleanup)
-        if created_bookmark_id:
-            print(f"\nAttempting to delete bookmark ID: {created_bookmark_id} during cleanup.")
-            try:
-                karakeep_client.delete_a_bookmark(bookmark_id=created_bookmark_id)
-                print(f"✓ Successfully deleted bookmark ID: {created_bookmark_id}")
-            except Exception as e:
-                # Log cleanup failure but don't obscure original test failure if any
-                print(f"Error during cleanup: Failed to delete bookmark {created_bookmark_id}: {e}")
-                # Depending on test policy, you might re-raise or just log
-                # pytest.fail(f"Failed to delete bookmark {created_bookmark_id} during cleanup: {e}")
+    # No finally block needed for deletion, as 'managed_bookmark' fixture handles it.
 
 
 # --- Test User Info/Stats Endpoints ---
