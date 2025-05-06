@@ -37,43 +37,46 @@ The development process involved:
 
 ## API Method Coverage
 
-The following table lists the public methods available in the `KarakeepAPI` class and indicates whether they are currently covered by the automated test suite (`tests/test_karakeep_api.py`). Methods marked as "No" should be used with caution as their behavior has not been automatically verified.
+The following table lists the public methods available in the `KarakeepAPI` class.
+*   The "Pytest" column indicates whether the Python library method is covered by the automated test suite (`tests/test_karakeep_api.py`).
+*   The "CLI" column indicates whether the corresponding CLI command for that method is tested within the Pytest suite (typically via `subprocess`).
+Methods or CLI commands marked with ❌ should be used with caution as their behavior has not been automatically verified within the test suite.
 
-| Method Name                      | Tested (pytest) | Remarks                                      |
-| -------------------------------- | :----: | -------------------------------------------- |
-| `get_all_bookmarks`              |   ✅   | Tested with pagination.                      |
-| `create_a_new_bookmark`          |   ✅   | Only tested for `type="link"`.               |
-| `search_bookmarks`               |   ✅   | Tested as part of create/delete flow.        |
-| `get_a_single_bookmark`          |   ✅   | Tested as part of create/delete flow.        |
-| `delete_a_bookmark`              |   ✅   | Tested as part of create/delete flow.        |
-| `update_a_bookmark`              |   ✅   | Tested for title updates.                    |
-| `summarize_a_bookmark`           |   ❌   |                                              |
-| `attach_tags_to_a_bookmark`      |   ✅   | Tested as part of tag lifecycle.             |
-| `detach_tags_from_a_bookmark`    |   ✅   | Tested as part of tag lifecycle.             |
-| `get_highlights_of_a_bookmark`   |   ❌   | Works from the cli, not yet added to pytest  |
-| `attach_asset`                   |   ❌   |                                              |
-| `replace_asset`                  |   ❌   |                                              |
-| `detach_asset`                   |   ❌   |                                              |
-| `get_all_lists`                  |   ✅   |                                              |
-| `create_a_new_list`              |   ✅   | Tested as part of create/delete flow.        |
-| `get_a_single_list`              |   ✅   | Tested as part of create/delete flow.        |
-| `delete_a_list`                  |   ✅   | Tested as part of create/delete flow.        |
-| `update_a_list`                  |   ❌   |                                              |
-| `get_a_bookmarks_in_a_list`      |   ❌   |                                              |
-| `add_a_bookmark_to_a_list`       |   ❌   |                                              |
-| `remove_a_bookmark_from_a_list`  |   ❌   |                                              |
-| `get_all_tags`                   |   ✅   |                                              |
-| `get_a_single_tag`               |   ✅   | Tested as part of tag lifecycle.             |
-| `delete_a_tag`                   |   ✅   | Tested as part of tag lifecycle.             |
-| `update_a_tag`                   |   ✅   | Tested as part of tag lifecycle.             |
-| `get_a_bookmarks_with_the_tag`   |   ❌   |                                              |
-| `get_all_highlights`             |   ✅   | Tested with pagination.                      |
-| `create_a_new_highlight`         |   ❌   |                                              |
-| `get_a_single_highlight`         |   ❌   |                                              |
-| `delete_a_highlight`             |   ❌   | Works from the cli, not yet added to pytest  |
-| `update_a_highlight`             |   ❌   |                                              |
-| `get_current_user_info`          |   ✅   | Tested indirectly during client initialization. |
-| `get_current_user_stats`         |   ✅   |                                              |
+| Method Name                      | Pytest | CLI  | Remarks                                      |
+| -------------------------------- | :----: | :--: | -------------------------------------------- |
+| `get_all_bookmarks`              |   ✅   |  ✅  | Tested with pagination.                      |
+| `create_a_new_bookmark`          |   ✅   |  ❌  | Pytest for `type="link"` via fixture. CLI not directly tested. |
+| `search_bookmarks`               |   ✅   |  ✅  | Tested as part of create/delete flow.        |
+| `get_a_single_bookmark`          |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
+| `delete_a_bookmark`              |   ✅   |  ❌  | Pytest as part of create/delete flow (fixture). CLI not directly tested. |
+| `update_a_bookmark`              |   ✅   |  ✅  | Tested for title updates.                    |
+| `summarize_a_bookmark`           |   ❌   |  ❌  |                                              |
+| `attach_tags_to_a_bookmark`      |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `detach_tags_from_a_bookmark`    |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `get_highlights_of_a_bookmark`   |   ❌   |  ❌  | Works from the CLI; not yet added to Pytest. |
+| `attach_asset`                   |   ❌   |  ❌  |                                              |
+| `replace_asset`                  |   ❌   |  ❌  |                                              |
+| `detach_asset`                   |   ❌   |  ❌  |                                              |
+| `get_all_lists`                  |   ✅   |  ✅  |                                              |
+| `create_a_new_list`              |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
+| `get_a_single_list`              |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
+| `delete_a_list`                  |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
+| `update_a_list`                  |   ❌   |  ❌  |                                              |
+| `get_a_bookmarks_in_a_list`      |   ❌   |  ❌  |                                              |
+| `add_a_bookmark_to_a_list`       |   ❌   |  ❌  |                                              |
+| `remove_a_bookmark_from_a_list`  |   ❌   |  ❌  |                                              |
+| `get_all_tags`                   |   ✅   |  ✅  |                                              |
+| `get_a_single_tag`               |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `delete_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `update_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `get_a_bookmarks_with_the_tag`   |   ❌   |  ❌  |                                              |
+| `get_all_highlights`             |   ✅   |  ✅  | Tested with pagination.                      |
+| `create_a_new_highlight`         |   ❌   |  ❌  |                                              |
+| `get_a_single_highlight`         |   ❌   |  ❌  |                                              |
+| `delete_a_highlight`             |   ❌   |  ❌  | Works from the CLI; not yet added to Pytest. |
+| `update_a_highlight`             |   ❌   |  ❌  |                                              |
+| `get_current_user_info`          |   ✅   |  ❌  | Pytest: Tested indirectly during client init. CLI not directly tested. |
+| `get_current_user_stats`         |   ✅   |  ✅  |                                              |
 
 ## Installation
 
