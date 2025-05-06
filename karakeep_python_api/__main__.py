@@ -3,6 +3,7 @@ import json
 import sys
 import os
 import functools
+import re  # Import re module
 import click
 import traceback  # Moved import to top
 from typing import Any, List, Dict, Optional, Callable, Union, get_origin, get_args, Literal
@@ -355,17 +356,21 @@ def create_click_command(
             in_args_section = False  # Stop capturing when Returns/Raises section starts # Corrected indentation
         elif in_args_section and stripped_line:
             args_section_lines.append(stripped_line)
-            # Try parsing the parameter name and description
-            parts = stripped_line.split(":", 1)
-            if len(parts) == 2:
-                # Extract name, assuming format "name (type): description"
-                name_part = parts[0].split(" ")[0]
-                # Clean potential trailing parenthesis from type hint parsing
-                name_part = name_part.rstrip(")")
-                param_descriptions[name_part] = parts[
-                    1
-                ].strip()
+            # Use regex to capture 'param_name: description' structure, allowing leading whitespace
+            # Pattern: ^\s* (parameter_name) \s* : \s* (description) $
+            match = re.match(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$", stripped_line)
+            if match:
+                param_name = match.group(1)
+                description = match.group(2).strip()
+                param_descriptions[param_name] = description
+                logger.trace(f"Parsed docstring param: '{param_name}' -> '{description}'")
+            else:
+                # Log a warning if a line in the Args section doesn't match the expected format
+                logger.warning(
+                    f"Could not parse parameter description from docstring line using regex: '{stripped_line}'"
+                )
 
+    # Removed breakpoint() that was added for debugging
     # Add parameters from signature to Click command
     for param in params:  # Use the filtered list from signature inspection
         param_name_cli = param.name.replace("_", "-")  # Use kebab-case for CLI options
