@@ -46,29 +46,29 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | -------------------------------- | :----: | :--: | -------------------------------------------- |
 | `get_all_bookmarks`              |   ✅   |  ✅  | Tested with pagination.                      |
 | `create_a_new_bookmark`          |   ✅   |  ❌  | Pytest for `type="link"` via fixture. CLI not directly tested. |
-| `search_bookmarks`               |   ✅   |  ✅  | Tested as part of create/delete flow.        |
-| `get_a_single_bookmark`          |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
-| `delete_a_bookmark`              |   ✅   |  ❌  | Pytest as part of create/delete flow (fixture). CLI not directly tested. |
+| `search_bookmarks`               |   ✅   |  ✅  | Seems to be nondeterministic and fails if using more than 3 words        |
+| `get_a_single_bookmark`          |   ✅   |  ❌  |  |
+| `delete_a_bookmark`              |   ✅   |  ❌  |  |
 | `update_a_bookmark`              |   ✅   |  ✅  | Tested for title updates.                    |
 | `summarize_a_bookmark`           |   ❌   |  ❌  |                                              |
-| `attach_tags_to_a_bookmark`      |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
-| `detach_tags_from_a_bookmark`    |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
+| `attach_tags_to_a_bookmark`      |   ✅   |  ❌  |  |
+| `detach_tags_from_a_bookmark`    |   ✅   |  ❌  |  |
 | `get_highlights_of_a_bookmark`   |   ❌   |  ❌  | Works from the CLI; not yet added to Pytest. |
 | `attach_asset`                   |   ❌   |  ❌  |                                              |
 | `replace_asset`                  |   ❌   |  ❌  |                                              |
 | `detach_asset`                   |   ❌   |  ❌  |                                              |
 | `get_all_lists`                  |   ✅   |  ✅  |                                              |
-| `create_a_new_list`              |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
-| `get_a_single_list`              |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
-| `delete_a_list`                  |   ✅   |  ❌  | Pytest as part of create/delete flow. CLI not directly tested. |
+| `create_a_new_list`              |   ✅   |  ❌  | |
+| `get_a_single_list`              |   ✅   |  ❌  | |
+| `delete_a_list`                  |   ✅   |  ❌  | |
 | `update_a_list`                  |   ❌   |  ❌  |                                              |
 | `get_a_bookmarks_in_a_list`      |   ❌   |  ❌  |                                              |
 | `add_a_bookmark_to_a_list`       |   ❌   |  ❌  |                                              |
 | `remove_a_bookmark_from_a_list`  |   ❌   |  ❌  |                                              |
 | `get_all_tags`                   |   ✅   |  ✅  |                                              |
-| `get_a_single_tag`               |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
-| `delete_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not directly tested. |
-| `update_a_tag`                   |   ✅   |  ❌  | Pytest as part of tag lifecycle. CLI not tested. No output validation due to [server bug](https://github.com/karakeep-app/karakeep/issues/1365). |
+| `get_a_single_tag`               |   ✅   |  ❌  |  |
+| `delete_a_tag`                   |   ✅   |  ❌  |  |
+| `update_a_tag`                   |   ✅   |  ❌  |  No output validation due to [server bug](https://github.com/karakeep-app/karakeep/issues/1365). |
 | `get_a_bookmarks_with_the_tag`   |   ❌   |  ❌  |                                              |
 | `get_all_highlights`             |   ✅   |  ✅  | Tested with pagination.                      |
 | `create_a_new_highlight`         |   ❌   |  ❌  |                                              |
