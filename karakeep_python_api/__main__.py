@@ -238,9 +238,32 @@ def create_click_command(
                     k: v for k, v in call_args.items() if k in valid_arg_names
                 }
 
-                # Note: No special '--data' handling needed anymore for create_a_new_bookmark
-                # Type conversion for basic types (str, int, bool) is handled by Click.
-                # List/Dict parameters still expect JSON strings if used elsewhere.
+                # --- JSON Parsing for Dict/List Parameters ---
+                # Iterate through the expected parameters from the signature
+                for param_name, param_sig in signature.parameters.items():
+                    if param_name in call_args:
+                        param_value = call_args[param_name]
+                        param_annotation = param_sig.annotation
+                        origin = getattr(param_annotation, "__origin__", None)
+
+                        # Check if the annotation is dict/list or typing.Dict/List
+                        # and if the received value is a string (needs parsing)
+                        if (
+                            (param_annotation in (dict, list) or origin in (dict, list, Dict, List))
+                            and isinstance(param_value, str)
+                        ):
+                            try:
+                                # Attempt to parse the JSON string
+                                call_args[param_name] = json.loads(param_value)
+                                logger.debug(f"Parsed JSON string for parameter '{param_name}'.")
+                            except json.JSONDecodeError as json_err:
+                                # Handle invalid JSON input from the user
+                                click.echo(
+                                    f"Error: Invalid JSON provided for parameter '{param_name.replace('_', '-')}': {json_err}",
+                                    err=True,
+                                )
+                                click.echo(f"Provided value: {param_value}", err=True)
+                                ctx.exit(1)
 
                 # Call the API method
                 try:
