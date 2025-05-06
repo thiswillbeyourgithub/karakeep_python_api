@@ -463,7 +463,7 @@ class KarakeepAPI:
                         logger.warning(
                             f"Error encounterd during requests. Trial={trial}/{max_trial}. Retrying after a small wait.\nError: {e}"
                         )
-                        time.sleep(trial * 2)
+                        time.sleep(trial * 3)
                     else:
                         raise
 
