@@ -209,7 +209,7 @@ class KarakeepAPI:
         self.strict_response_parsing = (
             strict_response_parsing  # Currently unused but kept
         )
-        self.last_request_time: float = 0.0  # Initialize timestamp for rate limiting
+        self.last_request_time: float = time.monotonic()  # Initialize timestamp for rate limiting
 
         # --- Response Validation Setting ---
         # Argument takes precedence over environment variable
