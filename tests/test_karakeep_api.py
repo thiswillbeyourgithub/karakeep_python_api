@@ -363,16 +363,18 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookma
         assert retrieved_bookmark.title == original_title
         print(f"✓ Successfully retrieved the managed bookmark by ID.")
 
+
         # 3. Search for the created bookmark
         # Use a search query that is likely to match the fixture's title
         # The fixture title is "Managed Fixture Bookmark {timestamp}-{random_suffix}"
         # A simple search for "Managed Fixture Bookmark" should work.
         # If the title is very dynamic, searching by URL might be more robust if supported,
         # or by a known part of the title.
+
         search_query_component = original_title.split(" ")[0] + " " + original_title.split(" ")[1] + " " + original_title.split(" ")[2]
         print(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'")
         
-        search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=50)
+        search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=10, include_content=False)
         assert isinstance(
             search_results, datatypes.PaginatedBookmarks
         ), "Search response should be PaginatedBookmarks model"
@@ -380,22 +382,16 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookma
             search_results.bookmarks, list
         ), "Search results bookmarks attribute should be a list"
         
+        titles_in_search = [b.title for b in search_results.bookmarks]
         found_in_search = any(b.id == created_bookmark_id for b in search_results.bookmarks)
-        if not found_in_search and search_results.nextCursor:
-            # If not found and there's a next page, try fetching it.
-            # This is a simplified pagination check for search; real-world might need more robust looping.
-            print(f"  Bookmark not found on first page of search, trying next page with cursor: {search_results.nextCursor}")
-            search_results_page2 = karakeep_client.search_bookmarks(q=search_query_component, limit=50, cursor=search_results.nextCursor)
-            found_in_search = any(b.id == created_bookmark_id for b in search_results_page2.bookmarks)
-
         assert found_in_search, \
-            f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in search results for '{search_query_component}'"
+        f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
         print(f"✓ Found managed bookmark in search results for '{search_query_component}'.")
 
         # 4. Test CLI search equivalent
-        print(f"\n  Running CLI equivalent: search-bookmarks --q '{search_query_component}' --limit 10")
+        print(f"\n  Running CLI equivalent: search-bookmarks --q '{search_query_component}' --limit 10 --include-content false")
         try:
-            cli_search_command = f"python -m karakeep_python_api search-bookmarks --q '{search_query_component}' --limit 10"
+            cli_search_command = f"python -m karakeep_python_api search-bookmarks --q '{search_query_component}' --limit 10 --include-content false"
             search_cli_output = subprocess.run(
                 cli_search_command,
                 shell=True,
