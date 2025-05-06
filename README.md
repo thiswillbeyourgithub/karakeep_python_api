@@ -39,7 +39,7 @@ The development process involved:
 
 The following table lists the public methods available in the `KarakeepAPI` class and indicates whether they are currently covered by the automated test suite (`tests/test_karakeep_api.py`). Methods marked as "No" should be used with caution as their behavior has not been automatically verified.
 
-| Method Name                      | Tested | Remarks                                      |
+| Method Name                      | Tested (pytest) | Remarks                                      |
 | -------------------------------- | :----: | -------------------------------------------- |
 | `get_all_bookmarks`              |   ✅   | Tested with pagination.                      |
 | `create_a_new_bookmark`          |   ✅   | Only tested for `type="link"`.               |
@@ -50,7 +50,7 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `summarize_a_bookmark`           |   ❌   |                                              |
 | `attach_tags_to_a_bookmark`      |   ❌   |                                              |
 | `detach_tags_from_a_bookmark`    |   ❌   |                                              |
-| `get_highlights_of_a_bookmark`   |   ❌   |                                              |
+| `get_highlights_of_a_bookmark`   |   ❌   | Works from the cli, not yet added to pytest  |
 | `attach_asset`                   |   ❌   |                                              |
 | `replace_asset`                  |   ❌   |                                              |
 | `detach_asset`                   |   ❌   |                                              |
@@ -70,7 +70,7 @@ The following table lists the public methods available in the `KarakeepAPI` clas
 | `get_all_highlights`             |   ✅   | Tested with pagination.                      |
 | `create_a_new_highlight`         |   ❌   |                                              |
 | `get_a_single_highlight`         |   ❌   |                                              |
-| `delete_a_highlight`             |   ❌   |                                              |
+| `delete_a_highlight`             |   ❌   | Works from the cli, not yet added to pytest  |
 | `update_a_highlight`             |   ❌   |                                              |
 | `get_current_user_info`          |   ✅   | Tested indirectly during client initialization. |
 | `get_current_user_stats`         |   ✅   |                                              |
