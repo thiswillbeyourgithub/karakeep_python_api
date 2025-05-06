@@ -500,6 +500,90 @@ def test_update_bookmark_title(karakeep_client: KarakeepAPI, managed_bookmark: d
     # No finally block needed for deletion, as 'managed_bookmark' fixture handles it.
 
 
+def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmark: datatypes.Bookmark):
+    """
+    Test attaching a tag to a bookmark, updating the tag, detaching it, and deleting it.
+    Uses the managed_bookmark fixture.
+    """
+    bookmark_id = managed_bookmark.id
+    timestamp = int(time.time())
+    random_chars = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    initial_tag_name = f"test-tag-{timestamp}-{random_chars}"
+    updated_tag_name = f"updated-tag-{timestamp}-{random_chars}"
+    tag_id_to_manage = None
+
+    try:
+        # 1. Attach a new tag by name to the bookmark
+        print(f"\nAttempting to attach tag '{initial_tag_name}' to bookmark {bookmark_id}")
+        attach_payload = {"tags": [{"tagName": initial_tag_name}]}
+        attach_response = karakeep_client.attach_tags_to_a_bookmark(
+            bookmark_id=bookmark_id, tags_data=attach_payload
+        )
+        assert "attached" in attach_response and len(attach_response["attached"]) == 1, \
+            "Failed to attach tag or response format incorrect"
+        tag_id_to_manage = attach_response["attached"][0]
+        assert isinstance(tag_id_to_manage, str), "Attached tag ID should be a string"
+        print(f"✓ Tag '{initial_tag_name}' attached with ID: {tag_id_to_manage}")
+
+        # 2. Update the tag's name
+        print(f"\nAttempting to update tag {tag_id_to_manage} to name '{updated_tag_name}'")
+        update_payload = {"name": updated_tag_name}
+        updated_tag = karakeep_client.update_a_tag(
+            tag_id=tag_id_to_manage, update_data=update_payload
+        )
+        assert isinstance(updated_tag, datatypes.Tag1), "Update tag response should be Tag1 model"
+        assert updated_tag.name == updated_tag_name, "Tag name was not updated as expected"
+        print(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag.name}'")
+
+        # 3. Verify tag update by getting it directly
+        print(f"\nFetching tag {tag_id_to_manage} to verify its name is '{updated_tag_name}'")
+        retrieved_tag = karakeep_client.get_a_single_tag(tag_id=tag_id_to_manage)
+        assert isinstance(retrieved_tag, datatypes.Tag1), "Get single tag response should be Tag1 model"
+        assert retrieved_tag.name == updated_tag_name, "Retrieved tag name does not match updated name"
+        assert retrieved_tag.id == tag_id_to_manage, "Retrieved tag ID does not match"
+        print(f"✓ Verified tag {tag_id_to_manage} has name '{retrieved_tag.name}'")
+
+        # 4. Detach the tag from the bookmark
+        print(f"\nAttempting to detach tag {tag_id_to_manage} from bookmark {bookmark_id}")
+        detach_payload = {"tags": [{"tagId": tag_id_to_manage}]}
+        detach_response = karakeep_client.detach_tags_from_a_bookmark(
+            bookmark_id=bookmark_id, tags_data=detach_payload
+        )
+        assert "detached" in detach_response and tag_id_to_manage in detach_response["detached"], \
+            "Failed to detach tag or response format incorrect"
+        print(f"✓ Tag {tag_id_to_manage} detached from bookmark {bookmark_id}")
+
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during tag lifecycle test: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred during tag lifecycle test: {e}")
+    finally:
+        # 5. Delete the tag (ensure cleanup even if assertions fail mid-test)
+        if tag_id_to_manage:
+            print(f"\nAttempting to delete tag {tag_id_to_manage} (cleanup)")
+            try:
+                karakeep_client.delete_a_tag(tag_id=tag_id_to_manage)
+                print(f"✓ Successfully deleted tag {tag_id_to_manage}")
+
+                # 6. Verify the tag is gone by trying to get it (should fail with 404)
+                try:
+                    karakeep_client.get_a_single_tag(tag_id=tag_id_to_manage)
+                    pytest.fail(
+                        f"Tag {tag_id_to_manage} should not exist after deletion, but get_a_single_tag succeeded."
+                    )
+                except APIError as e:
+                    assert e.status_code == 404, \
+                        f"Expected 404 Not Found when getting deleted tag, but got status {e.status_code}"
+                    print(f"✓ Confirmed tag {tag_id_to_manage} is deleted (received 404).")
+            except (APIError, AuthenticationError) as e:
+                # Log error during cleanup but don't let it mask original test failure
+                print(f"  API error during tag deletion (cleanup) for ID {tag_id_to_manage}: {e}")
+            except Exception as e:
+                print(f"  Unexpected error during tag deletion (cleanup) for ID {tag_id_to_manage}: {e}")
+        else:
+            print("\nSkipping tag deletion (cleanup) because tag_id was not obtained or test failed before creation.")
+
+
 # --- Test User Info/Stats Endpoints ---
 
 def test_get_current_user_stats(karakeep_client: KarakeepAPI):
