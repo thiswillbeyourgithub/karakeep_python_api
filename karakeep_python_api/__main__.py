@@ -341,7 +341,13 @@ def create_click_command(
     docstring = dedent(docstring)
     docstring_lines = docstring.split("\n")
     help_text = " ".join(docstring.split("\n\n")[0].splitlines()).strip()  # First lines as short help
-    full_help = docstring  # Full docstring as help
+    # Full docstring as help
+    full_help = docstring
+
+    # tweak the whitespaces in the full help:
+    # full_help = full_help.replace("\n", "\n\n").replace("\n                ", " ")
+    full_help = full_help.replace("\n               ", " ")
+    full_help = full_help.replace("\n", "\n\n")
 
     # Extract parameter descriptions from the Args section of the docstring
     param_descriptions = {}
