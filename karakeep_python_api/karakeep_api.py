@@ -590,7 +590,7 @@ class KarakeepAPI:
             ) from e
 
     @optional_typecheck
-    def _enforce_rate_limit(self, min_interval_sec: float = 1.0) -> None:
+    def _enforce_rate_limit(self, min_interval_sec: float = 2.0) -> None:
         """
         Ensures a minimum time interval between consecutive API calls.
 
