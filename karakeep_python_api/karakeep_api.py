@@ -222,16 +222,9 @@ class KarakeepAPI:
                 f"Response validation set to {not self.disable_response_validation} via environment variable (KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION={env_disable_validation})."
             )
 
-        # Configure logger based on verbosity
-        if self.verbose:
-            logger.add(
-                sys.stderr,
-                level="DEBUG",
-                format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-            )
-            logger.info("Verbose logging enabled.")
-        else:
-            logger.add(sys.stderr, level="INFO")  # Default level
+        # Logger configuration is now handled by the calling application (e.g., __main__.py)
+        # or defaults to loguru's standard setup if KarakeepAPI is used as a library.
+        # self.verbose is still used for conditional logging within the class methods.
 
         logger.debug("KarakeepAPI client initialized.")
         logger.debug(f"  Base URL: {self.api_base_url}")

@@ -176,7 +176,15 @@ def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation
     # --- Configure Logger ---
     log_level = "DEBUG" if verbose else "INFO"
     logger.remove()  # Remove default handler
-    logger.add(sys.stderr, level=log_level)
+    if verbose:
+        logger.add(
+            sys.stderr,
+            level=log_level,
+            format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        )
+        logger.debug("Verbose logging enabled with detailed format.")
+    else:
+        logger.add(sys.stderr, level=log_level) # Default format for INFO
     logger.debug("Logger configured for level: {}", log_level)
     logger.debug("CLI context initialized.")
 
