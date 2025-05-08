@@ -94,7 +94,6 @@ class KarakeepAPI:
         openapi_spec_path: Optional[str] = None,  # Allow None, default handled below
         verify_ssl: bool = True,
         verbose: bool = False,
-        strict_response_parsing: bool = False,  # Kept for potential future use
         disable_response_validation: Optional[bool] = None,
     ):
         """
@@ -112,7 +111,6 @@ class KarakeepAPI:
                         Can be overridden with KARAKEEP_PYTHON_API_VERIFY_SSL environment variable (true/false).
             verbose: Enable verbose logging (default: False).
                      Can be overridden with KARAKEEP_PYTHON_API_VERBOSE environment variable (true/false).
-            strict_response_parsing: (Currently unused) If True, raise an APIError when response parsing fails.
             disable_response_validation: If True, skip Pydantic validation of API responses and return raw data.
                                          Defaults to False. Can be overridden by setting the
                                          KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION environment variable to "true".
@@ -206,9 +204,6 @@ class KarakeepAPI:
 
         self.verify_ssl = verify_ssl
         self.verbose = verbose
-        self.strict_response_parsing = (
-            strict_response_parsing  # Currently unused but kept
-        )
         self.last_request_time: float = time.monotonic()  # Initialize timestamp for rate limiting
 
         # --- Response Validation Setting ---
