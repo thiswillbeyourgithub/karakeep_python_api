@@ -35,7 +35,6 @@ def serialize_output(data: Any) -> Any:
         )  # Use Pydantic's built-in JSON serialization
     elif isinstance(data, list):
         return [serialize_output(item) for item in data]
-    # Removed dataclass handling as API uses Pydantic models primarily
     elif isinstance(data, dict):
         # Serialize dictionary values
         return {k: serialize_output(v) for k, v in data.items()}
@@ -345,7 +344,6 @@ def create_click_command(
     full_help = docstring
 
     # tweak the whitespaces in the full help:
-    # full_help = full_help.replace("\n", "\n\n").replace("\n                ", " ")
     full_help = full_help.replace("\n               ", " ")
     full_help = full_help.replace("\n", "\n\n")
 
@@ -452,7 +450,6 @@ def create_click_command(
         elif isinstance(click_type, click.Choice):
              param_help += f" (Choices: {', '.join(click_type.choices)})"
 
-        # Standard parameter handling (no special '--data' mapping anymore)
         click_required = is_required_in_sig and default_value is None and not is_flag
 
         # Add the Click Option
