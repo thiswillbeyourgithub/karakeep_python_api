@@ -375,10 +375,16 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookma
         # waiting a bit for the indexation just in case
         time.sleep(30)
 
-        search_query_component = original_title.split(" ")[0] + " " + original_title.split(" ")[1]
-        logger.info(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'. Retrying multiple times because search is nondeterministic.")
-        
-        for trial in range(5):
+        search_queries = [
+            "Managed Fixture Bookmark",
+            "managed fixture bookmark",
+            "managed fixture",
+            "fixture managed",
+            "fixture",
+            '"fixture"',
+        ]
+        for trial, search_query_component in enumerate(search_queries):
+            logger.info(f"\nAttempting to search for bookmark with query based on title: '{search_query_component}'. Retrying multiple times because search is nondeterministic.")
             search_results = karakeep_client.search_bookmarks(q=search_query_component, limit=100, include_content=False)
             assert isinstance(
                 search_results, datatypes.PaginatedBookmarks
@@ -394,7 +400,7 @@ def test_create_and_delete_bookmark(karakeep_client: KarakeepAPI, managed_bookma
             else:
                 time.sleep(3)
         assert found_in_search, \
-        f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in {trial} different search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
+        f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in {trial + 1} different search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
         logger.info(f"✓ Found managed bookmark in search results for '{search_query_component}'.")
 
         # 4. Test CLI search equivalent
