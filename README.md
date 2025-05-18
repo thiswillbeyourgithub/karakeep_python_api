@@ -22,7 +22,7 @@ A community-developed Python client for the [Karakeep](https://karakeep.app/) AP
 
 ## Overview
 
-This library provides a Python interface (both a class and a command-line tool) to interact with a Karakeep instance's API.
+This library provides a Python interface (both a class and a command-line tool) to interact with a Karakeep instance's API. The author also developed [freshrss_to_karakeep](https://github.com/thiswillbeyourgithub/freshrss_to_karakeep), a Python script that periodically sends FreshRSS "favourite" articles to Karakeep (a bookmarking and read-it-later app, see [Karakeep on GitHub](https://github.com/karakeep-app/karakeep)).
 
 The development process involved:
 
