@@ -1284,7 +1284,7 @@ class KarakeepAPI:
             None: Returns None upon successful addition (204 No Content).
 
         Raises:
-            APIError: If the API request fails (e.g., 404 list or bookmark not found, 400 bookmark already in list).
+            APIError: If the API request fails (e.g., 404 list or bookmark not found).
         """
         endpoint = f"lists/{list_id}/bookmarks/{bookmark_id}"
         self._call("PUT", endpoint)  # Expects 204 No Content
