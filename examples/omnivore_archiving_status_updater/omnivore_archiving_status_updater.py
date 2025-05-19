@@ -99,22 +99,28 @@ def main(
                 break
 
             # couldn't find a matching url, match by title
+            # exact title match:
             if "title" in omnivore and omnivore["title"] and hasattr(content, "title") and content.title:
                 if omnivore["title"].lower() == content.title.lower():
                     found_it = True
                     break
+            if "title" in omnivore and omnivore["title"] and hasattr(bookmark, "title") and bookmark.title:
+                if omnivore["title"].lower() == bookmark.title.lower():
+                    found_it = True
+                    break
+
+            # fuzzy matching, as a last resort
+            threshold = 0.95
+            if "title" in omnivore and omnivore["title"] and hasattr(content, "title") and content.title:
                 r = ratio(omnivore["title"].lower(), content.title.lower())
-                if r >= 0.95:
+                if r >= threshold:
                     found_it = True
                     breakpoint()
                     break
 
             if "title" in omnivore and omnivore["title"] and hasattr(bookmark, "title") and bookmark.title:
-                if omnivore["title"].lower() == bookmark.title.lower():
-                    found_it = True
-                    break
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-                if r >= 0.95:
+                if r >= threshold:
                     found_it = True
                     breakpoint()
                     break
