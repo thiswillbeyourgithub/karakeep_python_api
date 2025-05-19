@@ -103,7 +103,8 @@ def main(
                 if omnivore["title"].lower() == content.title.lower():
                     found_it = True
                     break
-                elif ratio(omnivore["title"].lower(), content.title.lower()) >= 0.9:
+                r = ratio(omnivore["title"].lower(), content.title.lower())
+                if r >= 0.9:
                     found_it = True
                     breakpoint()
                     break
@@ -112,7 +113,8 @@ def main(
                 if omnivore["title"].lower() == bookmark.title.lower():
                     found_it = True
                     break
-                elif ratio(omnivore["title"].lower(), bookmark.title.lower()) >= 0.9:
+                r = ratio(omnivore["title"].lower(), bookmark.title.lower())
+                if r >= 0.9:
                     found_it = True
                     breakpoint()
                     break
