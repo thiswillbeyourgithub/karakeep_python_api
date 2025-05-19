@@ -104,7 +104,7 @@ def main(
                     found_it = True
                     break
                 r = ratio(omnivore["title"].lower(), content.title.lower())
-                if r >= 0.9:
+                if r >= 0.95:
                     found_it = True
                     breakpoint()
                     break
@@ -114,7 +114,7 @@ def main(
                     found_it = True
                     break
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-                if r >= 0.9:
+                if r >= 0.95:
                     found_it = True
                     breakpoint()
                     break
