@@ -203,6 +203,10 @@ except Exception as e:
 
 ```
 
+### Usage Examples
+
+Examples of the API being used can be found in the [`./examples`](./examples) folder. Don't hesitate to submit yours!
+
 ## Development
 
 1.  Clone the repository.
