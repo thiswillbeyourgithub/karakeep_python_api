@@ -16,13 +16,31 @@ from tqdm import tqdm
 karakeep = KarakeepAPI(verbose=False)
 
 
-def get_omnivores_archived(path: str) -> list[dict]:
-    # load the data from the omnivore export
-    p = Path(path)
-    j = p.read_text()
-    data: list[dict] = json.loads(j)
+def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
+    """
+    Loads and concatenates all Omnivore metadata JSON files from the specified directory.
+    Filters and returns a list of articles that are marked as "Archived".
+    """
+    export_dir = Path(omnivore_export_dir)
+    all_data: list[dict] = []
+
+    # Find all metadata_*.json files, load, and concatenate their lists
+    for json_file in export_dir.glob("metadata_*_to_*.json"):
+        try:
+            content = json_file.read_text()
+            data: list[dict] = json.loads(content)
+            all_data.extend(data)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Could not decode JSON from {json_file.name}: {e}")
+        except Exception as e:
+            print(f"Warning: Could not read or process {json_file.name}: {e}")
+    
+    if not all_data:
+        print(f"Warning: No data loaded from {omnivore_export_dir}. Ensure 'metadata_*_to_*.json' files exist and are valid.")
+        return []
 
     # figure out which should have been archived
+    data = all_data # Use the concatenated data
     active = []
     archived = []
     unknown = []
@@ -39,10 +57,14 @@ def get_omnivores_archived(path: str) -> list[dict]:
 
 
 def main(
-    omnivore_path: str,
+    omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
     ) -> None:
-    archived = get_omnivores_archived(omnivore_path)
+    archived = get_omnivores_archived(omnivore_export_dir)
+
+    if not archived:
+        print("No archived Omnivore articles found or loaded. Exiting.")
+        return
 
     # fetch all the bookmarks from karakeep, as the search feature is unreliable
     # as the loading can be pretty long, we store it to a local file

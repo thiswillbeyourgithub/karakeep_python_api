@@ -6,29 +6,23 @@ This tool reads your Omnivore export data and updates the corresponding bookmark
 
 ## Prerequisites
 
-1.  **Omnivore Export**: You need to have an export of your Omnivore data. Omnivore typically exports data in several `metadata_X_to_Y.json` files.
-2.  **Concatenate Omnivore JSON files**: Before running the script, you must concatenate all your `metadata_X_to_Y.json` files from the Omnivore export into a single `concatenated.json` file. You can use a command-line tool like `jq` for this. For example, navigate to the directory containing your Omnivore JSON files and run:
-
-    ```bash
-    jq -s 'add' *.json > concatenated.json
-    ```
-
-    Alternatively, other tools or scripts can be used to achieve the same result of merging the JSON arrays into one.
+1.  **Omnivore Export Directory**: You need to have an export of your Omnivore data. This should be a directory containing the `metadata_X_to_Y.json` files provided by Omnivore. The script will automatically find and process all such files within the specified directory.
 
 ## Usage
 
-Once you have your `concatenated.json` file, you can run the script:
+Ensure you have your Omnivore export directory ready. Then, run the script:
 
 ```bash
-python omnivore_archiving_status_updater.py --omnivore-path /path/to/your/concatenated.json
+python omnivore_archiving_status_updater.py --omnivore-export-dir /path/to/your/omnivore_export_directory
 ```
 
 You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_BASE_URL` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.
 
 The script will:
-1. Read the Omnivore `concatenated.json` file to identify articles that should be archived.
-2. Fetch all bookmarks from your Karakeep instance. (This can take a while and is cached locally in `karakeep_bookmarks.temp` by default to speed up subsequent runs).
-3. For each Omnivore article marked as "Archived", it will find the corresponding bookmark in Karakeep (matching by URL or title) and update its status to "archived" if it's not already.
+1. Scan the specified Omnivore export directory for `metadata_*_to_*.json` files.
+2. Load and combine data from all found JSON files to identify articles that should be "Archived".
+3. Fetch all bookmarks from your Karakeep instance. (This can take a while and is cached locally in `karakeep_bookmarks.temp` by default to speed up subsequent runs).
+4. For each Omnivore article marked as "Archived", it will find the corresponding bookmark in Karakeep (matching by URL or title) and update its status to "archived" if it's not already.
 
 ---
 This tool was developed with assistance from [aider.chat](https://github.com/Aider-AI/aider/).
