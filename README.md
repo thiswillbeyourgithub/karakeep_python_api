@@ -207,6 +207,8 @@ except Exception as e:
 
 Examples of the API being used can be found in the [`./examples`](./examples) folder. Don't hesitate to submit yours!
 
+-   **Omnivore Archiving Status Updater**: A script to fix the archive status of bookmarks imported from Omnivore into Karakeep. See [`examples/omnivore_archiving_status_updater/README.md`](./examples/omnivore_archiving_status_updater/README.md) for details.
+
 ## Development
 
 1.  Clone the repository.
