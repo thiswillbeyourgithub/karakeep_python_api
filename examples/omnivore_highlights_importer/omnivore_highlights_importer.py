@@ -16,30 +16,55 @@ from string_context_matcher import match_highlight_to_corpus
 VERSION: str = "0.0.1"
 
 
-def get_omnivores_bookmarks(path: str) -> list[dict]:
-    # load the data from the omnivore export
-    p = Path(path)
-    j = p.read_text()
-    data: list[dict] = json.loads(j)
+def get_omnivores_bookmarks(omnivore_export_dir: str) -> list[dict]:
+    # load and concatenate data from all omnivore export metadata files
+    export_path = Path(omnivore_export_dir)
+    all_data: list[dict] = []
+    
+    # Glob for metadata files and sort them to ensure consistent order (e.g., by date if named accordingly)
+    metadata_files = sorted(export_path.glob("metadata_*_to_*.json"))
+    
+    if not metadata_files:
+        print(f"Warning: No metadata files matching 'metadata_*_to_*.json' found in {omnivore_export_dir}")
+        return []
 
-    return data
+    for file_path in metadata_files:
+        try:
+            content = file_path.read_text()
+            # Each metadata file is expected to contain a JSON list of bookmarks
+            data_from_file: list[dict] = json.loads(content) 
+            if isinstance(data_from_file, list):
+                all_data.extend(data_from_file)
+            else:
+                print(f"Warning: Metadata file {file_path.name} does not contain a JSON list. Skipping.")
+        except json.JSONDecodeError:
+            print(f"Warning: Could not decode JSON from {file_path.name}. Skipping.")
+        except Exception as e:
+            print(f"Warning: An error occurred while processing {file_path.name}: {e}. Skipping.")
+            
+    return all_data
 
 
 def main(
-    omnivore_json: str,
-    omnivore_content_dir: str,
-    highlights_dir: str,
+    omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
     dry: bool = True,
 ) -> None:
-    assert Path(highlights_dir).exists() and Path(highlights_dir).is_dir()
-    assert Path(omnivore_content_dir).exists() and Path(omnivore_content_dir).is_dir()
-    assert Path(omnivore_json).exists() and Path(omnivore_json).is_file()
+    omnivore_export_path = Path(omnivore_export_dir)
+    highlights_dir_path = omnivore_export_path / "highlights"
+    omnivore_content_dir_path = omnivore_export_path / "content"
 
-    highlights_files = [p for p in Path(highlights_dir).iterdir() if p.name.endswith(".md") and p.read_text().strip()]
-    content_files: dict = {p.stem: p.suffix for p in Path(omnivore_content_dir).iterdir()}
+    assert omnivore_export_path.exists() and omnivore_export_path.is_dir(), \
+        f"Omnivore export directory not found: {omnivore_export_dir}"
+    assert highlights_dir_path.exists() and highlights_dir_path.is_dir(), \
+        f"Highlights directory not found: {highlights_dir_path}"
+    assert omnivore_content_dir_path.exists() and omnivore_content_dir_path.is_dir(), \
+        f"Omnivore content directory not found: {omnivore_content_dir_path}"
 
-    data = get_omnivores_bookmarks(omnivore_json)
+    highlights_files = [p for p in highlights_dir_path.iterdir() if p.name.endswith(".md") and p.read_text().strip()]
+    content_files: dict = {p.stem: p.suffix for p in omnivore_content_dir_path.iterdir()}
+
+    data = get_omnivores_bookmarks(omnivore_export_dir)
 
     karakeep = KarakeepAPI(verbose=False)
 
