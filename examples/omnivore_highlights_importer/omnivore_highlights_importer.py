@@ -50,6 +50,7 @@ def main(
     omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
     dry: bool = True,
+    skip_pdf: bool = True,
 ) -> None:
     omnivore_export_path = Path(omnivore_export_dir)
     highlights_dir_path = omnivore_export_path / "highlights"
@@ -126,7 +127,10 @@ def main(
             breakpoint()
         if content_files[name] == ".pdf":
             is_pdf = True
-            continue
+            if skip_pdf:
+                continue
+            else:
+                raise NotImplementedError("PDF highlights are not yet supported")
         elif content_files[name] == ".html":
             is_pdf = False
         else:
