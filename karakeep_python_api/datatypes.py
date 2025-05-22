@@ -30,13 +30,13 @@ class HighlightId(RootModel[str]):
     root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
 
 
-class TaggingStatus(Enum):
+class TaggingStatus(str, Enum):
     success = "success"
     failure = "failure"
     pending = "pending"
 
 
-class AttachedBy(Enum):
+class AttachedBy(str, Enum):
     ai = "ai"
     human = "human"
 
@@ -47,7 +47,7 @@ class Tag(BaseModel):
     attachedBy: AttachedBy
 
 
-class Type(Enum):
+class Type(str, Enum):
     link = "link"
 
 
@@ -71,7 +71,7 @@ class Content(BaseModel):
     dateModified: Optional[str] = None
 
 
-class Type1(Enum):
+class Type1(str, Enum):
     text = "text"
 
 
@@ -81,11 +81,11 @@ class Content1(BaseModel):
     sourceUrl: Optional[str] = None
 
 
-class Type2(Enum):
+class Type2(str, Enum):
     asset = "asset"
 
 
-class AssetType(Enum):
+class AssetType(str, Enum):
     image = "image"
     pdf = "pdf"
 
@@ -100,7 +100,7 @@ class Content2(BaseModel):
     content: Optional[str] = None
 
 
-class Type3(Enum):
+class Type3(str, Enum):
     unknown = "unknown"
 
 
@@ -108,7 +108,7 @@ class Content3(BaseModel):
     type: Type3
 
 
-class AssetType1(Enum):
+class AssetType1(str, Enum):
     screenshot = "screenshot"
     assetScreenshot = "assetScreenshot"
     bannerImage = "bannerImage"
@@ -148,7 +148,7 @@ class Cursor(RootModel[str]):
     root: str
 
 
-class Color(Enum):
+class Color(str, Enum):
     yellow = "yellow"
     red = "red"
     green = "green"
@@ -167,7 +167,7 @@ class Highlight(BaseModel):
     createdAt: str
 
 
-class Type4(Enum):
+class Type4(str, Enum):
     manual = "manual"
     smart = "smart"
 
