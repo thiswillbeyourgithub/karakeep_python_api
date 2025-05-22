@@ -193,7 +193,6 @@ def main(
                 r = ratio(omnivore["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_bm = True
-                    breakpoint()
                     break
 
             if (
