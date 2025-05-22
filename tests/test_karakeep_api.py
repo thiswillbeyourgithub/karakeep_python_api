@@ -600,6 +600,64 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
 
 # --- Test User Info/Stats Endpoints ---
 
+def test_cli_get_bookmarks_count_with_jq(karakeep_client: KarakeepAPI):
+    """Test that CLI get-all-bookmarks with --limit returns the expected number of items."""
+    # Skip test if jq is not installed
+    try:
+        subprocess.run(["jq", "--version"], check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pytest.skip("jq is not installed. This test requires jq for JSON processing.")
+    
+    # Define the limit we want to test
+    test_limit = 200
+    
+    try:
+        logger.info(f"\nRunning CLI command: get-all-bookmarks --limit={test_limit}")
+        # Use a two-command pipe: Run the CLI command and pipe to jq to count array length
+        cmd = f"python -m karakeep_python_api --verbose get-all-bookmarks --limit={test_limit} | jq 'length'"
+        
+        # Execute the piped command
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        
+        # Parse the output (should be just a number)
+        try:
+            actual_count = int(result.stdout.strip())
+            logger.info(f"✓ Command returned {actual_count} bookmarks")
+            
+            # Check if we got exactly the requested number or fewer (if there aren't enough bookmarks)
+            assert actual_count <= test_limit, f"Expected at most {test_limit} bookmarks, got {actual_count}"
+            
+            # Check if we got any bookmarks at all (to ensure the test is meaningful)
+            # This could fail if the account has no bookmarks
+            assert actual_count > 0, "Expected at least some bookmarks to be returned"
+            
+            # If the account has enough bookmarks, we should get exactly the limit
+            # But we can't assert this because we don't know how many bookmarks exist
+            if actual_count < test_limit:
+                logger.info(f"Note: Only {actual_count} bookmarks were returned, which is less than the requested limit of {test_limit}. This is acceptable if the account doesn't have {test_limit} bookmarks.")
+            else:
+                logger.info(f"✓ Command returned exactly the requested limit of {test_limit} bookmarks")
+                
+        except ValueError:
+            logger.error(f"Failed to parse jq output as integer: '{result.stdout}'")
+            pytest.fail(f"jq output is not a valid integer: '{result.stdout}'")
+            
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        logger.error(f"Stdout: {e.stdout}")
+        logger.error(f"Stderr: {e.stderr}")
+        pytest.fail(f"CLI command failed: {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        pytest.fail(f"Unexpected error: {e}")
+
+
 def test_get_current_user_stats(karakeep_client: KarakeepAPI):
     """Test retrieving statistics for the current user."""
     try:
