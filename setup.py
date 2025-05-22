@@ -7,7 +7,7 @@ with open("README.md", "r") as readme:
 
 setup(
     name="karakeep_python_api",
-    version="0.1.6",
+    version="0.1.7",
     description="Community python client for the Karakeep API.",  # Simplified description
     long_description=long_description,
     long_description_content_type="text/markdown",
