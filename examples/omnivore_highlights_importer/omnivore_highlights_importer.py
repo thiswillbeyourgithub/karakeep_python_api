@@ -102,7 +102,7 @@ def main(
         with Path(karakeep_path).open("wb") as f:
             pickle.dump(all_bm, f)
 
-    for f in tqdm(highlights_files, unit="highlight", desc="importing highlights"):
+    for f_ind, f in enumerate(tqdm(highlights_files, unit="highlight", desc="importing highlights")):
         name = f.stem
 
         highlights = f.read_text().strip().split("\n> ")
@@ -126,6 +126,7 @@ def main(
             breakpoint()
         if content_files[name] == ".pdf":
             is_pdf = True
+            continue
         elif content_files[name] == ".html":
             is_pdf = False
         else:
@@ -219,14 +220,16 @@ def main(
                 highlight = highlight[1:]
                 highlight.strip()
 
-            # fix URLs
+            # fix URLs of omnivore to point to the original source
             highlight = re.sub(r"https://proxy-prod.omnivore-image-cache.app/.*https://", "https://", highlight)
-            image_pattern = r'!\[.*?\]\((.*?)\)'
-            highlight = re.sub(image_pattern, r' (Link to \1)', highlight)
 
             high_as_text = BeautifulSoup(markdown.markdown(highlight)).get_text()
 
-            if not high_as_text:
+            link_pattern = r'\[.*?\]\((.*?)\)'
+            link_replaced = re.sub(link_pattern, r' (Link to \1)', highlight)
+            high_link_replaced_as_text = BeautifulSoup(markdown.markdown(link_replaced)).get_text()
+
+            if not high_link_replaced_as_text:
                 breakpoint()
 
             start = 0
@@ -239,6 +242,8 @@ def main(
                 else:
                     start = (start + int(as_md.index(highlight) / len(as_md) * len(as_text))) // 2
 
+
+
             if start == 0:
                 match_text = match_highlight_to_corpus(query=high_as_text, corpus=as_text)
                 match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
@@ -247,16 +252,30 @@ def main(
                     position_text = as_text.index(match_text.matches[0]) / len(as_text)
                     position_md = as_md.index(match_md.matches[0]) / len(as_md)
                     diff = abs(position_text - position_md)
-                    if diff <= 0.2:
-                        breakpoint()
-                    pos = (position_text + position_md) / 2
+
+                    if diff >= 0.20:
+                        # if differ too much, assume html has a too large overhead
+                        rel_pos = position_md
+                    else:
+                        rel_pos = (position_text + position_md) / 2
+                    del diff
                 elif match_text.matches:
-                    pos = as_text.index(match_text.matches[0]) / len(as_text)
+                    rel_pos = as_text.index(match_text.matches[0]) / len(as_text)
                 elif match_md.matches:
-                    pos = as_md.index(match_md.matches[0]) / len(as_md)
+                    rel_pos = as_md.index(match_md.matches[0]) / len(as_md)
+                elif not high_as_text:  # probably contains only a link, so we have to find that link in the raw html
+                    links = re.findall(r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]", highlight)
+                    positions = [
+                        kara_content.index(link)
+                        for link in links
+                        if link in kara_content
+                    ]
+                    assert positions, highlight
+                    rel_pos = int(sum(positions) / len(positions))
                 else:
                     breakpoint()
-                start = int(pos * len(high_as_text))
+                start = int(rel_pos * len(high_as_text))
+                del rel_pos
 
             end = start + len(high_as_text)
 
@@ -264,7 +283,7 @@ def main(
                 resp = karakeep.create_a_new_highlight(
                     highlight_data={
                         "bookmarkId": bookmark.id,
-                        "text": high_as_text,
+                        "text": high_link_replaced_as_text,
                         "color": "yellow",
                         "note": f"By omnivore_highlights_importer.py version {VERSION}",
                         "startOffset": start,
