@@ -610,23 +610,36 @@ class KarakeepAPI:
         self,
         archived: Optional[bool] = None,
         favourited: Optional[bool] = None,
-        limit: Optional[int] = None,
+        limit: Optional[int] = None, # This is the per-page limit for the API
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
     ) -> Any:  # Returns PaginatedBookmarks or raw dict/list
         """
-        Get all bookmarks. Corresponds to GET /bookmarks.
+        Get bookmarks, one page at a time. Corresponds to GET /bookmarks.
+
+        This method fetches a single page of bookmarks.
+        The 'limit' parameter controls the number of items per page for this API call.
+        The 'cursor' parameter is used for pagination to get the next page.
+
+        CLI Usage Notes:
+        - When the 'get-all-bookmarks' command is used via the CLI:
+          - The `--cursor` CLI option is ignored; pagination is handled automatically.
+          - The `--limit` CLI option specifies the *total* number of bookmarks to fetch
+            across multiple pages. If omitted, all bookmarks are fetched.
+          - The CLI internally calls this API method multiple times to achieve this.
 
         Args:
             archived: Filter by archived status (optional).
             favourited: Filter by favourited status (optional).
-            limit: Maximum number of bookmarks to return (optional).
-            cursor: Pagination cursor for the next page (optional).
+            limit: Maximum number of bookmarks to return *per page* in this API call (optional).
+                   When used from the CLI's 'get-all-bookmarks' command, this translates to an
+                   internal per-page fetching limit, while the CLI's `--limit` controls the total.
+            cursor: Pagination cursor for fetching the next page (optional).
             include_content: If set to true, bookmark's content will be included (default: True).
 
         Returns:
-            datatypes.PaginatedBookmarks: Paginated list of bookmarks.
-            If response validation is disabled, returns the raw API response (dict/list).
+            datatypes.PaginatedBookmarks: Paginated list of bookmarks for the current page.
+            If response validation is disabled, returns the raw API response (dict/list) for the current page.
 
         Raises:
             APIError: If the API request fails.

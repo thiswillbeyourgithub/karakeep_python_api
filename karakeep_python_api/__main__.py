@@ -286,10 +286,97 @@ def create_click_command(
 
                 # Call the API method
                 try:
-                    logger.debug(
-                        f"Calling API method '{method_name}' with args: {call_args}"
-                    )
-                    result = instance_method(**call_args)
+                    if method_name == "get_all_bookmarks":
+                        logger.debug(f"Special CLI pagination handling for '{method_name}'.")
+                        cli_total_limit = call_args.pop('limit', None)
+                        # Other relevant params for get_all_bookmarks
+                        archived_filter = call_args.get('archived')
+                        favourited_filter = call_args.get('favourited')
+                        include_content_cli = call_args.get('include_content', True) 
+                        
+                        call_args.pop('cursor', None) # Ignore CLI cursor
+
+                        all_bookmarks_data = []
+                        current_page_api_cursor = None
+                        fetched_count = 0
+                        API_INTERNAL_PAGE_SIZE = 50 # Define a page size for API calls
+
+                        while True:
+                            api_call_limit = API_INTERNAL_PAGE_SIZE
+                            if cli_total_limit is not None:
+                                remaining_needed = cli_total_limit - fetched_count
+                                if remaining_needed <= 0:
+                                    break # Reached or exceeded CLI total limit
+                                api_call_limit = min(API_INTERNAL_PAGE_SIZE, remaining_needed)
+                            
+                            if api_call_limit <= 0 and cli_total_limit is not None : # Avoid asking for 0 or negative items unless fetching all
+                                break
+
+
+                            logger.debug(f"Fetching page for '{method_name}' with cursor: {current_page_api_cursor}, api_limit: {api_call_limit}")
+                            
+                            page_call_args = {
+                                'archived': archived_filter,
+                                'favourited': favourited_filter,
+                                'limit': api_call_limit,
+                                'cursor': current_page_api_cursor,
+                                'include_content': include_content_cli,
+                            }
+                            page_call_args_filtered = {k: v for k, v in page_call_args.items() if v is not None}
+
+                            try:
+                                page_result_obj = instance_method(**page_call_args_filtered)
+                            except TypeError as call_error_page:
+                                logger.error(f"Error calling API method '{method_name}' (paginated): {call_error_page}")
+                                logger.error(f"Provided arguments for page: {page_call_args_filtered}")
+                                if verbose: logger.debug(traceback.format_exc())
+                                ctx.exit(1)
+
+                            bookmarks_on_this_page = []
+                            next_api_cursor = None
+
+                            # Convert Pydantic model to dict using model_dump if available
+                            if hasattr(page_result_obj, 'model_dump'):
+                                result_dict = page_result_obj.model_dump()
+                            elif isinstance(page_result_obj, dict):
+                                result_dict = page_result_obj
+                            else:
+                                logger.warning(f"Unexpected result type: {type(page_result_obj)}")
+                                result_dict = {}
+
+                            # Extract data and cursor from the dict
+                            bookmarks_on_this_page = result_dict.get("bookmarks", [])
+                            next_api_cursor = result_dict.get("nextCursor")
+
+                            logger.debug(f"Extracted {len(bookmarks_on_this_page)} bookmarks and cursor: {next_api_cursor}")
+                            
+                            if not isinstance(bookmarks_on_this_page, list):
+                                logger.warning(f"Expected a list of bookmarks, got {type(bookmarks_on_this_page)}. Stopping pagination.")
+                                break
+                            
+                            all_bookmarks_data.extend(bookmarks_on_this_page)
+                            fetched_count += len(bookmarks_on_this_page)
+                            logger.debug(f"Fetched {len(bookmarks_on_this_page)} bookmarks this page. Total fetched: {fetched_count}.")
+
+                            current_page_api_cursor = next_api_cursor
+                            if not current_page_api_cursor:
+                                logger.debug("No nextCursor from API, pagination complete.")
+                                break
+                            if cli_total_limit is not None and fetched_count >= cli_total_limit:
+                                logger.debug(f"CLI total limit of {cli_total_limit} reached or exceeded.")
+                                break
+                            if not bookmarks_on_this_page and api_call_limit > 0:
+                                logger.debug("API returned an empty list of bookmarks while a positive limit was set, assuming end of data.")
+                                break
+                        
+                        result = all_bookmarks_data # This will be a list of Bookmark models or dicts
+                    else:
+                        # Original behavior for other commands
+                        logger.debug(
+                            f"Calling API method '{method_name}' with args: {call_args}"
+                        )
+                        result = instance_method(**call_args)
+
                 except TypeError as call_error:
                     logger.error(
                         f"Error calling API method '{method_name}': {call_error}"
@@ -460,16 +547,33 @@ def create_click_command(
 
         click_required = is_required_in_sig and default_value is None and not is_flag
 
+        # Make copies of properties that might be modified for specific commands/params
+        current_param_help = param_help
+        current_click_required = click_required
+        current_default_value = default_value
+        current_is_flag = is_flag # Though is_flag interpretation might change help/required
+        
+        # Special handling for 'get_all_bookmarks' command parameters
+        if api_method_name == "get_all_bookmarks":
+            if param.name == "cursor":
+                current_param_help = "[Ignored by CLI for get-all-bookmarks] " + param_help
+                current_click_required = False  # Cursor is handled by CLI, not required from user
+                current_default_value = None  # Explicitly set default to None for ignored param
+            elif param.name == "limit":
+                current_param_help = "Total maximum number of bookmarks to fetch across pages for get-all-bookmarks. If omitted, all are fetched."
+                # For 'limit', required status and default remain as derived from its Optional[int] type hint
+                # current_click_required and current_default_value will be correctly False and None respectively.
+
         # Add the Click Option
         click_params.append(
             click.Option(
                 option_names,
                 type=click_type,
-                required=click_required,
-                default=default_value if not is_flag else None,
-                help=param_help,
-                is_flag=(is_flag if len(option_names) == 1 else False),
-                show_default=not is_flag and default_value is not None, # Show default unless it's a flag or None
+                required=current_click_required,
+                default=current_default_value if not current_is_flag else None,
+                help=current_param_help,
+                is_flag=(current_is_flag if len(option_names) == 1 else False),
+                show_default=not current_is_flag and current_default_value is not None,
                 # Click derives the Python identifier (e.g., 'bookmark_id') from the first long option name
             )
         )
