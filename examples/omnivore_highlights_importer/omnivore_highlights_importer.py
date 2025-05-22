@@ -1,3 +1,4 @@
+import re
 import markdown
 from Levenshtein import ratio
 import re
@@ -218,15 +219,44 @@ def main(
                 highlight = highlight[1:]
                 highlight.strip()
 
+            # fix URLs
+            highlight = re.sub(r"https://proxy-prod.omnivore-image-cache.app/.*https://", "https://", highlight)
+            image_pattern = r'!\[.*?\]\((.*?)\)'
+            highlight = re.sub(image_pattern, r' (Link to \1)', highlight)
+
             high_as_text = BeautifulSoup(markdown.markdown(highlight)).get_text()
+
+            if not high_as_text:
+                breakpoint()
+
+            start = 0
             if high_as_text in as_text:
                 start = as_text.index(high_as_text)
-            elif highlight in as_md:
-                start = int(as_md.index(highlight) / len(as_md) * len(as_text))
-            else:
+
+            if highlight in as_md:
+                if start == 0:
+                    start = int(as_md.index(highlight) / len(as_md) * len(as_text))
+                else:
+                    start = (start + int(as_md.index(highlight) / len(as_md) * len(as_text))) // 2
+
+            if start == 0:
                 match_text = match_highlight_to_corpus(query=high_as_text, corpus=as_text)
                 match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
-                breakpoint()
+
+                if match_text.matches and match_md.matches:
+                    position_text = as_text.index(match_text.matches[0]) / len(as_text)
+                    position_md = as_md.index(match_md.matches[0]) / len(as_md)
+                    diff = abs(position_text - position_md)
+                    if diff <= 0.2:
+                        breakpoint()
+                    pos = (position_text + position_md) / 2
+                elif match_text.matches:
+                    pos = as_text.index(match_text.matches[0]) / len(as_text)
+                elif match_md.matches:
+                    pos = as_md.index(match_md.matches[0]) / len(as_md)
+                else:
+                    breakpoint()
+                start = int(pos * len(high_as_text))
 
             end = start + len(high_as_text)
 
@@ -242,6 +272,8 @@ def main(
                     }
                 )
                 assert resp, highlight
+
+            del start, end, high_as_text
 
 
 if __name__ == "__main__":
