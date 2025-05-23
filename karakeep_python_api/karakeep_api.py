@@ -95,6 +95,7 @@ class KarakeepAPI:
         verify_ssl: bool = True,
         verbose: bool = False,
         disable_response_validation: Optional[bool] = None,
+        rate_limit: float = 0.0,  # Minimum interval between API calls in seconds
     ):
         """
         Initialize the Karakeep API client.
@@ -114,6 +115,9 @@ class KarakeepAPI:
             disable_response_validation: If True, skip Pydantic validation of API responses and return raw data.
                                          Defaults to False. Can be overridden by setting the
                                          KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION environment variable to "true".
+            rate_limit: The minimum time interval in seconds between consecutive API calls.
+                        Defaults to 0.0 (no explicit rate limiting).
+                        Can be overridden with KARAKEEP_PYTHON_API_RATE_LIMIT environment variable.
         """
         # --- API Key Validation ---
         resolved_api_key = api_key or os.environ.get("KARAKEEP_PYTHON_API_KEY")
@@ -204,6 +208,24 @@ class KarakeepAPI:
 
         self.verify_ssl = verify_ssl
         self.verbose = verbose
+
+        # --- Rate Limit Setting ---
+        # Argument takes precedence over environment variable
+        env_rate_limit_str = os.environ.get("KARAKEEP_PYTHON_API_RATE_LIMIT")
+        if rate_limit != 0.0: # Argument provided and not default
+            self.rate_limit = rate_limit
+            logger.debug(f"Rate limit set to {self.rate_limit}s via argument.")
+        elif env_rate_limit_str is not None:
+            try:
+                self.rate_limit = float(env_rate_limit_str)
+                logger.debug(f"Rate limit set to {self.rate_limit}s via KARAKEEP_PYTHON_API_RATE_LIMIT environment variable.")
+            except ValueError:
+                self.rate_limit = 0.0 # Default if env var is invalid
+                logger.warning(f"Invalid value for KARAKEEP_PYTHON_API_RATE_LIMIT ('{env_rate_limit_str}'). Rate limiting disabled (0.0s).")
+        else:
+            self.rate_limit = rate_limit # Use default from signature (0.0)
+            logger.debug(f"Rate limit set to default: {self.rate_limit}s.")
+
         self.last_request_time: float = time.monotonic()  # Initialize timestamp for rate limiting
 
         # --- Response Validation Setting ---
@@ -233,6 +255,7 @@ class KarakeepAPI:
         logger.debug(
             f"  Disable Response Validation: {self.disable_response_validation}"
         )
+        logger.debug(f"  Rate Limit: {self.rate_limit}s")
         # API Key is intentionally not logged for security
 
         # --- Initial Connection Check ---
@@ -578,26 +601,28 @@ class KarakeepAPI:
             ) from e
 
     @optional_typecheck
-    def _enforce_rate_limit(self, min_interval_sec: float = 0.5) -> None:
+    def _enforce_rate_limit(self) -> None:
         """
-        Ensures a minimum time interval between consecutive API calls.
-        Otherwise karakeep tends to error out.
-
-        If the time since the last call is less than `min_interval_sec`, this method
-        will sleep for the remaining duration. It then updates the timestamp of the
-        last request.
-
-        Args:
-            min_interval_sec: The minimum desired interval between requests in seconds.
+        Ensures a minimum time interval between consecutive API calls, based on `self.rate_limit`.
+        If `self.rate_limit` is 0 or less, this method does nothing.
+        Otherwise, if the time since the last call is less than `self.rate_limit`,
+        this method will sleep for the remaining duration. It then updates the
+        timestamp of the last request.
         """
+        if self.rate_limit <= 0:
+            # Update last request time even if rate limiting is disabled or not triggered,
+            # so the next call has an accurate timestamp if rate_limit is changed.
+            self.last_request_time = time.monotonic()
+            return
+
         current_time = time.monotonic()
         time_since_last = current_time - self.last_request_time
 
-        if time_since_last < min_interval_sec:
-            sleep_duration = min_interval_sec - time_since_last
+        if time_since_last < self.rate_limit:
+            sleep_duration = self.rate_limit - time_since_last
             if self.verbose:
                 logger.debug(
-                    f"Rate limit triggered. Sleeping for {sleep_duration:.3f} seconds."
+                    f"Rate limit triggered (interval {self.rate_limit}s). Sleeping for {sleep_duration:.3f} seconds."
                 )
             time.sleep(sleep_duration)
 
