@@ -162,7 +162,6 @@ def main(
                 r = ratio(pocket["title"].lower(), bookmark.title.lower())
                 if r >= threshold:
                     found_it = True
-                    breakpoint()
                     break
 
 
