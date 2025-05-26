@@ -1171,24 +1171,53 @@ class KarakeepAPI:
 
     @optional_typecheck
     def create_a_new_list(
-        self, list_data: dict
+        self,
+        name: str,
+        icon: str,
+        description: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        list_type: Optional[Literal["manual", "smart"]] = "manual",
+        query: Optional[str] = None,
     ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Create a new list (manual or smart). Corresponds to POST /lists.
 
         Args:
-            list_data: Dictionary containing the data for the new list. Requires "name" (string) and "icon" (string).
-                       Optional fields include "description", "parentId", "type" ('manual' or 'smart'), "query".
-                       See the OpenAPI spec for details. Example: `{"name": "My List", "icon": "📚"}`
+            name: The name of the list (required, max 40 characters).
+            icon: The icon for the list (required).
+            description: Optional description for the list (max 100 characters).
+            parent_id: Optional parent list ID for nested lists.
+            list_type: The type of list ('manual' or 'smart'). Default is 'manual'.
+            query: Optional query string for smart lists (required if list_type is 'smart').
 
         Returns:
             datatypes.ListModel: The created list object.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
+            ValueError: If required arguments are missing or invalid.
             APIError: If the API request fails (e.g., bad request, invalid data).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
+        # Validate smart list requirements
+        if list_type == "smart" and not query:
+            raise ValueError("Argument 'query' is required when list_type is 'smart'.")
+
+        # Construct the request body
+        list_data = {
+            "name": name,
+            "icon": icon,
+            "type": list_type,
+        }
+
+        # Add optional fields if provided
+        if description is not None:
+            list_data["description"] = description
+        if parent_id is not None:
+            list_data["parentId"] = parent_id
+        if query is not None:
+            list_data["query"] = query
+
         response_data = self._call("POST", "lists", data=list_data)
 
         if self.disable_response_validation:
@@ -1399,21 +1428,28 @@ class KarakeepAPI:
                 )
 
     @optional_typecheck
-    def create_a_new_tag(self, tag_data: dict) -> Dict[str, Any]:
+    def create_a_new_tag(self, name: str) -> Dict[str, Any]:
         """
         Create a new tag. Corresponds to POST /tags.
 
         Args:
-            tag_data: Dictionary containing the data for the new tag. Must contain "name" (string, min length 1).
-                      Example: `{"name": "my-new-tag"}`
+            name: The name of the tag (required, minimum length 1).
 
         Returns:
             dict: A dictionary containing the created tag information with "id" and "name" fields.
                   Validation is not performed on this response type by default.
 
         Raises:
+            ValueError: If the name is empty or invalid.
             APIError: If the API request fails (e.g., bad request, invalid data).
         """
+        # Validate the name
+        if not name or not name.strip():
+            raise ValueError("Tag name cannot be empty.")
+
+        # Construct the request body
+        tag_data = {"name": name.strip()}
+
         response_data = self._call("POST", "tags", data=tag_data)
         # Response schema is a simple dict with id and name, return as dict
         # No Pydantic validation applied here as the spec defines a simple dict response
