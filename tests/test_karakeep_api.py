@@ -5,6 +5,7 @@ import subprocess
 import random
 import string
 import time
+import beartype  # to trigger the runtime typechecking
 import json # Added for CLI test payload generation
 
 # Import API, errors, and datatypes from the main package

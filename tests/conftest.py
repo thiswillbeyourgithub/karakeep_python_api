@@ -4,6 +4,7 @@ import time
 import random
 import string
 from typing import Optional
+import beartype  # to trigger the runtime typechecking
 from karakeep_python_api import KarakeepAPI, datatypes
 
 
