@@ -150,10 +150,6 @@ class PaginatedBookmarks(BaseModel):
     nextCursor: Optional[str]
 
 
-class Cursor(RootModel[str]):
-    root: str
-
-
 
 class Highlight(BaseModel):
     bookmarkId: str
