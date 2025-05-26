@@ -911,7 +911,7 @@ class KarakeepAPI:
         Returns:
             dict: A dictionary representing the updated bookmark (partial representation).
                   The response typically includes 'id', 'createdAt', 'modifiedAt', 'title', 'archived', 'favourited',
-                  'taggingStatus', 'note', 'summary'.
+                  'taggingStatus', 'summarizationStatus', 'note', 'summary'.
                   Validation is not performed on this response type by default.
 
         Raises:
