@@ -1563,15 +1563,24 @@ class KarakeepAPI:
 
     @optional_typecheck
     def create_a_new_highlight(
-        self, highlight_data: dict
+        self,
+        bookmark_id: str,
+        start_offset: float,
+        end_offset: float,
+        color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow",
+        text: Optional[str] = None,
+        note: Optional[str] = None,
     ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Create a new highlight on a bookmark. Corresponds to POST /highlights.
 
         Args:
-            highlight_data: Dictionary containing the data for the new highlight. Requires "bookmarkId" (string),
-                            "startOffset" (number), "endOffset" (number). Optional fields include "color", "text", "note".
-                            See the OpenAPI spec for details. Example: `{"bookmarkId": "...", "startOffset": 10, "endOffset": 25}`
+            bookmark_id: The ID of the bookmark to create the highlight on.
+            start_offset: The start position of the highlight in the text.
+            end_offset: The end position of the highlight in the text.
+            color: The color of the highlight ("yellow", "red", "green", "blue"). Default is "yellow".
+            text: Optional text content of the highlight.
+            note: Optional note associated with the highlight.
 
         Returns:
             datatypes.Highlight: The created highlight object.
@@ -1581,6 +1590,16 @@ class KarakeepAPI:
             APIError: If the API request fails (e.g., 400 bad request, 404 bookmark not found).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
+        # Construct the request body
+        highlight_data = {
+            "bookmarkId": bookmark_id,
+            "startOffset": start_offset,
+            "endOffset": end_offset,
+            "color": color,
+            "text": text,
+            "note": note,
+        }
+        
         response_data = self._call("POST", "highlights", data=highlight_data)
 
         if self.disable_response_validation:
