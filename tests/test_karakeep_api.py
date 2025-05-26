@@ -117,8 +117,8 @@ def test_get_all_tags(karakeep_client: KarakeepAPI):
         assert isinstance(tags, list), "Response should be a list"
         if tags:  # Only check elements if the list is not empty
             assert all(
-                isinstance(item, datatypes.Tag1) for item in tags
-            ), "All items should be Tag1 instances"
+                isinstance(item, datatypes.Tag) for item in tags
+            ), "All items should be Tag instances"
         logger.info(f"✓ Successfully retrieved {len(tags)} tags.")
     except (APIError, AuthenticationError) as e:
         pytest.fail(f"API error during tag retrieval: {e}")
@@ -547,7 +547,7 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
             tag_id=tag_id_to_manage, update_data=update_payload
         )
         # Do not check the type because karakeep 0.24.1 has a server side bug
-        # assert isinstance(updated_tag, datatypes.Tag), "Update tag response should be Tag1 model"
+        # assert isinstance(updated_tag, datatypes.Tag), "Update tag response should be Tag model"
         # assert updated_tag.name == updated_tag_name, "Tag name was not updated as expected"
         # logger.info(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag.name}'")
         assert updated_tag["name"] == updated_tag_name, "Tag name was not updated as expected"
@@ -556,7 +556,7 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
         # 3. Verify tag update by getting it directly
         logger.info(f"\nFetching tag {tag_id_to_manage} to verify its name is '{updated_tag_name}'")
         retrieved_tag = karakeep_client.get_a_single_tag(tag_id=tag_id_to_manage)
-        assert isinstance(retrieved_tag, datatypes.Tag), "Get single tag response should be Tag1 model"
+        assert isinstance(retrieved_tag, datatypes.Tag), "Get single tag response should be Tag model"
         assert retrieved_tag.name == updated_tag_name, "Retrieved tag name does not match updated name"
         assert retrieved_tag.id == tag_id_to_manage, "Retrieved tag ID does not match"
         logger.info(f"✓ Verified tag {tag_id_to_manage} has name '{retrieved_tag.name}'")
