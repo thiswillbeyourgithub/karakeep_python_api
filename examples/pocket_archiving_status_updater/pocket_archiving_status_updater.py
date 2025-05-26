@@ -7,6 +7,8 @@ title,url,time_added,tags,status
 It identifies entries with status "archive" and updates their status in Karakeep.
 
 """
+import time
+
 from Levenshtein import ratio
 import pickle
 from fire import Fire
@@ -184,10 +186,19 @@ def main(
             continue
 
         # do the archiving
-        res_arch = karakeep.update_a_bookmark(
-            bookmark_id=bookmark.id,
-            update_data={"archived": True},
-        )
+        retries = 3
+        for attempt in range(retries):
+            try:
+                res_arch = karakeep.update_a_bookmark(
+                    bookmark_id=bookmark.id,
+                    update_data={"archived": True},
+                )
+                break
+            except Exception as e:
+                if attempt == retries - 1:
+                    raise e
+                tqdm.write(f"Update failed, retrying ({attempt + 1}/{retries})")
+                time.sleep(1)
         if isinstance(res_arch, dict):
             assert res_arch["archived"], res_arch
         else:
