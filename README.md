@@ -66,6 +66,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `add_a_bookmark_to_a_list`       |   ❌   |  ❌  |                                              |
 | `remove_a_bookmark_from_a_list`  |   ❌   |  ❌  |                                              |
 | `get_all_tags`                   |   ✅   |  ✅  |                                              |
+| `create_a_new_tag`               |   ❌   |  ❌  |                                              |
 | `get_a_single_tag`               |   ✅   |  ❌  |  |
 | `delete_a_tag`                   |   ✅   |  ❌  |  |
 | `update_a_tag`                   |   ✅   |  ❌  |  No output validation due to [server bug](https://github.com/karakeep-app/karakeep/issues/1365). |
