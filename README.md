@@ -62,14 +62,14 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_list`              |   ✅   |  ❌  | |
 | `delete_a_list`                  |   ✅   |  ❌  | |
 | `update_a_list`                  |   ❌   |  ❌  |                                              |
-| `get_a_bookmarks_in_a_list`      |   ❌   |  ❌  |                                              |
+| `get_bookmarks_in_the_list`      |   ❌   |  ❌  |                                              |
 | `add_a_bookmark_to_a_list`       |   ❌   |  ❌  |                                              |
 | `remove_a_bookmark_from_a_list`  |   ❌   |  ❌  |                                              |
 | `get_all_tags`                   |   ✅   |  ✅  |                                              |
 | `get_a_single_tag`               |   ✅   |  ❌  |  |
 | `delete_a_tag`                   |   ✅   |  ❌  |  |
 | `update_a_tag`                   |   ✅   |  ❌  |  No output validation due to [server bug](https://github.com/karakeep-app/karakeep/issues/1365). |
-| `get_a_bookmarks_with_the_tag`   |   ❌   |  ❌  |                                              |
+| `get_bookmarks_with_the_tag`   |   ❌   |  ❌  |                                              |
 | `get_all_highlights`             |   ✅   |  ✅  | Tested with pagination.                      |
 | `create_a_new_highlight`         |   ❌   |  ❌  |                                              |
 | `get_a_single_highlight`         |   ❌   |  ❌  |                                              |
