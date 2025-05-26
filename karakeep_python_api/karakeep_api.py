@@ -1392,6 +1392,27 @@ class KarakeepAPI:
                 )
 
     @optional_typecheck
+    def create_a_new_tag(self, tag_data: dict) -> Dict[str, Any]:
+        """
+        Create a new tag. Corresponds to POST /tags.
+
+        Args:
+            tag_data: Dictionary containing the data for the new tag. Must contain "name" (string, min length 1).
+                      Example: `{"name": "my-new-tag"}`
+
+        Returns:
+            dict: A dictionary containing the created tag information with "id" and "name" fields.
+                  Validation is not performed on this response type by default.
+
+        Raises:
+            APIError: If the API request fails (e.g., bad request, invalid data).
+        """
+        response_data = self._call("POST", "tags", data=tag_data)
+        # Response schema is a simple dict with id and name, return as dict
+        # No Pydantic validation applied here as the spec defines a simple dict response
+        return response_data
+
+    @optional_typecheck
     def get_a_single_tag(self, tag_id: str) -> Union[datatypes.Tag1, Dict[str, Any], List[Any]]:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
