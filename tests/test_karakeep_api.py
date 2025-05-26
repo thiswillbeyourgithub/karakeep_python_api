@@ -269,8 +269,11 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
         logger.info(f"  Initial list count: {initial_list_count}")
 
         # 3. Create the new list
-        create_payload = {"name": list_name, "icon": list_icon, "type": "manual"}
-        created_list = karakeep_client.create_a_new_list(list_data=create_payload)
+        created_list = karakeep_client.create_a_new_list(
+            name=list_name,
+            icon=list_icon,
+            list_type="manual"
+        )
         assert isinstance(
             created_list, datatypes.ListModel
         ), "Response should be a ListModel"
