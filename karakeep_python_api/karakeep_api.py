@@ -1271,7 +1271,7 @@ class KarakeepAPI:
             return datatypes.ListModel.model_validate(response_data)
 
     @optional_typecheck
-    def get_a_bookmarks_in_a_list(
+    def get_bookmarks_in_the_list(
         self,
         list_id: str,
         limit: Optional[int] = None,
@@ -1471,7 +1471,7 @@ class KarakeepAPI:
             return datatypes.Tag1.model_validate(response_data)
 
     @optional_typecheck
-    def get_a_bookmarks_with_the_tag(
+    def get_bookmarks_with_the_tag(
         self,
         tag_id: str,
         limit: Optional[int] = None,

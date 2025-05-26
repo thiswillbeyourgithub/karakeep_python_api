@@ -1999,8 +1999,8 @@
     },
     "/lists/{listId}/bookmarks": {
       "get": {
-        "description": "Get the bookmarks in a list",
-        "summary": "Get a bookmarks in a list",
+        "description": "Get bookmarks in the list",
+        "summary": "Get bookmarks in the list",
         "tags": [
           "Lists"
         ],
@@ -2397,8 +2397,8 @@
     },
     "/tags/{tagId}/bookmarks": {
       "get": {
-        "description": "Get the bookmarks with the tag",
-        "summary": "Get a bookmarks with the tag",
+        "description": "Get bookmarks with the tag",
+        "summary": "Get bookmarks with the tag",
         "tags": [
           "Tags"
         ],
