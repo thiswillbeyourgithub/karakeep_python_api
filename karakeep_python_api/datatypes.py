@@ -127,7 +127,7 @@ class Asset(BaseModel):
 class Bookmark(BaseModel):
     id: str
     createdAt: str
-    modifiedAt: Optional[str] = None
+    modifiedAt: Optional[str]
     title: Optional[str] = None
     archived: bool
     favourited: bool
@@ -142,7 +142,7 @@ class Bookmark(BaseModel):
 
 class PaginatedBookmarks(BaseModel):
     bookmarks: List[Bookmark]
-    nextCursor: Optional[str] = None  # Allow nextCursor to be None
+    nextCursor: Optional[str]
 
 
 class Cursor(RootModel[str]):
@@ -161,8 +161,8 @@ class Highlight(BaseModel):
     startOffset: float
     endOffset: float
     color: Optional[Color] = "yellow"
-    text: Optional[str] = None  # Allow None for text
-    note: Optional[str] = None  # Allow None for note
+    text: Optional[str]
+    note: Optional[str]
     id: str
     userId: str
     createdAt: str
@@ -178,7 +178,7 @@ class ListModel(BaseModel):
     name: str
     description: Optional[str] = None
     icon: str
-    parentId: Optional[str] = None  # Allow parentId to be None (nullable)
+    parentId: Optional[str]
     type: Optional[Type4] = "manual"
     query: Optional[str] = None
 
@@ -197,4 +197,4 @@ class Tag1(BaseModel):
 
 class PaginatedHighlights(BaseModel):
     highlights: List[Highlight]
-    nextCursor: Optional[str] = None  # Allow nextCursor to be None
+    nextCursor: Optional[str]
