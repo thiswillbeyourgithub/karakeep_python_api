@@ -287,7 +287,7 @@ class KarakeepAPI:
             Union[BaseModel, dict, list, str, bytes]
         ] = None,  # More specific type hint
         extra_headers: Optional[Dict[str, str]] = None,
-    ) -> Any:
+    ) -> Union[Dict[str, Any], List[Any], None]:
         """
         Internal method to make an HTTP call to the Karakeep API. Handles authentication,
         request formatting, response parsing, and error handling.
@@ -639,7 +639,7 @@ class KarakeepAPI:
         limit: Optional[int] = None, # This is the per-page limit for the API
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Any:  # Returns PaginatedBookmarks or raw dict/list
+    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
         """
         Get bookmarks, one page at a time. Corresponds to GET /bookmarks.
 
@@ -710,7 +710,7 @@ class KarakeepAPI:
         fileName: Optional[str] = None,
         # size: Optional[int] = None, # Size is not in POST spec
         # content: Optional[str] = None, # Content is not in POST spec
-    ) -> Any:  # Returns Bookmark or raw dict/list
+    ) -> Union[datatypes.Bookmark, Dict[str, Any], List[Any]]:
         """
         Create a new bookmark. Corresponds to POST /bookmarks.
 
@@ -812,7 +812,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Any:  # Returns PaginatedBookmarks or raw dict/list
+    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
         """
         Search bookmarks. Corresponds to GET /bookmarks/search.
 
@@ -848,7 +848,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_bookmark(
         self, bookmark_id: str, include_content: bool = True  # Default from spec
-    ) -> Any:  # Returns Bookmark or raw dict/list
+    ) -> Union[datatypes.Bookmark, Dict[str, Any], List[Any]]:
         """
         Get a single bookmark by its ID. Corresponds to GET /bookmarks/{bookmarkId}.
 
@@ -898,7 +898,7 @@ class KarakeepAPI:
     @optional_typecheck
     def update_a_bookmark(
         self, bookmark_id: str, update_data: dict
-    ) -> Any:  # Returns dict
+    ) -> Dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
         Allows updating fields like 'archived', 'favourited', 'summary', 'note', 'title', etc.
@@ -924,7 +924,7 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
-    def summarize_a_bookmark(self, bookmark_id: str) -> Any:  # Returns dict
+    def summarize_a_bookmark(self, bookmark_id: str) -> Dict[str, Any]:
         """
         Summarize a bookmark by its ID. Corresponds to POST /bookmarks/{bookmarkId}/summarize.
         This triggers the summarization process and returns the updated bookmark record (partially).
@@ -949,7 +949,7 @@ class KarakeepAPI:
     @optional_typecheck
     def attach_tags_to_a_bookmark(
         self, bookmark_id: str, tags_data: dict
-    ) -> Any:  # Returns dict
+    ) -> Dict[str, Any]:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
@@ -976,7 +976,7 @@ class KarakeepAPI:
     @optional_typecheck
     def detach_tags_from_a_bookmark(
         self, bookmark_id: str, tags_data: dict
-    ) -> Any:  # Returns dict
+    ) -> Dict[str, Any]:
         """
         Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
 
@@ -1003,7 +1003,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_highlights_of_a_bookmark(
         self, bookmark_id: str
-    ) -> Any:  # Returns List[Highlight] or raw dict/list
+    ) -> Union[List[datatypes.Highlight], Dict[str, Any], List[Any]]:
         """
         Get all highlights associated with a specific bookmark. Corresponds to GET /bookmarks/{bookmarkId}/highlights.
 
@@ -1051,7 +1051,7 @@ class KarakeepAPI:
     @optional_typecheck
     def attach_asset(
         self, bookmark_id: str, asset_data: dict
-    ) -> Any:  # Returns Asset or raw dict/list
+    ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
 
@@ -1123,7 +1123,7 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def get_all_lists(self) -> Any:  # Returns List[ListModel] or raw dict/list
+    def get_all_lists(self) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
         """
         Get all lists for the current user. Corresponds to GET /lists.
 
@@ -1167,7 +1167,7 @@ class KarakeepAPI:
     @optional_typecheck
     def create_a_new_list(
         self, list_data: dict
-    ) -> Any:  # Returns ListModel or raw dict/list
+    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Create a new list (manual or smart). Corresponds to POST /lists.
 
@@ -1196,7 +1196,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_list(
         self, list_id: str
-    ) -> Any:  # Returns ListModel or raw dict/list
+    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Get a single list by its ID. Corresponds to GET /lists/{listId}.
 
@@ -1242,7 +1242,7 @@ class KarakeepAPI:
     @optional_typecheck
     def update_a_list(
         self, list_id: str, update_data: dict
-    ) -> Any:  # Returns ListModel or raw dict/list
+    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Update a list by its ID. Corresponds to PATCH /lists/{listId}.
         Allows updating fields like "name", "description", "icon", "parentId", "query".
@@ -1277,7 +1277,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Any:  # Returns PaginatedBookmarks or raw dict/list
+    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
         """
         Get the bookmarks contained within a specific list. Corresponds to GET /lists/{listId}/bookmarks.
 
@@ -1349,7 +1349,7 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def get_all_tags(self) -> Any:  # Returns List[Tag1] or raw dict/list
+    def get_all_tags(self) -> Union[List[datatypes.Tag1], Dict[str, Any], List[Any]]:
         """
         Get all tags for the current user. Corresponds to GET /tags.
 
@@ -1391,7 +1391,7 @@ class KarakeepAPI:
                 )
 
     @optional_typecheck
-    def get_a_single_tag(self, tag_id: str) -> Any:  # Returns Tag1 or raw dict/list
+    def get_a_single_tag(self, tag_id: str) -> Union[datatypes.Tag1, Dict[str, Any], List[Any]]:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
 
@@ -1437,7 +1437,7 @@ class KarakeepAPI:
     @optional_typecheck
     def update_a_tag(
         self, tag_id: str, update_data: dict
-    ) -> Any:  # Returns Tag1 or raw dict/list
+    ) -> Union[datatypes.Tag1, Dict[str, Any], List[Any]]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
@@ -1477,7 +1477,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Any:  # Returns PaginatedBookmarks or raw dict/list
+    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
         """
         Get the bookmarks associated with a specific tag. Corresponds to GET /tags/{tagId}/bookmarks.
 
@@ -1513,7 +1513,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_all_highlights(
         self, limit: Optional[int] = None, cursor: Optional[str] = None
-    ) -> Any:  # Returns PaginatedHighlights or raw dict/list
+    ) -> Union[datatypes.PaginatedHighlights, Dict[str, Any], List[Any]]:
         """
         Get all highlights for the current user. Corresponds to GET /highlights.
 
@@ -1542,7 +1542,7 @@ class KarakeepAPI:
     @optional_typecheck
     def create_a_new_highlight(
         self, highlight_data: dict
-    ) -> Any:  # Returns Highlight or raw dict/list
+    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Create a new highlight on a bookmark. Corresponds to POST /highlights.
 
@@ -1571,7 +1571,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_highlight(
         self, highlight_id: str
-    ) -> Any:  # Returns Highlight or raw dict/list
+    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Get a single highlight by its ID. Corresponds to GET /highlights/{highlightId}.
 
@@ -1599,7 +1599,7 @@ class KarakeepAPI:
     @optional_typecheck
     def delete_a_highlight(
         self, highlight_id: str
-    ) -> Any:  # Returns Highlight or raw dict/list
+    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Delete a highlight by its ID. Corresponds to DELETE /highlights/{highlightId}.
         Note: Unlike most DELETE endpoints, this returns the deleted highlight object on success (status 200).
@@ -1628,7 +1628,7 @@ class KarakeepAPI:
     @optional_typecheck
     def update_a_highlight(
         self, highlight_id: str, update_data: dict
-    ) -> Any:  # Returns Highlight or raw dict/list
+    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Update a highlight by its ID. Currently only supports updating the "color".
         Corresponds to PATCH /highlights/{highlightId}.
@@ -1657,7 +1657,7 @@ class KarakeepAPI:
             return datatypes.Highlight.model_validate(response_data)
 
     @optional_typecheck
-    def get_current_user_info(self) -> Any:  # Returns dict
+    def get_current_user_info(self) -> Dict[str, Any]:
         """
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
@@ -1673,7 +1673,7 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
-    def get_current_user_stats(self) -> Any:  # Returns dict
+    def get_current_user_stats(self) -> Dict[str, Any]:
         """
         Get statistics about the current authenticated user's data. Corresponds to GET /users/me/stats.
 
