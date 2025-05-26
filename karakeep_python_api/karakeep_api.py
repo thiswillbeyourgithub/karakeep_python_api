@@ -1444,12 +1444,12 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def get_all_tags(self) -> Union[List[datatypes.Tag1], Dict[str, Any], List[Any]]:
+    def get_all_tags(self) -> Union[List[datatypes.Tag], Dict[str, Any], List[Any]]:
         """
         Get all tags for the current user. Corresponds to GET /tags.
 
         Returns:
-            List[datatypes.Tag1]: A list of tag objects, including bookmark counts.
+            List[datatypes.Tag]: A list of tag objects, including bookmark counts.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1463,7 +1463,7 @@ class KarakeepAPI:
             # Return raw data, which might be {"tags": [...]} or something else
             return response_data
         else:
-            # Response schema is {"tags": [Tag1]}, extract the list and validate
+            # Response schema is {"tags": [Tag]}, extract the list and validate
             if (
                 isinstance(response_data, dict)
                 and "tags" in response_data
@@ -1471,7 +1471,7 @@ class KarakeepAPI:
             ):
                 try:
                     return [
-                        datatypes.Tag1.model_validate(tag)
+                        datatypes.Tag.model_validate(tag)
                         for tag in response_data["tags"]
                     ]
                 except (
@@ -1514,7 +1514,7 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
-    def get_a_single_tag(self, tag_id: str) -> Union[datatypes.Tag1, Dict[str, Any], List[Any]]:
+    def get_a_single_tag(self, tag_id: str) -> Union[datatypes.Tag, Dict[str, Any], List[Any]]:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
 
@@ -1522,7 +1522,7 @@ class KarakeepAPI:
             tag_id: The ID (string) of the tag to retrieve.
 
         Returns:
-            datatypes.Tag1: The requested tag object.
+            datatypes.Tag: The requested tag object.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1536,8 +1536,8 @@ class KarakeepAPI:
             logger.debug("Skipping response validation as requested.")
             return response_data
         else:
-            # Response should match Tag1 schema
-            return datatypes.Tag1.model_validate(response_data)
+            # Response should match Tag schema
+            return datatypes.Tag.model_validate(response_data)
 
     @optional_typecheck
     def delete_a_tag(self, tag_id: str) -> None:

@@ -41,7 +41,7 @@ class AttachedBy(str, Enum):
     human = "human"
 
 
-class Tag(BaseModel):
+class TagShort(BaseModel):
     id: str
     name: str
     attachedBy: AttachedBy
@@ -71,17 +71,17 @@ class Content(BaseModel):
     dateModified: Optional[str] = None
 
 
-class Type1(str, Enum):
+class TypeText(str, Enum):
     text = "text"
 
 
-class Content1(BaseModel):
-    type: Type1
+class ContentTypeText(BaseModel):
+    type: TypeText
     text: str
     sourceUrl: Optional[str] = None
 
 
-class Type2(str, Enum):
+class TypeAsset(str, Enum):
     asset = "asset"
 
 
@@ -90,8 +90,8 @@ class AssetType(str, Enum):
     pdf = "pdf"
 
 
-class Content2(BaseModel):
-    type: Type2
+class ContentTypeAsset(BaseModel):
+    type: TypeAsset
     assetType: AssetType
     assetId: str
     fileName: Optional[str] = None
@@ -100,12 +100,12 @@ class Content2(BaseModel):
     content: Optional[str] = None
 
 
-class Type3(str, Enum):
+class TypeUnknown(str, Enum):
     unknown = "unknown"
 
 
-class Content3(BaseModel):
-    type: Type3
+class ContentUnknown(BaseModel):
+    type: TypeUnknown
 
 
 class AssetType1(str, Enum):
@@ -135,8 +135,8 @@ class Bookmark(BaseModel):
     summarizationStatus: Optional[TaggingStatus] = None
     note: Optional[str] = None
     summary: Optional[str] = None
-    tags: List[Tag]
-    content: Union[Content, Content1, Content2, Content3]
+    tags: List[TagShort]
+    content: Union[Content, ContentTypeText, ContentTypeAsset, ContentUnknown]
     assets: List[Asset]
 
 
@@ -168,7 +168,7 @@ class Highlight(BaseModel):
     createdAt: str
 
 
-class Type4(str, Enum):
+class ListType(str, Enum):
     manual = "manual"
     smart = "smart"
 
@@ -179,7 +179,7 @@ class ListModel(BaseModel):
     description: Optional[str] = None
     icon: str
     parentId: Optional[str]
-    type: Optional[Type4] = "manual"
+    type: Optional[ListType] = "manual"
     query: Optional[str] = None
 
 
@@ -188,7 +188,7 @@ class NumBookmarksByAttachedType(BaseModel):
     human: Optional[float] = None
 
 
-class Tag1(BaseModel):
+class Tag(BaseModel):
     id: str
     name: str
     numBookmarks: float
