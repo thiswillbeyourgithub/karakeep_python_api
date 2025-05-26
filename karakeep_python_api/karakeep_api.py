@@ -212,21 +212,27 @@ class KarakeepAPI:
         # --- Rate Limit Setting ---
         # Argument takes precedence over environment variable
         env_rate_limit_str = os.environ.get("KARAKEEP_PYTHON_API_RATE_LIMIT")
-        if rate_limit != 0.0: # Argument provided and not default
+        if rate_limit != 0.0:  # Argument provided and not default
             self.rate_limit = rate_limit
             logger.debug(f"Rate limit set to {self.rate_limit}s via argument.")
         elif env_rate_limit_str is not None:
             try:
                 self.rate_limit = float(env_rate_limit_str)
-                logger.debug(f"Rate limit set to {self.rate_limit}s via KARAKEEP_PYTHON_API_RATE_LIMIT environment variable.")
+                logger.debug(
+                    f"Rate limit set to {self.rate_limit}s via KARAKEEP_PYTHON_API_RATE_LIMIT environment variable."
+                )
             except ValueError:
-                self.rate_limit = 0.0 # Default if env var is invalid
-                logger.warning(f"Invalid value for KARAKEEP_PYTHON_API_RATE_LIMIT ('{env_rate_limit_str}'). Rate limiting disabled (0.0s).")
+                self.rate_limit = 0.0  # Default if env var is invalid
+                logger.warning(
+                    f"Invalid value for KARAKEEP_PYTHON_API_RATE_LIMIT ('{env_rate_limit_str}'). Rate limiting disabled (0.0s)."
+                )
         else:
-            self.rate_limit = rate_limit # Use default from signature (0.0)
+            self.rate_limit = rate_limit  # Use default from signature (0.0)
             logger.debug(f"Rate limit set to default: {self.rate_limit}s.")
 
-        self.last_request_time: float = time.monotonic()  # Initialize timestamp for rate limiting
+        self.last_request_time: float = (
+            time.monotonic()
+        )  # Initialize timestamp for rate limiting
 
         # --- Response Validation Setting ---
         # Argument takes precedence over environment variable
@@ -637,7 +643,7 @@ class KarakeepAPI:
         archived: Optional[bool] = None,
         favourited: Optional[bool] = None,
         sort_order: Optional[Literal["asc", "desc"]] = None,
-        limit: Optional[int] = None, # This is the per-page limit for the API
+        limit: Optional[int] = None,  # This is the per-page limit for the API
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
     ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
@@ -784,9 +790,7 @@ class KarakeepAPI:
                     "Argument 'asset_type' ('image' or 'pdf') is required when type is 'asset'."
                 )
             if assetId is None:
-                raise ValueError(
-                    "Argument 'assetId' is required when type is 'asset'."
-                )
+                raise ValueError("Argument 'assetId' is required when type is 'asset'.")
             request_body["assetType"] = asset_type
             request_body["assetId"] = assetId
             if fileName is not None:
@@ -901,9 +905,7 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_bookmark(
-        self, bookmark_id: str, update_data: dict
-    ) -> Dict[str, Any]:
+    def update_a_bookmark(self, bookmark_id: str, update_data: dict) -> Dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
         Allows updating fields like 'archived', 'favourited', 'summary', 'note', 'title', etc.
@@ -976,28 +978,30 @@ class KarakeepAPI:
         # Validate the tags_data structure
         if not isinstance(tags_data, dict):
             raise ValueError("tags_data must be a dictionary")
-        
+
         if "tags" not in tags_data:
             raise ValueError("tags_data must contain a 'tags' key")
-        
+
         tags_list = tags_data["tags"]
         if not isinstance(tags_list, list):
             raise ValueError("The 'tags' value must be a list")
-        
+
         # Validate each tag object in the list
         for i, tag in enumerate(tags_list):
             if not isinstance(tag, dict):
                 raise ValueError(f"Tag at index {i} must be a dictionary")
-            
+
             has_tag_id = "tagId" in tag
             has_tag_name = "tagName" in tag
-            
+
             if not has_tag_id and not has_tag_name:
-                raise ValueError(f"Tag at index {i} must contain either 'tagId' or 'tagName'")
-            
+                raise ValueError(
+                    f"Tag at index {i} must contain either 'tagId' or 'tagName'"
+                )
+
             if has_tag_id and not isinstance(tag["tagId"], str):
                 raise ValueError(f"Tag at index {i}: 'tagId' must be a string")
-            
+
             if has_tag_name and not isinstance(tag["tagName"], str):
                 raise ValueError(f"Tag at index {i}: 'tagName' must be a string")
 
@@ -1032,28 +1036,30 @@ class KarakeepAPI:
         # Validate the tags_data structure
         if not isinstance(tags_data, dict):
             raise ValueError("tags_data must be a dictionary")
-        
+
         if "tags" not in tags_data:
             raise ValueError("tags_data must contain a 'tags' key")
-        
+
         tags_list = tags_data["tags"]
         if not isinstance(tags_list, list):
             raise ValueError("The 'tags' value must be a list")
-        
+
         # Validate each tag object in the list
         for i, tag in enumerate(tags_list):
             if not isinstance(tag, dict):
                 raise ValueError(f"Tag at index {i} must be a dictionary")
-            
+
             has_tag_id = "tagId" in tag
             has_tag_name = "tagName" in tag
-            
+
             if not has_tag_id and not has_tag_name:
-                raise ValueError(f"Tag at index {i} must contain either 'tagId' or 'tagName'")
-            
+                raise ValueError(
+                    f"Tag at index {i} must contain either 'tagId' or 'tagName'"
+                )
+
             if has_tag_id and not isinstance(tag["tagId"], str):
                 raise ValueError(f"Tag at index {i}: 'tagId' must be a string")
-            
+
             if has_tag_name and not isinstance(tag["tagName"], str):
                 raise ValueError(f"Tag at index {i}: 'tagName' must be a string")
 
@@ -1186,7 +1192,9 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def get_all_lists(self) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
+    def get_all_lists(
+        self,
+    ) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
         """
         Get all lists for the current user. Corresponds to GET /lists.
 
@@ -1514,7 +1522,9 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
-    def get_a_single_tag(self, tag_id: str) -> Union[datatypes.Tag, Dict[str, Any], List[Any]]:
+    def get_a_single_tag(
+        self, tag_id: str
+    ) -> Union[datatypes.Tag, Dict[str, Any], List[Any]]:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
 
@@ -1558,9 +1568,7 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_tag(
-        self, tag_id: str, update_data: dict
-    ) -> Dict[str, Any]:
+    def update_a_tag(self, tag_id: str, update_data: dict) -> Dict[str, Any]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
@@ -1693,7 +1701,7 @@ class KarakeepAPI:
             "text": text,
             "note": note,
         }
-        
+
         response_data = self._call("POST", "highlights", data=highlight_data)
 
         if self.disable_response_validation:

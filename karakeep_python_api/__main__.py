@@ -7,7 +7,17 @@ import functools
 import re  # Import re module
 import click
 import traceback  # Moved import to top
-from typing import Any, List, Dict, Optional, Callable, Union, get_origin, get_args, Literal
+from typing import (
+    Any,
+    List,
+    Dict,
+    Optional,
+    Callable,
+    Union,
+    get_origin,
+    get_args,
+    Literal,
+)
 from pydantic import BaseModel, ValidationError
 from loguru import logger  # Import logger
 
@@ -82,9 +92,9 @@ shared_options = [
     ),
     click.option(
         "--ascii",
-        "ensure_ascii", # Use 'ensure_ascii' as the destination variable name
+        "ensure_ascii",  # Use 'ensure_ascii' as the destination variable name
         is_flag=True,
-        default=False, # Default is False, meaning ensure_ascii=False by default
+        default=False,  # Default is False, meaning ensure_ascii=False by default
         envvar="KARAKEEP_PYTHON_API_ENSURE_ASCII",
         help="Escape non-ASCII characters in the JSON output (default: keep Unicode).",
     ),
@@ -135,9 +145,19 @@ def print_openapi_spec(ctx, param, value):
     is_eager=True,  # Process this option before others
     help="Dump the OpenAPI specification JSON to stdout and exit.",
 )
-@add_options(shared_options)  # Apply shared options to the group (ensure_ascii is now included)
+@add_options(
+    shared_options
+)  # Apply shared options to the group (ensure_ascii is now included)
 @click.pass_context
-def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation, ensure_ascii):
+def cli(
+    ctx,
+    base_url,
+    api_key,
+    verify_ssl,
+    verbose,
+    disable_response_validation,
+    ensure_ascii,
+):
     """
     Karakeep Python API Command Line Interface.
 
@@ -171,7 +191,7 @@ def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation
     ctx.obj["DISABLE_RESPONSE_VALIDATION"] = (
         disable_response_validation  # Store the flag
     )
-    ctx.obj["ENSURE_ASCII"] = ensure_ascii # Store the ensure_ascii flag
+    ctx.obj["ENSURE_ASCII"] = ensure_ascii  # Store the ensure_ascii flag
 
     # --- Configure Logger ---
     log_level = "DEBUG" if verbose else "INFO"
@@ -184,7 +204,7 @@ def cli(ctx, base_url, api_key, verify_ssl, verbose, disable_response_validation
         )
         logger.debug("Verbose logging enabled with detailed format.")
     else:
-        logger.add(sys.stderr, level=log_level) # Default format for INFO
+        logger.add(sys.stderr, level=log_level)  # Default format for INFO
     logger.debug("Logger configured for level: {}", log_level)
     logger.debug("CLI context initialized.")
 
@@ -216,7 +236,7 @@ def create_click_command(
             verify_ssl = ctx.obj["VERIFY_SSL"]
             verbose = ctx.obj["VERBOSE"]
             disable_validation = ctx.obj["DISABLE_RESPONSE_VALIDATION"]  # Retrieve flag
-            ensure_ascii_output = ctx.obj["ENSURE_ASCII"] # Retrieve ensure_ascii flag
+            ensure_ascii_output = ctx.obj["ENSURE_ASCII"]  # Retrieve ensure_ascii flag
 
             if not api_key:
                 click.echo(
@@ -253,9 +273,7 @@ def create_click_command(
                 # Remove arguments that are not part of the method signature
                 # (e.g., if extra options were somehow passed)
                 valid_arg_names = set(signature.parameters.keys())
-                call_args = {
-                    k: v for k, v in call_args.items() if k in valid_arg_names
-                }
+                call_args = {k: v for k, v in call_args.items() if k in valid_arg_names}
 
                 # --- JSON Parsing for Dict/List Parameters ---
                 # Iterate through the expected parameters from the signature
@@ -268,13 +286,15 @@ def create_click_command(
                         # Check if the annotation is dict/list or typing.Dict/List
                         # and if the received value is a string (needs parsing)
                         if (
-                            (param_annotation in (dict, list) or origin in (dict, list, Dict, List))
-                            and isinstance(param_value, str)
-                        ):
+                            param_annotation in (dict, list)
+                            or origin in (dict, list, Dict, List)
+                        ) and isinstance(param_value, str):
                             try:
                                 # Attempt to parse the JSON string
                                 call_args[param_name] = json.loads(param_value)
-                                logger.debug(f"Parsed JSON string for parameter '{param_name}'.")
+                                logger.debug(
+                                    f"Parsed JSON string for parameter '{param_name}'."
+                                )
                             except json.JSONDecodeError as json_err:
                                 # Handle invalid JSON input from the user
                                 click.echo(
@@ -287,89 +307,122 @@ def create_click_command(
                 # Call the API method
                 try:
                     if method_name == "get_all_bookmarks":
-                        logger.debug(f"Special CLI pagination handling for '{method_name}'.")
-                        cli_total_limit = call_args.pop('limit', None)
+                        logger.debug(
+                            f"Special CLI pagination handling for '{method_name}'."
+                        )
+                        cli_total_limit = call_args.pop("limit", None)
                         # Other relevant params for get_all_bookmarks
-                        archived_filter = call_args.get('archived')
-                        favourited_filter = call_args.get('favourited')
-                        include_content_cli = call_args.get('include_content', True) 
-                        
-                        call_args.pop('cursor', None) # Ignore CLI cursor
+                        archived_filter = call_args.get("archived")
+                        favourited_filter = call_args.get("favourited")
+                        include_content_cli = call_args.get("include_content", True)
+
+                        call_args.pop("cursor", None)  # Ignore CLI cursor
 
                         all_bookmarks_data = []
                         current_page_api_cursor = None
                         fetched_count = 0
-                        API_INTERNAL_PAGE_SIZE = 50 # Define a page size for API calls
+                        API_INTERNAL_PAGE_SIZE = 50  # Define a page size for API calls
 
                         while True:
                             api_call_limit = API_INTERNAL_PAGE_SIZE
                             if cli_total_limit is not None:
                                 remaining_needed = cli_total_limit - fetched_count
                                 if remaining_needed <= 0:
-                                    break # Reached or exceeded CLI total limit
-                                api_call_limit = min(API_INTERNAL_PAGE_SIZE, remaining_needed)
-                            
-                            if api_call_limit <= 0 and cli_total_limit is not None : # Avoid asking for 0 or negative items unless fetching all
+                                    break  # Reached or exceeded CLI total limit
+                                api_call_limit = min(
+                                    API_INTERNAL_PAGE_SIZE, remaining_needed
+                                )
+
+                            if (
+                                api_call_limit <= 0 and cli_total_limit is not None
+                            ):  # Avoid asking for 0 or negative items unless fetching all
                                 break
 
+                            logger.debug(
+                                f"Fetching page for '{method_name}' with cursor: {current_page_api_cursor}, api_limit: {api_call_limit}"
+                            )
 
-                            logger.debug(f"Fetching page for '{method_name}' with cursor: {current_page_api_cursor}, api_limit: {api_call_limit}")
-                            
                             page_call_args = {
-                                'archived': archived_filter,
-                                'favourited': favourited_filter,
-                                'limit': api_call_limit,
-                                'cursor': current_page_api_cursor,
-                                'include_content': include_content_cli,
+                                "archived": archived_filter,
+                                "favourited": favourited_filter,
+                                "limit": api_call_limit,
+                                "cursor": current_page_api_cursor,
+                                "include_content": include_content_cli,
                             }
-                            page_call_args_filtered = {k: v for k, v in page_call_args.items() if v is not None}
+                            page_call_args_filtered = {
+                                k: v for k, v in page_call_args.items() if v is not None
+                            }
 
                             try:
-                                page_result_obj = instance_method(**page_call_args_filtered)
+                                page_result_obj = instance_method(
+                                    **page_call_args_filtered
+                                )
                             except TypeError as call_error_page:
-                                logger.error(f"Error calling API method '{method_name}' (paginated): {call_error_page}")
-                                logger.error(f"Provided arguments for page: {page_call_args_filtered}")
-                                if verbose: logger.debug(traceback.format_exc())
+                                logger.error(
+                                    f"Error calling API method '{method_name}' (paginated): {call_error_page}"
+                                )
+                                logger.error(
+                                    f"Provided arguments for page: {page_call_args_filtered}"
+                                )
+                                if verbose:
+                                    logger.debug(traceback.format_exc())
                                 ctx.exit(1)
 
                             bookmarks_on_this_page = []
                             next_api_cursor = None
 
                             # Convert Pydantic model to dict using model_dump if available
-                            if hasattr(page_result_obj, 'model_dump'):
+                            if hasattr(page_result_obj, "model_dump"):
                                 result_dict = page_result_obj.model_dump()
                             elif isinstance(page_result_obj, dict):
                                 result_dict = page_result_obj
                             else:
-                                logger.warning(f"Unexpected result type: {type(page_result_obj)}")
+                                logger.warning(
+                                    f"Unexpected result type: {type(page_result_obj)}"
+                                )
                                 result_dict = {}
 
                             # Extract data and cursor from the dict
                             bookmarks_on_this_page = result_dict.get("bookmarks", [])
                             next_api_cursor = result_dict.get("nextCursor")
 
-                            logger.debug(f"Extracted {len(bookmarks_on_this_page)} bookmarks and cursor: {next_api_cursor}")
-                            
+                            logger.debug(
+                                f"Extracted {len(bookmarks_on_this_page)} bookmarks and cursor: {next_api_cursor}"
+                            )
+
                             if not isinstance(bookmarks_on_this_page, list):
-                                logger.warning(f"Expected a list of bookmarks, got {type(bookmarks_on_this_page)}. Stopping pagination.")
+                                logger.warning(
+                                    f"Expected a list of bookmarks, got {type(bookmarks_on_this_page)}. Stopping pagination."
+                                )
                                 break
-                            
+
                             all_bookmarks_data.extend(bookmarks_on_this_page)
                             fetched_count += len(bookmarks_on_this_page)
-                            logger.debug(f"Fetched {len(bookmarks_on_this_page)} bookmarks this page. Total fetched: {fetched_count}.")
+                            logger.debug(
+                                f"Fetched {len(bookmarks_on_this_page)} bookmarks this page. Total fetched: {fetched_count}."
+                            )
 
                             current_page_api_cursor = next_api_cursor
                             if not current_page_api_cursor:
-                                logger.debug("No nextCursor from API, pagination complete.")
+                                logger.debug(
+                                    "No nextCursor from API, pagination complete."
+                                )
                                 break
-                            if cli_total_limit is not None and fetched_count >= cli_total_limit:
-                                logger.debug(f"CLI total limit of {cli_total_limit} reached or exceeded.")
+                            if (
+                                cli_total_limit is not None
+                                and fetched_count >= cli_total_limit
+                            ):
+                                logger.debug(
+                                    f"CLI total limit of {cli_total_limit} reached or exceeded."
+                                )
                                 break
                             if not bookmarks_on_this_page and api_call_limit > 0:
-                                logger.debug("API returned an empty list of bookmarks while a positive limit was set, assuming end of data.")
+                                logger.debug(
+                                    "API returned an empty list of bookmarks while a positive limit was set, assuming end of data."
+                                )
                                 break
-                        
-                        result = all_bookmarks_data # This will be a list of Bookmark models or dicts
+
+                        result = all_bookmarks_data  # This will be a list of Bookmark models or dicts
                     else:
                         # Original behavior for other commands
                         logger.debug(
@@ -393,7 +446,9 @@ def create_click_command(
                     output_data = serialize_output(result)
                     # Use ensure_ascii_output flag to control JSON encoding
                     click.echo(
-                        json.dumps(output_data, indent=2, ensure_ascii=ensure_ascii_output)
+                        json.dumps(
+                            output_data, indent=2, ensure_ascii=ensure_ascii_output
+                        )
                     )
                 else:
                     # Handle None result (e.g., 204 No Content) gracefully
@@ -434,7 +489,9 @@ def create_click_command(
     docstring = api_method.__doc__ or f"Execute the {api_method_name} API operation."
     docstring = dedent(docstring)
     docstring_lines = docstring.split("\n")
-    help_text = " ".join(docstring.split("\n\n")[0].splitlines()).strip()  # First lines as short help
+    help_text = " ".join(
+        docstring.split("\n\n")[0].splitlines()
+    ).strip()  # First lines as short help
     # Full docstring as help
     full_help = docstring
 
@@ -452,9 +509,7 @@ def create_click_command(
         stripped_line = line.strip()
         if stripped_line == "Args:":
             in_args_section = True
-        elif (
-            stripped_line == "Returns:" or stripped_line == "Raises:"
-        ):
+        elif stripped_line == "Returns:" or stripped_line == "Raises:":
             in_args_section = False  # Stop capturing when Returns/Raises section starts
         elif in_args_section and stripped_line:
             args_section_lines.append(stripped_line)
@@ -465,7 +520,9 @@ def create_click_command(
                 param_name = match.group(1)
                 description = match.group(2).strip()
                 param_descriptions[param_name] = description
-                logger.trace(f"Parsed docstring param: '{param_name}' -> '{description}'")
+                logger.trace(
+                    f"Parsed docstring param: '{param_name}' -> '{description}'"
+                )
             else:
                 param_descriptions[param_name] += " " + stripped_line
 
@@ -524,7 +581,7 @@ def create_click_command(
                 logger.warning(
                     f"Parameter '{param.name}' is Literal but contains non-string types. Treating as STRING."
                 )
-                click_type = click.STRING # Fallback
+                click_type = click.STRING  # Fallback
 
         # Determine option name(s) and help text
         option_names = [f"--{param_name_cli}"]
@@ -543,7 +600,7 @@ def create_click_command(
         ):
             param_help += " (Provide as JSON string)"
         elif isinstance(click_type, click.Choice):
-             param_help += f" (Choices: {', '.join(click_type.choices)})"
+            param_help += f" (Choices: {', '.join(click_type.choices)})"
 
         click_required = is_required_in_sig and default_value is None and not is_flag
 
@@ -551,14 +608,22 @@ def create_click_command(
         current_param_help = param_help
         current_click_required = click_required
         current_default_value = default_value
-        current_is_flag = is_flag # Though is_flag interpretation might change help/required
-        
+        current_is_flag = (
+            is_flag  # Though is_flag interpretation might change help/required
+        )
+
         # Special handling for 'get_all_bookmarks' command parameters
         if api_method_name == "get_all_bookmarks":
             if param.name == "cursor":
-                current_param_help = "[Ignored by CLI for get-all-bookmarks] " + param_help
-                current_click_required = False  # Cursor is handled by CLI, not required from user
-                current_default_value = None  # Explicitly set default to None for ignored param
+                current_param_help = (
+                    "[Ignored by CLI for get-all-bookmarks] " + param_help
+                )
+                current_click_required = (
+                    False  # Cursor is handled by CLI, not required from user
+                )
+                current_default_value = (
+                    None  # Explicitly set default to None for ignored param
+                )
             elif param.name == "limit":
                 current_param_help = "Total maximum number of bookmarks to fetch across pages for get-all-bookmarks. If omitted, all are fetched."
                 # For 'limit', required status and default remain as derived from its Optional[int] type hint
