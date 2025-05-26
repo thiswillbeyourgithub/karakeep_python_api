@@ -115,12 +115,18 @@ class ContentTypeAsset(BaseModel):
     content: Optional[str] = None
 
 
-AssetType = Literal["screenshot", "assetScreenshot", "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive", "unknown"]
-
-
 class Asset(BaseModel):
     id: str
-    assetType: AssetType
+    assetType: Literal[
+        "screenshot",
+        "assetScreenshot",
+        "bannerImage",
+        "fullPageArchive",
+        "video",
+        "bookmarkAsset",
+        "precrawledArchive",
+        "unknown",
+    ]
 
 
 class Bookmark(BaseModel):
@@ -148,22 +154,17 @@ class Cursor(RootModel[str]):
     root: str
 
 
-Color = Literal["yellow", "red", "green", "blue"]
-
 
 class Highlight(BaseModel):
     bookmarkId: str
     startOffset: float
     endOffset: float
-    color: Optional[Color] = "yellow"
+    color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow"
     text: Optional[str]
     note: Optional[str]
     id: str
     userId: str
     createdAt: str
-
-
-ListType = Literal["manual", "smart"]
 
 
 class ListModel(BaseModel):
@@ -172,7 +173,7 @@ class ListModel(BaseModel):
     description: Optional[str] = None
     icon: str
     parentId: Optional[str]
-    type: Optional[ListType] = "manual"
+    type: Optional[Literal["manual", "smart"]] = "manual"
     query: Optional[str] = None
 
 
