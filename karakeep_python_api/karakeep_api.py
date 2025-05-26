@@ -1122,7 +1122,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
             asset_data: Dictionary specifying the asset to attach. Must contain "id" (string) and "assetType" (string enum).
                         Example: `{"id": "asset_id_string", "assetType": "screenshot"}`
-                        See `datatypes.AssetType1` enum for possible asset types.
+                        See `datatypes.AssetType` enum for possible asset types.
 
         Returns:
             datatypes.Asset: The attached asset object.

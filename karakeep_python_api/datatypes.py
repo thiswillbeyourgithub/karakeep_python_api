@@ -85,14 +85,14 @@ class TypeAsset(str, Enum):
     asset = "asset"
 
 
-class AssetType(str, Enum):
+class AssetTypeAssetType(str, Enum):
     image = "image"
     pdf = "pdf"
 
 
 class ContentTypeAsset(BaseModel):
     type: TypeAsset
-    assetType: AssetType
+    assetType: AssetTypeAssetType
     assetId: str
     fileName: Optional[str] = None
     sourceUrl: Optional[str] = None
@@ -108,7 +108,7 @@ class ContentUnknown(BaseModel):
     type: TypeUnknown
 
 
-class AssetType1(str, Enum):
+class AssetType(str, Enum):
     screenshot = "screenshot"
     assetScreenshot = "assetScreenshot"
     bannerImage = "bannerImage"
@@ -121,7 +121,7 @@ class AssetType1(str, Enum):
 
 class Asset(BaseModel):
     id: str
-    assetType: AssetType1
+    assetType: AssetType
 
 
 class Bookmark(BaseModel):
