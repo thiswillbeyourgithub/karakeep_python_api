@@ -970,8 +970,37 @@ class KarakeepAPI:
                   Validation is not performed on this response type by default.
 
         Raises:
+            ValueError: If tags_data structure is invalid.
             APIError: If the API request fails (e.g., 404 bookmark not found).
         """
+        # Validate the tags_data structure
+        if not isinstance(tags_data, dict):
+            raise ValueError("tags_data must be a dictionary")
+        
+        if "tags" not in tags_data:
+            raise ValueError("tags_data must contain a 'tags' key")
+        
+        tags_list = tags_data["tags"]
+        if not isinstance(tags_list, list):
+            raise ValueError("The 'tags' value must be a list")
+        
+        # Validate each tag object in the list
+        for i, tag in enumerate(tags_list):
+            if not isinstance(tag, dict):
+                raise ValueError(f"Tag at index {i} must be a dictionary")
+            
+            has_tag_id = "tagId" in tag
+            has_tag_name = "tagName" in tag
+            
+            if not has_tag_id and not has_tag_name:
+                raise ValueError(f"Tag at index {i} must contain either 'tagId' or 'tagName'")
+            
+            if has_tag_id and not isinstance(tag["tagId"], str):
+                raise ValueError(f"Tag at index {i}: 'tagId' must be a string")
+            
+            if has_tag_name and not isinstance(tag["tagName"], str):
+                raise ValueError(f"Tag at index {i}: 'tagName' must be a string")
+
         endpoint = f"bookmarks/{bookmark_id}/tags"
         response_data = self._call("POST", endpoint, data=tags_data)
         # Response schema is {"attached": [TagId]}, return as dict
@@ -997,8 +1026,37 @@ class KarakeepAPI:
                   Validation is not performed on this response type by default.
 
         Raises:
+            ValueError: If tags_data structure is invalid.
             APIError: If the API request fails (e.g., 404 bookmark not found).
         """
+        # Validate the tags_data structure
+        if not isinstance(tags_data, dict):
+            raise ValueError("tags_data must be a dictionary")
+        
+        if "tags" not in tags_data:
+            raise ValueError("tags_data must contain a 'tags' key")
+        
+        tags_list = tags_data["tags"]
+        if not isinstance(tags_list, list):
+            raise ValueError("The 'tags' value must be a list")
+        
+        # Validate each tag object in the list
+        for i, tag in enumerate(tags_list):
+            if not isinstance(tag, dict):
+                raise ValueError(f"Tag at index {i} must be a dictionary")
+            
+            has_tag_id = "tagId" in tag
+            has_tag_name = "tagName" in tag
+            
+            if not has_tag_id and not has_tag_name:
+                raise ValueError(f"Tag at index {i} must contain either 'tagId' or 'tagName'")
+            
+            if has_tag_id and not isinstance(tag["tagId"], str):
+                raise ValueError(f"Tag at index {i}: 'tagId' must be a string")
+            
+            if has_tag_name and not isinstance(tag["tagName"], str):
+                raise ValueError(f"Tag at index {i}: 'tagName' must be a string")
+
         endpoint = f"bookmarks/{bookmark_id}/tags"
         response_data = self._call("DELETE", endpoint, data=tags_data)
         # Response schema is {"detached": [TagId]}, return as dict
