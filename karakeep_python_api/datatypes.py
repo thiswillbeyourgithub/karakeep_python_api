@@ -22,11 +22,11 @@ class ListId(RootModel[str]):
     root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
 
 
-class TagId(RootModel[str]):
+class HighlightId(RootModel[str]):
     root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
 
 
-class HighlightId(RootModel[str]):
+class TagId(RootModel[str]):
     root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
 
 
@@ -45,6 +45,13 @@ class TagShort(BaseModel):
     id: str
     name: str
     attachedBy: AttachedBy
+
+
+class Tag(BaseModel):
+    id: str
+    name: str
+    numBookmarks: float
+    numBookmarksByAttachedType: NumBookmarksByAttachedType
 
 
 class Type(str, Enum):
@@ -75,19 +82,27 @@ class TypeText(str, Enum):
     text = "text"
 
 
-class ContentTypeText(BaseModel):
-    type: TypeText
-    text: str
-    sourceUrl: Optional[str] = None
-
-
 class TypeAsset(str, Enum):
     asset = "asset"
+
+
+class TypeUnknown(str, Enum):
+    unknown = "unknown"
+
+
+class ContentUnknown(BaseModel):
+    type: TypeUnknown
 
 
 class AssetTypeAssetType(str, Enum):
     image = "image"
     pdf = "pdf"
+
+
+class ContentTypeText(BaseModel):
+    type: TypeText
+    text: str
+    sourceUrl: Optional[str] = None
 
 
 class ContentTypeAsset(BaseModel):
@@ -98,14 +113,6 @@ class ContentTypeAsset(BaseModel):
     sourceUrl: Optional[str] = None
     size: Optional[float] = None
     content: Optional[str] = None
-
-
-class TypeUnknown(str, Enum):
-    unknown = "unknown"
-
-
-class ContentUnknown(BaseModel):
-    type: TypeUnknown
 
 
 class AssetType(str, Enum):
@@ -186,13 +193,6 @@ class ListModel(BaseModel):
 class NumBookmarksByAttachedType(BaseModel):
     ai: Optional[float] = None
     human: Optional[float] = None
-
-
-class Tag(BaseModel):
-    id: str
-    name: str
-    numBookmarks: float
-    numBookmarksByAttachedType: NumBookmarksByAttachedType
 
 
 class PaginatedHighlights(BaseModel):
