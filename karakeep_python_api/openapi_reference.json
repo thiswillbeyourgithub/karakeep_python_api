@@ -77,6 +77,15 @@
               "pending"
             ]
           },
+          "summarizationStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending"
+            ]
+          },
           "note": {
             "type": "string",
             "nullable": true
@@ -307,6 +316,7 @@
           "archived",
           "favourited",
           "taggingStatus",
+          "summarizationStatus",
           "tags",
           "content",
           "assets"
@@ -1042,6 +1052,15 @@
                         "pending"
                       ]
                     },
+                    "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
                     "note": {
                       "type": "string",
                       "nullable": true
@@ -1057,7 +1076,8 @@
                     "modifiedAt",
                     "archived",
                     "favourited",
-                    "taggingStatus"
+                    "taggingStatus",
+                    "summarizationStatus"
                   ]
                 }
               }
@@ -1142,6 +1162,15 @@
                         "pending"
                       ]
                     },
+                    "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
                     "note": {
                       "type": "string",
                       "nullable": true
@@ -1157,7 +1186,8 @@
                     "modifiedAt",
                     "archived",
                     "favourited",
-                    "taggingStatus"
+                    "taggingStatus",
+                    "summarizationStatus"
                   ]
                 }
               }
