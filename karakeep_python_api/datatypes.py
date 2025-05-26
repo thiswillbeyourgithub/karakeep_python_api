@@ -132,6 +132,7 @@ class Bookmark(BaseModel):
     archived: bool
     favourited: bool
     taggingStatus: TaggingStatus
+    summarizationStatus: Optional[TaggingStatus] = None
     note: Optional[str] = None
     summary: Optional[str] = None
     tags: List[Tag]
