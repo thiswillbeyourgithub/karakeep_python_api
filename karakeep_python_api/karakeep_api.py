@@ -636,7 +636,7 @@ class KarakeepAPI:
         self,
         archived: Optional[bool] = None,
         favourited: Optional[bool] = None,
-        sort_order: Optional[Literal["asc", "desc", "relevance"]] = None,
+        sort_order: Optional[Literal["asc", "desc"]] = None,
         limit: Optional[int] = None, # This is the per-page limit for the API
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec

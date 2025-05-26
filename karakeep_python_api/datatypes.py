@@ -127,7 +127,7 @@ class Asset(BaseModel):
 class Bookmark(BaseModel):
     id: str
     createdAt: str
-    modifiedAt: str
+    modifiedAt: Optional[str] = None
     title: Optional[str] = None
     archived: bool
     favourited: bool
