@@ -10,41 +10,21 @@ from typing import List, Optional, Union, Literal
 from pydantic import BaseModel, Field, RootModel
 
 
-class AssetId(RootModel[str]):
-    root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
-
-
-class BookmarkId(RootModel[str]):
-    root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
-
-
-class ListId(RootModel[str]):
-    root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
-
-
-class HighlightId(RootModel[str]):
-    root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
-
-
-class TagId(RootModel[str]):
-    root: str = Field(..., example="ieidlxygmwj87oxz5hxttoc8")
-
-
-class TaggingStatus(str, Enum):
+class StatusTypes(str, Enum):
     success = "success"
     failure = "failure"
     pending = "pending"
 
 
-class AttachedBy(str, Enum):
-    ai = "ai"
-    human = "human"
+class NumBookmarksByAttachedType(BaseModel):
+    ai: Optional[float] = None
+    human: Optional[float] = None
 
 
 class TagShort(BaseModel):
     id: str
     name: str
-    attachedBy: AttachedBy
+    attachedBy: Literal["ai", "human"]
 
 
 class Tag(BaseModel):
@@ -58,8 +38,8 @@ class Type(str, Enum):
     link = "link"
 
 
-class Content(BaseModel):
-    type: Type
+class ContentTypeLink(BaseModel):
+    type: Literal["link"] = "link"
     url: str
     title: Optional[str] = None
     description: Optional[str] = None
@@ -78,36 +58,19 @@ class Content(BaseModel):
     dateModified: Optional[str] = None
 
 
-class TypeText(str, Enum):
-    text = "text"
-
-
-class TypeAsset(str, Enum):
-    asset = "asset"
-
-
-class TypeUnknown(str, Enum):
-    unknown = "unknown"
-
-
-class ContentUnknown(BaseModel):
-    type: TypeUnknown
-
-
-class AssetTypeAssetType(str, Enum):
-    image = "image"
-    pdf = "pdf"
+class ContentTypeUnknown(BaseModel):
+    type: Literal["unknown"] = "unknown"
 
 
 class ContentTypeText(BaseModel):
-    type: TypeText
+    type: Literal["text"] = "text"
     text: str
     sourceUrl: Optional[str] = None
 
 
 class ContentTypeAsset(BaseModel):
-    type: TypeAsset
-    assetType: AssetTypeAssetType
+    type: Literal["asset"] = "asset"
+    assetType: Literal["image", "pdf"]
     assetId: str
     fileName: Optional[str] = None
     sourceUrl: Optional[str] = None
@@ -136,19 +99,20 @@ class Bookmark(BaseModel):
     title: Optional[str] = None
     archived: bool
     favourited: bool
-    taggingStatus: TaggingStatus
-    summarizationStatus: Optional[TaggingStatus] = None
+    taggingStatus: Literal["success", "failure", "pending"]
+    summarizationStatus: Optional[Literal["success", "failure", "pending"]] = None
     note: Optional[str] = None
     summary: Optional[str] = None
     tags: List[TagShort]
-    content: Union[Content, ContentTypeText, ContentTypeAsset, ContentUnknown]
+    content: Union[
+        ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown
+    ]
     assets: List[Asset]
 
 
 class PaginatedBookmarks(BaseModel):
     bookmarks: List[Bookmark]
     nextCursor: Optional[str]
-
 
 
 class Highlight(BaseModel):
@@ -171,11 +135,6 @@ class ListModel(BaseModel):
     parentId: Optional[str]
     type: Optional[Literal["manual", "smart"]] = "manual"
     query: Optional[str] = None
-
-
-class NumBookmarksByAttachedType(BaseModel):
-    ai: Optional[float] = None
-    human: Optional[float] = None
 
 
 class PaginatedHighlights(BaseModel):
