@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Literal
 
 from pydantic import BaseModel, Field, RootModel
 
@@ -115,15 +115,7 @@ class ContentTypeAsset(BaseModel):
     content: Optional[str] = None
 
 
-class AssetType(str, Enum):
-    screenshot = "screenshot"
-    assetScreenshot = "assetScreenshot"
-    bannerImage = "bannerImage"
-    fullPageArchive = "fullPageArchive"
-    video = "video"
-    bookmarkAsset = "bookmarkAsset"
-    precrawledArchive = "precrawledArchive"
-    unknown = "unknown"
+AssetType = Literal["screenshot", "assetScreenshot", "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive", "unknown"]
 
 
 class Asset(BaseModel):
@@ -156,11 +148,7 @@ class Cursor(RootModel[str]):
     root: str
 
 
-class Color(str, Enum):
-    yellow = "yellow"
-    red = "red"
-    green = "green"
-    blue = "blue"
+Color = Literal["yellow", "red", "green", "blue"]
 
 
 class Highlight(BaseModel):
@@ -175,9 +163,7 @@ class Highlight(BaseModel):
     createdAt: str
 
 
-class ListType(str, Enum):
-    manual = "manual"
-    smart = "smart"
+ListType = Literal["manual", "smart"]
 
 
 class ListModel(BaseModel):
