@@ -675,6 +675,7 @@ class KarakeepAPI:
         params = {
             "archived": archived,
             "favourited": favourited,
+            "sortOrder": sort_order,
             "limit": limit,
             "cursor": cursor,
             "includeContent": include_content,  # Use camelCase as per API spec query param
@@ -810,6 +811,7 @@ class KarakeepAPI:
     def search_bookmarks(
         self,
         q: str,  # Search query is required
+        sort_order: Optional[Literal["asc", "desc", "relevance"]] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
@@ -819,6 +821,7 @@ class KarakeepAPI:
 
         Args:
             q: The search query string.
+            sort_order: Sort order for results ("asc", "desc", "relevance"). Default from API is "relevance" (optional).
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
             include_content: If set to true, bookmark's content will be included (default: True).
@@ -833,6 +836,7 @@ class KarakeepAPI:
         """
         params = {
             "q": q,
+            "sortOrder": sort_order,
             "limit": limit,
             "cursor": cursor,
             "includeContent": include_content,  # Use camelCase as per API spec query param
@@ -1275,6 +1279,7 @@ class KarakeepAPI:
     def get_bookmarks_in_the_list(
         self,
         list_id: str,
+        sort_order: Optional[Literal["asc", "desc"]] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
@@ -1284,6 +1289,7 @@ class KarakeepAPI:
 
         Args:
             list_id: The ID (string) of the list.
+            sort_order: Sort order for results ("asc", "desc"). Default from API is "desc" (optional).
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
             include_content: If set to true, bookmark's content will be included (default: True).
@@ -1298,6 +1304,7 @@ class KarakeepAPI:
         """
         endpoint = f"lists/{list_id}/bookmarks"
         params = {
+            "sortOrder": sort_order,
             "limit": limit,
             "cursor": cursor,
             "includeContent": include_content,  # Use camelCase as per API spec query param
@@ -1486,6 +1493,7 @@ class KarakeepAPI:
     def get_bookmarks_with_the_tag(
         self,
         tag_id: str,
+        sort_order: Optional[Literal["asc", "desc"]] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
@@ -1495,6 +1503,7 @@ class KarakeepAPI:
 
         Args:
             tag_id: The ID (string) of the tag.
+            sort_order: Sort order for results ("asc", "desc"). Default from API is "desc" (optional).
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
             include_content: If set to true, bookmark's content will be included (default: True).
@@ -1509,6 +1518,7 @@ class KarakeepAPI:
         """
         endpoint = f"tags/{tag_id}/bookmarks"
         params = {
+            "sortOrder": sort_order,
             "limit": limit,
             "cursor": cursor,
             "includeContent": include_content,  # Use camelCase as per API spec query param
