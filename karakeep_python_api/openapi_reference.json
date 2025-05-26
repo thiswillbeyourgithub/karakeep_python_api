@@ -561,6 +561,19 @@
           },
           {
             "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "number"
             },
             "required": false,
@@ -782,6 +795,20 @@
             },
             "required": true,
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc",
+                "relevance"
+              ],
+              "default": "relevance"
+            },
+            "required": false,
+            "name": "sortOrder",
             "in": "query"
           },
           {
@@ -2015,6 +2042,19 @@
           },
           {
             "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "number"
             },
             "required": false,
@@ -2410,6 +2450,19 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/TagId"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
           },
           {
             "schema": {
