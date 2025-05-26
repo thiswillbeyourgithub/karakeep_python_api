@@ -1459,7 +1459,7 @@ class KarakeepAPI:
     @optional_typecheck
     def update_a_tag(
         self, tag_id: str, update_data: dict
-    ) -> Union[datatypes.Tag1, Dict[str, Any], List[Any]]:
+    ) -> Dict[str, Any]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
@@ -1470,27 +1470,17 @@ class KarakeepAPI:
                          Example: `{"name": "new tag name"}`
 
         Returns:
-            datatypes.Tag1: The updated tag object.
-            If response validation is disabled, returns the raw API response (dict/list).
+            dict: A dictionary containing the updated tag information with "id" and "name" fields.
+                  Validation is not performed on this response type by default.
 
         Raises:
             APIError: If the API request fails (e.g., 404 tag not found).
-            pydantic.ValidationError: If response validation fails (and is not disabled).
         """
         endpoint = f"tags/{tag_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
-
-        if self.disable_response_validation:
-            logger.debug("Skipping response validation as requested.")
-            return response_data
-        else:
-            # As of version 0.24.1 of karakeep: we do not check the correct
-            # validation type because there is an error on the
-            # server side: https://github.com/karakeep-app/karakeep/issues/1365
-            return response_data
-
-            # Response should match Tag1 schema
-            return datatypes.Tag1.model_validate(response_data)
+        # Response schema is a simple dict with id and name, return as dict
+        # No Pydantic validation applied here as the spec defines a simple dict response
+        return response_data
 
     @optional_typecheck
     def get_bookmarks_with_the_tag(
