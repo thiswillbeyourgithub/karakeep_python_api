@@ -119,7 +119,7 @@ def main(
 
         if not found_omni:
             print("Couldn't find the omnivore 'bookmark' for that highlight")
-            breakpoint()
+            raise RuntimeError(f"Could not find omnivore bookmark for highlight file: {name}")
         url = omnivore["url"]
 
         # check if the highlight is from a pdf or an html
