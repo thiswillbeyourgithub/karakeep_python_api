@@ -17,6 +17,102 @@ from string_context_matcher import match_highlight_to_corpus
 VERSION: str = "0.0.1"
 
 
+def find_highlight_position(
+    high_as_text: str,
+    highlight: str,
+    as_text: str,
+    as_md: str,
+    kara_content: str
+) -> tuple[int, int]:
+    """
+    Find the start and end positions of a highlight within the document content.
+    
+    This function uses multiple strategies to locate highlights:
+    1. Direct text matching in plain text
+    2. Markdown content matching with position scaling
+    3. Fuzzy matching using string context matcher
+    4. Link extraction for highlights containing only links
+    
+    Parameters
+    ----------
+    high_as_text : str
+        The highlight text converted to plain text
+    highlight : str
+        The original highlight text (may contain markdown/HTML)
+    as_text : str
+        The full document content as plain text
+    as_md : str
+        The full document content as markdown
+    kara_content : str
+        The raw HTML content of the document
+        
+    Returns
+    -------
+    tuple[int, int]
+        A tuple containing (start_position, end_position) of the highlight
+    """
+    start = 0
+    
+    # Strategy 1: Direct text matching
+    if high_as_text in as_text:
+        start = as_text.index(high_as_text)
+
+    # Strategy 2: Markdown content matching with position scaling
+    if highlight in as_md:
+        if start == 0:
+            start = int(as_md.index(highlight) / len(as_md) * len(as_text))
+        else:
+            start = (
+                start + int(as_md.index(highlight) / len(as_md) * len(as_text))
+            ) // 2
+
+    # Strategy 3: Fuzzy matching when direct matching fails
+    if start == 0:
+        match_text = match_highlight_to_corpus(
+            query=high_as_text, corpus=as_text
+        )
+        match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
+
+        if match_text.matches and match_md.matches:
+            position_text = as_text.index(match_text.matches[0]) / len(as_text)
+            position_md = as_md.index(match_md.matches[0]) / len(as_md)
+            diff = abs(position_text - position_md)
+
+            if diff >= 0.20:
+                # if differ too much, assume html has a too large overhead
+                rel_pos = position_md
+            else:
+                rel_pos = (position_text + position_md) / 2
+            del diff
+        elif match_text.matches:
+            rel_pos = as_text.index(match_text.matches[0]) / len(as_text)
+        elif match_md.matches:
+            rel_pos = as_md.index(match_md.matches[0]) / len(as_md)
+        elif (
+            not high_as_text
+        ):  # probably contains only a link, so we have to find that link in the raw html
+            links = re.findall(
+                r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]",
+                highlight,
+            )
+            positions = [
+                kara_content.index(link)
+                for link in links
+                if link in kara_content
+            ]
+            assert positions, highlight
+            rel_pos = int(sum(positions) / len(positions))
+        else:
+            raise ValueError(
+                f"Could not match highlight text to corpus for highlight: {highlight[:100]}{'...' if len(highlight) > 100 else ''}"
+            )
+        start = int(rel_pos * len(high_as_text))
+        del rel_pos
+
+    end = start + len(high_as_text)
+    return start, end
+
+
 def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> list:
     """
     Load all bookmarks from Karakeep API, using local cache if available.
@@ -301,61 +397,9 @@ def main(
                     high_link_replaced_as_text
                 ), f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
 
-            start = 0
-            if high_as_text in as_text:
-                start = as_text.index(high_as_text)
-
-            if highlight in as_md:
-                if start == 0:
-                    start = int(as_md.index(highlight) / len(as_md) * len(as_text))
-                else:
-                    start = (
-                        start + int(as_md.index(highlight) / len(as_md) * len(as_text))
-                    ) // 2
-
-            if start == 0:
-                match_text = match_highlight_to_corpus(
-                    query=high_as_text, corpus=as_text
-                )
-                match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
-
-                if match_text.matches and match_md.matches:
-                    position_text = as_text.index(match_text.matches[0]) / len(as_text)
-                    position_md = as_md.index(match_md.matches[0]) / len(as_md)
-                    diff = abs(position_text - position_md)
-
-                    if diff >= 0.20:
-                        # if differ too much, assume html has a too large overhead
-                        rel_pos = position_md
-                    else:
-                        rel_pos = (position_text + position_md) / 2
-                    del diff
-                elif match_text.matches:
-                    rel_pos = as_text.index(match_text.matches[0]) / len(as_text)
-                elif match_md.matches:
-                    rel_pos = as_md.index(match_md.matches[0]) / len(as_md)
-                elif (
-                    not high_as_text
-                ):  # probably contains only a link, so we have to find that link in the raw html
-                    links = re.findall(
-                        r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]",
-                        highlight,
-                    )
-                    positions = [
-                        kara_content.index(link)
-                        for link in links
-                        if link in kara_content
-                    ]
-                    assert positions, highlight
-                    rel_pos = int(sum(positions) / len(positions))
-                else:
-                    raise ValueError(
-                        f"Could not match highlight text to corpus for highlight: {highlight[:100]}{'...' if len(highlight) > 100 else ''}"
-                    )
-                start = int(rel_pos * len(high_as_text))
-                del rel_pos
-
-            end = start + len(high_as_text)
+            start, end = find_highlight_position(
+                high_as_text, highlight, as_text, as_md, kara_content
+            )
 
             if not dry:
                 resp = karakeep.create_a_new_highlight(
@@ -370,7 +414,7 @@ def main(
                 )
                 assert resp, highlight
 
-            del start, end, high_as_text
+            del high_as_text
 
 
 if __name__ == "__main__":
