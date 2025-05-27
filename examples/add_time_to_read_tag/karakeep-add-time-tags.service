@@ -1,0 +1,17 @@
+[Unit]
+Description=Add time-to-read tags to Karakeep bookmarks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Assumes the script is run from the repository root directory
+WorkingDirectory=%h/path/to/karakeep-python-api
+ExecStart=/usr/bin/python3 examples/add_time_to_read_tag/add_time_to_read_tag.py --verbose=false
+# Environment variables for Karakeep API (set these in your environment)
+# EnvironmentFile=%h/.config/karakeep/env
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

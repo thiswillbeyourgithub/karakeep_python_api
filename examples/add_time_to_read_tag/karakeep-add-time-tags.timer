@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Karakeep add time tags every 4 hours
+Requires=karakeep-add-time-tags.service
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=4h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
