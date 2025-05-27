@@ -148,14 +148,14 @@ def main(
             content = bookmark.content
 
             if is_pdf:
-                breakpoint()
+                raise NotImplementedError("PDF highlights are not yet supported")
 
             if hasattr(content, "url"):
                 found_url = content.url
             elif hasattr(content, "sourceUrl"):
                 found_url = content.sourceUrl
             else:
-                breakpoint()
+                raise RuntimeError(f"Bookmark content has no 'url' or 'sourceUrl' attribute. Available attributes: {[attr for attr in dir(content) if not attr.startswith('_')]}")
 
             # handling local PDF, they don't have proper url
             if found_url and found_url.startswith("https://omnivore.app"):
