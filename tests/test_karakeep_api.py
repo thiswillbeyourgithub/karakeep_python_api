@@ -530,9 +530,8 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
     try:
         # 1. Attach a new tag by name to the bookmark
         logger.info(f"\nAttempting to attach tag '{initial_tag_name}' to bookmark {bookmark_id}")
-        attach_payload = {"tags": [{"tagName": initial_tag_name}]}
         attach_response = karakeep_client.attach_tags_to_a_bookmark(
-            bookmark_id=bookmark_id, tags_data=attach_payload
+            bookmark_id=bookmark_id, tag_names=[initial_tag_name]
         )
         assert "attached" in attach_response and len(attach_response["attached"]) == 1, \
             "Failed to attach tag or response format incorrect"
@@ -563,9 +562,8 @@ def test_tag_lifecycle_on_bookmark(karakeep_client: KarakeepAPI, managed_bookmar
 
         # 4. Detach the tag from the bookmark
         logger.info(f"\nAttempting to detach tag {tag_id_to_manage} from bookmark {bookmark_id}")
-        detach_payload = {"tags": [{"tagId": tag_id_to_manage}]}
         detach_response = karakeep_client.detach_tags_from_a_bookmark(
-            bookmark_id=bookmark_id, tags_data=detach_payload
+            bookmark_id=bookmark_id, tag_ids=[tag_id_to_manage]
         )
         assert "detached" in detach_response and tag_id_to_manage in detach_response["detached"], \
             "Failed to detach tag or response format incorrect"
