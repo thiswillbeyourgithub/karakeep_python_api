@@ -5,11 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-# Assumes the script is run from the repository root directory
-WorkingDirectory=%h/path/to/karakeep-python-api
+# Update this path to your karakeep-python-api repository location
+WorkingDirectory=%h/repos/karakeep-python-api
 ExecStart=/usr/bin/python3 examples/add_time_to_read_tag/add_time_to_read_tag.py --verbose=false
-# Environment variables for Karakeep API (set these in your environment)
-# EnvironmentFile=%h/.config/karakeep/env
+# Uncomment and set path to environment file containing KARAKEEP_PYTHON_API_KEY and KARAKEEP_PYTHON_API_BASE_URL
+EnvironmentFile=%h/.config/karakeep/env
 StandardOutput=journal
 StandardError=journal
 
