@@ -139,6 +139,10 @@ def main(
 
 
         found_bm = False
+        best_bookmark = None
+        best_score = 0.0
+        threshold = 0.95
+        
         for bookmark in all_bm:
             found_url = None
             content = bookmark.content
@@ -182,8 +186,7 @@ def main(
                     found_bm = True
                     break
 
-            # fuzzy matching, as a last resort
-            threshold = 0.95
+            # fuzzy matching, as a last resort - track the best match
             if (
                 "title" in omnivore
                 and omnivore["title"]
@@ -191,9 +194,9 @@ def main(
                 and content.title
             ):
                 r = ratio(omnivore["title"].lower(), content.title.lower())
-                if r >= threshold:
-                    found_bm = True
-                    break
+                if r > best_score:
+                    best_score = r
+                    best_bookmark = bookmark
 
             if (
                 "title" in omnivore
@@ -202,10 +205,15 @@ def main(
                 and bookmark.title
             ):
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-                if r >= threshold:
-                    found_bm = True
-                    break
+                if r > best_score:
+                    best_score = r
+                    best_bookmark = bookmark
 
+        # Use the best fuzzy match if it meets the threshold
+        if not found_bm and best_score >= threshold:
+            found_bm = True
+            bookmark = best_bookmark
+            
         if not found_bm:
             print("Did not find the bookmark")
             breakpoint()
