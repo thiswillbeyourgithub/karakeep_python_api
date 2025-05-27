@@ -10,6 +10,9 @@ from loguru import logger
 from karakeep_python_api import KarakeepAPI
 
 
+VERSION: str = "1.0.0"
+
+
 class AddTimeToRead:
     """Class to add time-to-read tags to bookmarks based on content length."""
 
