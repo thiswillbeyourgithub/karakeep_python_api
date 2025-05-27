@@ -204,7 +204,6 @@ def main(
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
                 if r >= threshold:
                     found_bm = True
-                    breakpoint()
                     break
 
         if not found_bm:
