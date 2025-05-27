@@ -4,6 +4,7 @@ Small script made to solve the karakeep issue where Omnivore's imported document
 Link: https://github.com/karakeep-app/karakeep/issues/703
 
 """
+
 from Levenshtein import ratio
 import pickle
 from typing import Optional
@@ -34,13 +35,15 @@ def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
             print(f"Warning: Could not decode JSON from {json_file.name}: {e}")
         except Exception as e:
             print(f"Warning: Could not read or process {json_file.name}: {e}")
-    
+
     if not all_data:
-        print(f"Warning: No data loaded from {omnivore_export_dir}. Ensure 'metadata_*_to_*.json' files exist and are valid.")
+        print(
+            f"Warning: No data loaded from {omnivore_export_dir}. Ensure 'metadata_*_to_*.json' files exist and are valid."
+        )
         return []
 
     # figure out which should have been archived
-    data = all_data # Use the concatenated data
+    data = all_data  # Use the concatenated data
     active = []
     archived = []
     unknown = []
@@ -59,7 +62,7 @@ def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
 def main(
     omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
-    ) -> None:
+) -> None:
     archived = get_omnivores_archived(omnivore_export_dir)
 
     if not archived:
@@ -91,7 +94,9 @@ def main(
             all_bm.extend(page.bookmarks)
             pbar.update(len(page.bookmarks))
 
-        assert len(all_bm) == n, f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        assert (
+            len(all_bm) == n
+        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
         pbar.close()
 
         with Path(karakeep_path).open("wb") as f:
@@ -122,31 +127,50 @@ def main(
 
             # couldn't find a matching url, match by title
             # exact title match:
-            if "title" in omnivore and omnivore["title"] and hasattr(content, "title") and content.title:
+            if (
+                "title" in omnivore
+                and omnivore["title"]
+                and hasattr(content, "title")
+                and content.title
+            ):
                 if omnivore["title"].lower() == content.title.lower():
                     found_it = True
                     break
-            if "title" in omnivore and omnivore["title"] and hasattr(bookmark, "title") and bookmark.title:
+            if (
+                "title" in omnivore
+                and omnivore["title"]
+                and hasattr(bookmark, "title")
+                and bookmark.title
+            ):
                 if omnivore["title"].lower() == bookmark.title.lower():
                     found_it = True
                     break
 
             # fuzzy matching, as a last resort
             threshold = 0.95
-            if "title" in omnivore and omnivore["title"] and hasattr(content, "title") and content.title:
+            if (
+                "title" in omnivore
+                and omnivore["title"]
+                and hasattr(content, "title")
+                and content.title
+            ):
                 r = ratio(omnivore["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_it = True
                     breakpoint()
                     break
 
-            if "title" in omnivore and omnivore["title"] and hasattr(bookmark, "title") and bookmark.title:
+            if (
+                "title" in omnivore
+                and omnivore["title"]
+                and hasattr(bookmark, "title")
+                and bookmark.title
+            ):
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
                 if r >= threshold:
                     found_it = True
                     breakpoint()
                     break
-
 
         # couldn't be found
         if not found_it:
@@ -161,7 +185,9 @@ def main(
         if bookmark.archived:
             tqdm.write(f"Already archived: {url}")
             continue
-        fresh = karakeep.get_a_single_bookmark(bookmark_id=bookmark.id, include_content=False)
+        fresh = karakeep.get_a_single_bookmark(
+            bookmark_id=bookmark.id, include_content=False
+        )
         if fresh.archived:
             tqdm.write(f"Already archived: {url}")
             continue
@@ -180,4 +206,3 @@ def main(
 
 if __name__ == "__main__":
     Fire(main)
-

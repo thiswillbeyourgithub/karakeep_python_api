@@ -194,7 +194,13 @@ class AddTimeToRead:
         except Exception as e:
             logger.error(f"Failed to add tag to bookmark {bookmark.id}: {e}")
 
-    def run(self, wpm: int = 200, reset_all: bool = False, verbose: bool = False, cache_file: str = "./bookmarks.temp"):
+    def run(
+        self,
+        wpm: int = 200,
+        reset_all: bool = False,
+        verbose: bool = False,
+        cache_file: str = "./bookmarks.temp",
+    ):
         """
         Main method to process all bookmarks and add time-to-read tags.
 
@@ -223,7 +229,9 @@ class AddTimeToRead:
         else:
             # Use different cache for untagged bookmarks search
             cache_parts = Path(cache_file).parts
-            cache_file_final = str(Path(*cache_parts[:-1]) / f"untagged_{cache_parts[-1]}")
+            cache_file_final = str(
+                Path(*cache_parts[:-1]) / f"untagged_{cache_parts[-1]}"
+            )
 
         # Fetch bookmarks with content, using cache to speed up testing
         # As the loading can be pretty long, we store it to a local file
@@ -234,7 +242,7 @@ class AddTimeToRead:
             logger.info(f"Loaded {len(bookmarks)} bookmarks from cache")
         else:
             logger.info("Cache file not found, fetching bookmarks from API...")
-            
+
             if reset_all:
                 # Fetch all bookmarks when reset_all is True
                 try:
@@ -247,9 +255,7 @@ class AddTimeToRead:
                 logger.info("Fetching all bookmarks with content...")
                 pbar = tqdm(total=n, desc="Fetching bookmarks")
                 bookmarks = []
-                batch_size = (
-                    100  # Maximum allowed batch size to avoid crashing the karakeep instance
-                )
+                batch_size = 100  # Maximum allowed batch size to avoid crashing the karakeep instance
 
                 try:
                     page = self.karakeep.get_all_bookmarks(
@@ -280,11 +286,13 @@ class AddTimeToRead:
             else:
                 # Use search to find bookmarks without time tags when reset_all is False
                 search_query = "-#0-5m -#5-10m -#10-15m -#15-30m -#30m+"
-                logger.info(f"Searching for bookmarks without time tags using query: {search_query}")
-                
+                logger.info(
+                    f"Searching for bookmarks without time tags using query: {search_query}"
+                )
+
                 bookmarks = []
                 batch_size = 100
-                
+
                 try:
                     page = self.karakeep.search_bookmarks(
                         q=search_query,
@@ -311,7 +319,9 @@ class AddTimeToRead:
                     return
 
             # Save bookmarks to cache file
-            logger.info(f"Saving {len(bookmarks)} bookmarks to cache file: {cache_file_final}")
+            logger.info(
+                f"Saving {len(bookmarks)} bookmarks to cache file: {cache_file_final}"
+            )
             with Path(cache_file_final).open("wb") as f:
                 pickle.dump(bookmarks, f)
 
@@ -354,7 +364,12 @@ class AddTimeToRead:
         )
 
 
-def main(wpm: int = 200, reset_all: bool = False, verbose: bool = False, cache_file: str = "./bookmarks.temp"):
+def main(
+    wpm: int = 200,
+    reset_all: bool = False,
+    verbose: bool = False,
+    cache_file: str = "./bookmarks.temp",
+):
     """
     Main entry point for the script.
 
@@ -365,7 +380,9 @@ def main(wpm: int = 200, reset_all: bool = False, verbose: bool = False, cache_f
         cache_file: Path to cache file for bookmarks (default: ./bookmarks.temp)
     """
     add_time_to_read = AddTimeToRead()
-    add_time_to_read.run(wpm=wpm, reset_all=reset_all, verbose=verbose, cache_file=cache_file)
+    add_time_to_read.run(
+        wpm=wpm, reset_all=reset_all, verbose=verbose, cache_file=cache_file
+    )
 
 
 if __name__ == "__main__":

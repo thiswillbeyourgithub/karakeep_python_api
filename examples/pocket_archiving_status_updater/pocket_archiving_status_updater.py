@@ -7,6 +7,7 @@ title,url,time_added,tags,status
 It identifies entries with status "archive" and updates their status in Karakeep.
 
 """
+
 import time
 
 from Levenshtein import ratio
@@ -46,7 +47,7 @@ def get_pocket_archived(pocket_export_dir: str) -> list[dict]:
         csv_file = csv_files[0]
 
     try:
-        with open(csv_file, 'r', encoding='utf-8') as f:
+        with open(csv_file, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 all_data.append(row)
@@ -73,7 +74,7 @@ def get_pocket_archived(pocket_export_dir: str) -> list[dict]:
                 "title": d.get("title", ""),  # Use empty string if title is missing
                 "time_added": d.get("time_added", ""),
                 "tags": d.get("tags", ""),
-                "state": "Archived"  # Add state field for compatibility with the rest of the script
+                "state": "Archived",  # Add state field for compatibility with the rest of the script
             }
             archived.append(archived_entry)
 
@@ -81,8 +82,8 @@ def get_pocket_archived(pocket_export_dir: str) -> list[dict]:
 
 
 def main(
-        pocket_export_dir: str,
-        karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
+    pocket_export_dir: str,
+    karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
 ) -> None:
     archived = get_pocket_archived(pocket_export_dir)
 
@@ -115,7 +116,9 @@ def main(
             all_bm.extend(page.bookmarks)
             pbar.update(len(page.bookmarks))
 
-        assert len(all_bm) == n, f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        assert (
+            len(all_bm) == n
+        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
         pbar.close()
 
         with Path(karakeep_path).open("wb") as f:
@@ -142,30 +145,49 @@ def main(
 
             # couldn't find a matching url, match by title
             # exact title match:
-            if "title" in pocket and pocket["title"] and hasattr(content, "title") and content.title:
+            if (
+                "title" in pocket
+                and pocket["title"]
+                and hasattr(content, "title")
+                and content.title
+            ):
                 if pocket["title"].lower() == content.title.lower():
                     found_it = True
                     break
-            if "title" in pocket and pocket["title"] and hasattr(bookmark, "title") and bookmark.title:
+            if (
+                "title" in pocket
+                and pocket["title"]
+                and hasattr(bookmark, "title")
+                and bookmark.title
+            ):
                 if pocket["title"].lower() == bookmark.title.lower():
                     found_it = True
                     break
 
             # fuzzy matching, as a last resort
             threshold = 0.95
-            if "title" in pocket and pocket["title"] and hasattr(content, "title") and content.title:
+            if (
+                "title" in pocket
+                and pocket["title"]
+                and hasattr(content, "title")
+                and content.title
+            ):
                 r = ratio(pocket["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_it = True
                     breakpoint()
                     break
 
-            if "title" in pocket and pocket["title"] and hasattr(bookmark, "title") and bookmark.title:
+            if (
+                "title" in pocket
+                and pocket["title"]
+                and hasattr(bookmark, "title")
+                and bookmark.title
+            ):
                 r = ratio(pocket["title"].lower(), bookmark.title.lower())
                 if r >= threshold:
                     found_it = True
                     break
-
 
         # couldn't be found
         if not found_it:
@@ -180,7 +202,9 @@ def main(
         if bookmark.archived:
             tqdm.write(f"Already archived: {url}")
             continue
-        fresh = karakeep.get_a_single_bookmark(bookmark_id=bookmark.id, include_content=False)
+        fresh = karakeep.get_a_single_bookmark(
+            bookmark_id=bookmark.id, include_content=False
+        )
         if fresh.archived:
             tqdm.write(f"Already archived: {url}")
             continue

@@ -18,21 +18,17 @@ VERSION: str = "0.0.1"
 
 
 def find_highlight_position(
-    high_as_text: str,
-    highlight: str,
-    as_text: str,
-    as_md: str,
-    kara_content: str
+    high_as_text: str, highlight: str, as_text: str, as_md: str, kara_content: str
 ) -> tuple[int, int]:
     """
     Find the start and end positions of a highlight within the document content.
-    
+
     This function uses multiple strategies to locate highlights:
     1. Direct text matching in plain text
     2. Markdown content matching with position scaling
     3. Fuzzy matching using string context matcher
     4. Link extraction for highlights containing only links
-    
+
     Parameters
     ----------
     high_as_text : str
@@ -45,14 +41,14 @@ def find_highlight_position(
         The full document content as markdown
     kara_content : str
         The raw HTML content of the document
-        
+
     Returns
     -------
     tuple[int, int]
         A tuple containing (start_position, end_position) of the highlight
     """
     start = 0
-    
+
     # Strategy 1: Direct text matching
     if high_as_text in as_text:
         start = as_text.index(high_as_text)
@@ -68,9 +64,7 @@ def find_highlight_position(
 
     # Strategy 3: Fuzzy matching when direct matching fails
     if start == 0:
-        match_text = match_highlight_to_corpus(
-            query=high_as_text, corpus=as_text
-        )
+        match_text = match_highlight_to_corpus(query=high_as_text, corpus=as_text)
         match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
 
         if match_text.matches and match_md.matches:
@@ -96,9 +90,7 @@ def find_highlight_position(
                 highlight,
             )
             positions = [
-                kara_content.index(link)
-                for link in links
-                if link in kara_content
+                kara_content.index(link) for link in links if link in kara_content
             ]
             assert positions, highlight
             rel_pos = int(sum(positions) / len(positions))
@@ -116,17 +108,17 @@ def find_highlight_position(
 def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> list:
     """
     Load all bookmarks from Karakeep API, using local cache if available.
-    
+
     This function fetches all bookmarks from the Karakeep instance, with content included.
     To avoid repeated API calls during development, bookmarks are cached locally.
-    
+
     Parameters
     ----------
     karakeep : KarakeepAPI
         The Karakeep API client instance
     karakeep_path : str
         Path to the local cache file for storing bookmarks
-        
+
     Returns
     -------
     list
@@ -162,7 +154,7 @@ def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> l
 
         with Path(karakeep_path).open("wb") as f:
             pickle.dump(all_bm, f)
-    
+
     return all_bm
 
 

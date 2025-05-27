@@ -57,7 +57,9 @@ def managed_bookmark(karakeep_client: KarakeepAPI) -> datatypes.Bookmark:
     test_url = f"https://example.com/test_page_fixture_{timestamp}_{random_suffix}"
     original_title = f"Managed Fixture Bookmark {timestamp}-{random_suffix}"
 
-    print(f"\n  FIXTURE SETUP: Attempting to create bookmark (URL: {test_url}, Title: '{original_title}')")
+    print(
+        f"\n  FIXTURE SETUP: Attempting to create bookmark (URL: {test_url}, Title: '{original_title}')"
+    )
     try:
         # Create the bookmark
         bookmark = karakeep_client.create_a_new_bookmark(
@@ -68,19 +70,27 @@ def managed_bookmark(karakeep_client: KarakeepAPI) -> datatypes.Bookmark:
         ), "Fixture: create_a_new_bookmark should return a Bookmark model"
         assert bookmark.id, "Fixture: Created bookmark must have an ID"
         created_bookmark_id = bookmark.id
-        print(f"  FIXTURE SETUP: ✓ Successfully created bookmark with ID: {created_bookmark_id}")
+        print(
+            f"  FIXTURE SETUP: ✓ Successfully created bookmark with ID: {created_bookmark_id}"
+        )
 
         yield bookmark  # Provide the bookmark to the test function
 
     finally:
         # Teardown: Delete the bookmark
         if created_bookmark_id:
-            print(f"\n  FIXTURE TEARDOWN: Attempting to delete bookmark ID: {created_bookmark_id}")
+            print(
+                f"\n  FIXTURE TEARDOWN: Attempting to delete bookmark ID: {created_bookmark_id}"
+            )
             try:
                 karakeep_client.delete_a_bookmark(bookmark_id=created_bookmark_id)
-                print(f"  FIXTURE TEARDOWN: ✓ Successfully deleted bookmark ID: {created_bookmark_id}")
+                print(
+                    f"  FIXTURE TEARDOWN: ✓ Successfully deleted bookmark ID: {created_bookmark_id}"
+                )
             except Exception as e:
                 # Log error during teardown but don't let it mask original test failure
-                print(f"  FIXTURE TEARDOWN: ERROR during bookmark deletion for ID {created_bookmark_id}: {e}")
+                print(
+                    f"  FIXTURE TEARDOWN: ERROR during bookmark deletion for ID {created_bookmark_id}: {e}"
+                )
         else:
             print("\n  FIXTURE TEARDOWN: No bookmark ID recorded, skipping deletion.")

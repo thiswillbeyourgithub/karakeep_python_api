@@ -979,7 +979,9 @@ class KarakeepAPI:
         """
         # Validate that at least one tag source is provided
         if not tag_ids and not tag_names:
-            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
+            raise ValueError(
+                "At least one of 'tag_ids' or 'tag_names' must be provided"
+            )
 
         # Validate input types
         if tag_ids is not None and not isinstance(tag_ids, list):
@@ -997,7 +999,9 @@ class KarakeepAPI:
         if tag_names:
             for i, tag_name in enumerate(tag_names):
                 if not isinstance(tag_name, str) or not tag_name.strip():
-                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
+                    raise ValueError(
+                        f"Tag name at index {i} must be a non-empty string"
+                    )
 
         # Construct the tags_data dict in the format expected by the API
         tags_list = []
@@ -1050,7 +1054,9 @@ class KarakeepAPI:
         """
         # Validate that at least one tag source is provided
         if not tag_ids and not tag_names:
-            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
+            raise ValueError(
+                "At least one of 'tag_ids' or 'tag_names' must be provided"
+            )
 
         # Validate input types
         if tag_ids is not None and not isinstance(tag_ids, list):
@@ -1068,7 +1074,9 @@ class KarakeepAPI:
         if tag_names:
             for i, tag_name in enumerate(tag_names):
                 if not isinstance(tag_name, str) or not tag_name.strip():
-                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
+                    raise ValueError(
+                        f"Tag name at index {i} must be a non-empty string"
+                    )
 
         # Construct the tags_data dict in the format expected by the API
         tags_list = []
