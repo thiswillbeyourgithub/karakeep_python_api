@@ -208,7 +208,12 @@ except Exception as e:
 
 Examples of the API being used can be found in the [`./examples`](./examples) folder. Don't hesitate to submit yours!
 
--   **Omnivore Archiving Status Updater**: A script to fix the archive status of bookmarks imported from Omnivore into Karakeep. See [`examples/omnivore_archiving_status_updater/README.md`](./examples/omnivore_archiving_status_updater/README.md) for details.
+| Example Script | Description | Documentation |
+|----------------|-------------|---------------|
+| **Add Time-to-Read Tags** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. | [`README.md`](./examples/add_time_to_read_tag/README.md) |
+| **List to Tag Converter** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`README.md`](./examples/list_to_tag/README.md) |
+| **Omnivore Archiving Status Updater** | Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`README.md`](./examples/omnivore_archiving_status_updater/README.md) |
+| **Pocket Archiving Status Updater** | Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`README.md`](./examples/pocket_archiving_status_updater/README.md) |
 
 ## Development
 
