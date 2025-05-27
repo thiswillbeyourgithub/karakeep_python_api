@@ -243,7 +243,7 @@ def main(
             high_link_replaced_as_text = BeautifulSoup(markdown.markdown(link_replaced)).get_text()
 
             if not high_link_replaced_as_text:
-                breakpoint()
+                assert high_link_replaced_as_text, f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
 
             start = 0
             if high_as_text in as_text:
