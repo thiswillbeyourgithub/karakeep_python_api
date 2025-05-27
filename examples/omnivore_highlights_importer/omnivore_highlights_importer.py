@@ -212,6 +212,10 @@ def main(
 
         kara_content = bookmark.content.htmlContent
 
+        if not kara_content:
+            print(f"Skipping bookmark '{bookmark.title or name}' (ID: {bookmark.id}) - no HTML content available")
+            continue
+
         as_md = html2text(kara_content, bodywidth=9999999)
 
         as_text = BeautifulSoup(kara_content).get_text()
