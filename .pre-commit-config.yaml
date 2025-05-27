@@ -1,0 +1,8 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/psf/black
+    rev: stable # Using 'stable' for the latest stable release, or specify a version like '24.4.2'
+    hooks:
+    -   id: black
+        # language_version: python3 # black auto-detects, but can be specified
