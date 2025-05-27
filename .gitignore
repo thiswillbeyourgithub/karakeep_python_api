@@ -3,3 +3,5 @@
 .env*
 *.egg-info
 *author*
+**/*log
+**/*.temp
