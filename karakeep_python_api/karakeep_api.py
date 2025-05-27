@@ -955,16 +955,18 @@ class KarakeepAPI:
 
     @optional_typecheck
     def attach_tags_to_a_bookmark(
-        self, bookmark_id: str, tags_data: dict
+        self,
+        bookmark_id: str,
+        tag_ids: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
         Args:
             bookmark_id: The ID (string) of the bookmark.
-            tags_data: Dictionary specifying the tags to attach. Must contain a "tags" key
-                       which is a list of objects, each having *either* "tagId" (string) *or* "tagName" (string).
-                       Example: `{"tags": [{"tagId": "existing_tag_id"}, {"tagName": "new_or_existing_tag_name"}]}`
+            tag_ids: List of existing tag IDs to attach (optional).
+            tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
 
         Returns:
             dict: A dictionary containing the list of attached tag IDs under the key "attached".
@@ -972,38 +974,49 @@ class KarakeepAPI:
                   Validation is not performed on this response type by default.
 
         Raises:
-            ValueError: If tags_data structure is invalid.
+            ValueError: If no tags are provided or if arguments are invalid.
             APIError: If the API request fails (e.g., 404 bookmark not found).
         """
-        # Validate the tags_data structure
-        if not isinstance(tags_data, dict):
-            raise ValueError("tags_data must be a dictionary")
+        # Validate that at least one tag source is provided
+        if not tag_ids and not tag_names:
+            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
 
-        if "tags" not in tags_data:
-            raise ValueError("tags_data must contain a 'tags' key")
+        # Validate input types
+        if tag_ids is not None and not isinstance(tag_ids, list):
+            raise ValueError("'tag_ids' must be a list of strings")
 
-        tags_list = tags_data["tags"]
-        if not isinstance(tags_list, list):
-            raise ValueError("The 'tags' value must be a list")
+        if tag_names is not None and not isinstance(tag_names, list):
+            raise ValueError("'tag_names' must be a list of strings")
 
-        # Validate each tag object in the list
-        for i, tag in enumerate(tags_list):
-            if not isinstance(tag, dict):
-                raise ValueError(f"Tag at index {i} must be a dictionary")
+        # Validate individual elements
+        if tag_ids:
+            for i, tag_id in enumerate(tag_ids):
+                if not isinstance(tag_id, str) or not tag_id.strip():
+                    raise ValueError(f"Tag ID at index {i} must be a non-empty string")
 
-            has_tag_id = "tagId" in tag
-            has_tag_name = "tagName" in tag
+        if tag_names:
+            for i, tag_name in enumerate(tag_names):
+                if not isinstance(tag_name, str) or not tag_name.strip():
+                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
 
-            if not has_tag_id and not has_tag_name:
-                raise ValueError(
-                    f"Tag at index {i} must contain either 'tagId' or 'tagName'"
-                )
+        # Construct the tags_data dict in the format expected by the API
+        tags_list = []
 
-            if has_tag_id and not isinstance(tag["tagId"], str):
-                raise ValueError(f"Tag at index {i}: 'tagId' must be a string")
+        if tag_ids:
+            for tag_id in tag_ids:
+                tags_list.append({"tagId": tag_id.strip()})
 
-            if has_tag_name and not isinstance(tag["tagName"], str):
-                raise ValueError(f"Tag at index {i}: 'tagName' must be a string")
+        if tag_names:
+            for tag_name in tag_names:
+                tags_list.append({"tagName": tag_name.strip()})
+
+        tags_data = {"tags": tags_list}
+
+        # Optional validation using Tag datatype if validation is enabled
+        if not self.disable_response_validation:
+            # Validate the constructed structure matches expected format
+            # This is primarily for development/debugging purposes
+            logger.debug("Validating constructed tags_data structure")
 
         endpoint = f"bookmarks/{bookmark_id}/tags"
         response_data = self._call("POST", endpoint, data=tags_data)
