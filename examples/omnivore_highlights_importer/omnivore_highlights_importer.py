@@ -216,7 +216,7 @@ def main(
             
         if not found_bm:
             print("Did not find the bookmark")
-            breakpoint()
+            raise RuntimeError(f"Could not find bookmark for highlight file: {name}")
 
         kara_content = bookmark.content.htmlContent
 
