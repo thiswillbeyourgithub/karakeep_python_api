@@ -21,28 +21,34 @@ def get_omnivores_bookmarks(omnivore_export_dir: str) -> list[dict]:
     # load and concatenate data from all omnivore export metadata files
     export_path = Path(omnivore_export_dir)
     all_data: list[dict] = []
-    
+
     # Glob for metadata files and sort them to ensure consistent order (e.g., by date if named accordingly)
     metadata_files = sorted(export_path.glob("metadata_*_to_*.json"))
-    
+
     if not metadata_files:
-        print(f"Warning: No metadata files matching 'metadata_*_to_*.json' found in {omnivore_export_dir}")
+        print(
+            f"Warning: No metadata files matching 'metadata_*_to_*.json' found in {omnivore_export_dir}"
+        )
         return []
 
     for file_path in metadata_files:
         try:
             content = file_path.read_text()
             # Each metadata file is expected to contain a JSON list of bookmarks
-            data_from_file: list[dict] = json.loads(content) 
+            data_from_file: list[dict] = json.loads(content)
             if isinstance(data_from_file, list):
                 all_data.extend(data_from_file)
             else:
-                print(f"Warning: Metadata file {file_path.name} does not contain a JSON list. Skipping.")
+                print(
+                    f"Warning: Metadata file {file_path.name} does not contain a JSON list. Skipping."
+                )
         except json.JSONDecodeError:
             print(f"Warning: Could not decode JSON from {file_path.name}. Skipping.")
         except Exception as e:
-            print(f"Warning: An error occurred while processing {file_path.name}: {e}. Skipping.")
-            
+            print(
+                f"Warning: An error occurred while processing {file_path.name}: {e}. Skipping."
+            )
+
     return all_data
 
 
@@ -56,15 +62,24 @@ def main(
     highlights_dir_path = omnivore_export_path / "highlights"
     omnivore_content_dir_path = omnivore_export_path / "content"
 
-    assert omnivore_export_path.exists() and omnivore_export_path.is_dir(), \
-        f"Omnivore export directory not found: {omnivore_export_dir}"
-    assert highlights_dir_path.exists() and highlights_dir_path.is_dir(), \
-        f"Highlights directory not found: {highlights_dir_path}"
-    assert omnivore_content_dir_path.exists() and omnivore_content_dir_path.is_dir(), \
-        f"Omnivore content directory not found: {omnivore_content_dir_path}"
+    assert (
+        omnivore_export_path.exists() and omnivore_export_path.is_dir()
+    ), f"Omnivore export directory not found: {omnivore_export_dir}"
+    assert (
+        highlights_dir_path.exists() and highlights_dir_path.is_dir()
+    ), f"Highlights directory not found: {highlights_dir_path}"
+    assert (
+        omnivore_content_dir_path.exists() and omnivore_content_dir_path.is_dir()
+    ), f"Omnivore content directory not found: {omnivore_content_dir_path}"
 
-    highlights_files = [p for p in highlights_dir_path.iterdir() if p.name.endswith(".md") and p.read_text().strip()]
-    content_files: dict = {p.stem: p.suffix for p in omnivore_content_dir_path.iterdir()}
+    highlights_files = [
+        p
+        for p in highlights_dir_path.iterdir()
+        if p.name.endswith(".md") and p.read_text().strip()
+    ]
+    content_files: dict = {
+        p.stem: p.suffix for p in omnivore_content_dir_path.iterdir()
+    }
 
     data = get_omnivores_bookmarks(omnivore_export_dir)
 
@@ -103,7 +118,9 @@ def main(
         with Path(karakeep_path).open("wb") as f:
             pickle.dump(all_bm, f)
 
-    for f_ind, f in enumerate(tqdm(highlights_files, unit="highlight", desc="importing highlights")):
+    for f_ind, f in enumerate(
+        tqdm(highlights_files, unit="highlight", desc="importing highlights")
+    ):
         name = f.stem
 
         highlights = f.read_text().strip().split("\n> ")
@@ -119,7 +136,9 @@ def main(
 
         if not found_omni:
             print("Couldn't find the omnivore 'bookmark' for that highlight")
-            raise RuntimeError(f"Could not find omnivore bookmark for highlight file: {name}")
+            raise RuntimeError(
+                f"Could not find omnivore bookmark for highlight file: {name}"
+            )
         url = omnivore["url"]
 
         # check if the highlight is from a pdf or an html
@@ -134,14 +153,15 @@ def main(
             is_pdf = False
         else:
             print("Is neither a webpage nor a pdf?!")
-            raise RuntimeError(f"Unexpected file extension '{content_files[name]}' for file '{name}'. Expected '.pdf' or '.html'")
-
+            raise RuntimeError(
+                f"Unexpected file extension '{content_files[name]}' for file '{name}'. Expected '.pdf' or '.html'"
+            )
 
         found_bm = False
         best_bookmark = None
         best_score = 0.0
         threshold = 0.95
-        
+
         for bookmark in all_bm:
             found_url = None
             content = bookmark.content
@@ -154,7 +174,9 @@ def main(
             elif hasattr(content, "sourceUrl"):
                 found_url = content.sourceUrl
             else:
-                raise RuntimeError(f"Bookmark content has no 'url' or 'sourceUrl' attribute. Available attributes: {[attr for attr in dir(content) if not attr.startswith('_')]}")
+                raise RuntimeError(
+                    f"Bookmark content has no 'url' or 'sourceUrl' attribute. Available attributes: {[attr for attr in dir(content) if not attr.startswith('_')]}"
+                )
 
             # handling local PDF, they don't have proper url
             if found_url and found_url.startswith("https://omnivore.app"):
@@ -212,7 +234,7 @@ def main(
         if not found_bm and best_score >= threshold:
             found_bm = True
             bookmark = best_bookmark
-            
+
         if not found_bm:
             print("Did not find the bookmark")
             raise RuntimeError(f"Could not find bookmark for highlight file: {name}")
@@ -220,7 +242,9 @@ def main(
         kara_content = bookmark.content.htmlContent
 
         if not kara_content:
-            print(f"Skipping bookmark '{bookmark.title or name}' (ID: {bookmark.id}) - no HTML content available")
+            print(
+                f"Skipping bookmark '{bookmark.title or name}' (ID: {bookmark.id}) - no HTML content available"
+            )
             continue
 
         as_md = html2text(kara_content, bodywidth=9999999)
@@ -234,16 +258,24 @@ def main(
                 highlight.strip()
 
             # fix URLs of omnivore to point to the original source
-            highlight = re.sub(r"https://proxy-prod.omnivore-image-cache.app/.*https://", "https://", highlight)
+            highlight = re.sub(
+                r"https://proxy-prod.omnivore-image-cache.app/.*https://",
+                "https://",
+                highlight,
+            )
 
             high_as_text = BeautifulSoup(markdown.markdown(highlight)).get_text()
 
-            link_pattern = r'\[.*?\]\((.*?)\)'
-            link_replaced = re.sub(link_pattern, r' (Link to \1)', highlight)
-            high_link_replaced_as_text = BeautifulSoup(markdown.markdown(link_replaced)).get_text()
+            link_pattern = r"\[.*?\]\((.*?)\)"
+            link_replaced = re.sub(link_pattern, r" (Link to \1)", highlight)
+            high_link_replaced_as_text = BeautifulSoup(
+                markdown.markdown(link_replaced)
+            ).get_text()
 
             if not high_link_replaced_as_text:
-                assert high_link_replaced_as_text, f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
+                assert (
+                    high_link_replaced_as_text
+                ), f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
 
             start = 0
             if high_as_text in as_text:
@@ -253,12 +285,14 @@ def main(
                 if start == 0:
                     start = int(as_md.index(highlight) / len(as_md) * len(as_text))
                 else:
-                    start = (start + int(as_md.index(highlight) / len(as_md) * len(as_text))) // 2
-
-
+                    start = (
+                        start + int(as_md.index(highlight) / len(as_md) * len(as_text))
+                    ) // 2
 
             if start == 0:
-                match_text = match_highlight_to_corpus(query=high_as_text, corpus=as_text)
+                match_text = match_highlight_to_corpus(
+                    query=high_as_text, corpus=as_text
+                )
                 match_md = match_highlight_to_corpus(query=highlight, corpus=as_md)
 
                 if match_text.matches and match_md.matches:
@@ -276,8 +310,13 @@ def main(
                     rel_pos = as_text.index(match_text.matches[0]) / len(as_text)
                 elif match_md.matches:
                     rel_pos = as_md.index(match_md.matches[0]) / len(as_md)
-                elif not high_as_text:  # probably contains only a link, so we have to find that link in the raw html
-                    links = re.findall(r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]", highlight)
+                elif (
+                    not high_as_text
+                ):  # probably contains only a link, so we have to find that link in the raw html
+                    links = re.findall(
+                        r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]",
+                        highlight,
+                    )
                     positions = [
                         kara_content.index(link)
                         for link in links
@@ -286,7 +325,9 @@ def main(
                     assert positions, highlight
                     rel_pos = int(sum(positions) / len(positions))
                 else:
-                    raise ValueError(f"Could not match highlight text to corpus for highlight: {highlight[:100]}{'...' if len(highlight) > 100 else ''}")
+                    raise ValueError(
+                        f"Could not match highlight text to corpus for highlight: {highlight[:100]}{'...' if len(highlight) > 100 else ''}"
+                    )
                 start = int(rel_pos * len(high_as_text))
                 del rel_pos
 
