@@ -118,23 +118,25 @@ class AddTimeToRead:
         Logic:
         - If reset_all is True: never skip
         - If reset_all is False:
-          - Skip if bookmark has exactly one time tag (assume it's correct)
-          - Don't skip if bookmark has multiple time tags (needs reset)
-          - Don't skip if bookmark has no time tags (needs processing)
+          - When using search mode, we've already filtered to untagged bookmarks, so never skip
+          - This method is kept for consistency but simplified logic when not reset_all
         """
         if reset_all:
             return False
 
+        # When reset_all is False, we've already used search to find untagged bookmarks
+        # So we should process all bookmarks in the filtered set
+        # However, we still check for multiple time tags that might need reset
         current_time_tags = self.get_current_time_tags(bookmark)
 
-        # If exactly one time tag, skip it (assume correct)
+        # If exactly one time tag, this shouldn't happen in search mode but handle gracefully
         if len(current_time_tags) == 1:
             logger.debug(
-                f"Skipping bookmark {bookmark.id} - has single time tag: {current_time_tags[0]}"
+                f"Unexpected: bookmark {bookmark.id} found in search but has time tag: {current_time_tags[0]}"
             )
             return True
 
-        # If multiple time tags or no time tags, don't skip
+        # Process bookmarks with multiple time tags or no time tags
         return False
 
     def needs_reset(self, bookmark) -> bool:
@@ -215,60 +217,103 @@ class AddTimeToRead:
             logger.error(f"Failed to connect to Karakeep API: {e}")
             return
 
-        # Fetch all bookmarks with content, using cache to speed up testing
+        # Determine cache file name based on reset_all mode
+        if reset_all:
+            cache_file_final = cache_file
+        else:
+            # Use different cache for untagged bookmarks search
+            cache_parts = Path(cache_file).parts
+            cache_file_final = str(Path(*cache_parts[:-1]) / f"untagged_{cache_parts[-1]}")
+
+        # Fetch bookmarks with content, using cache to speed up testing
         # As the loading can be pretty long, we store it to a local file
-        if Path(cache_file).exists():
-            logger.info(f"Loading bookmarks from cache file: {cache_file}")
-            with Path(cache_file).open("rb") as f:
+        if Path(cache_file_final).exists():
+            logger.info(f"Loading bookmarks from cache file: {cache_file_final}")
+            with Path(cache_file_final).open("rb") as f:
                 bookmarks = pickle.load(f)
             logger.info(f"Loaded {len(bookmarks)} bookmarks from cache")
         else:
             logger.info("Cache file not found, fetching bookmarks from API...")
-            try:
-                n = self.karakeep.get_current_user_stats()["numBookmarks"]
-                logger.info(f"Total bookmarks to fetch: {n}")
-            except Exception as e:
-                logger.error(f"Failed to get bookmark count: {e}")
-                return
+            
+            if reset_all:
+                # Fetch all bookmarks when reset_all is True
+                try:
+                    n = self.karakeep.get_current_user_stats()["numBookmarks"]
+                    logger.info(f"Total bookmarks to fetch: {n}")
+                except Exception as e:
+                    logger.error(f"Failed to get bookmark count: {e}")
+                    return
 
-            logger.info("Fetching all bookmarks with content...")
-            pbar = tqdm(total=n, desc="Fetching bookmarks")
-            bookmarks = []
-            batch_size = (
-                100  # Maximum allowed batch size to avoid crashing the karakeep instance
-            )
-
-            try:
-                page = self.karakeep.get_all_bookmarks(
-                    include_content=True,
-                    limit=batch_size,
+                logger.info("Fetching all bookmarks with content...")
+                pbar = tqdm(total=n, desc="Fetching bookmarks")
+                bookmarks = []
+                batch_size = (
+                    100  # Maximum allowed batch size to avoid crashing the karakeep instance
                 )
-                bookmarks.extend(page.bookmarks)
-                pbar.update(len(page.bookmarks))
 
-                while page.nextCursor:
+                try:
                     page = self.karakeep.get_all_bookmarks(
                         include_content=True,
                         limit=batch_size,
-                        cursor=page.nextCursor,
                     )
                     bookmarks.extend(page.bookmarks)
                     pbar.update(len(page.bookmarks))
 
-                assert (
-                    len(bookmarks) == n
-                ), f"Only retrieved {len(bookmarks)} bookmarks instead of {n}"
-                pbar.close()
+                    while page.nextCursor:
+                        page = self.karakeep.get_all_bookmarks(
+                            include_content=True,
+                            limit=batch_size,
+                            cursor=page.nextCursor,
+                        )
+                        bookmarks.extend(page.bookmarks)
+                        pbar.update(len(page.bookmarks))
 
-                # Save bookmarks to cache file
-                logger.info(f"Saving {len(bookmarks)} bookmarks to cache file: {cache_file}")
-                with Path(cache_file).open("wb") as f:
-                    pickle.dump(bookmarks, f)
+                    assert (
+                        len(bookmarks) == n
+                    ), f"Only retrieved {len(bookmarks)} bookmarks instead of {n}"
+                    pbar.close()
 
-            except Exception as e:
-                pbar.close()
-                logger.error(f"Error fetching bookmarks: {e}")
-                return
+                except Exception as e:
+                    pbar.close()
+                    logger.error(f"Error fetching bookmarks: {e}")
+                    return
+            else:
+                # Use search to find bookmarks without time tags when reset_all is False
+                search_query = "-#0-5m -#5-10m -#10-15m -#15-30m -#30m+"
+                logger.info(f"Searching for bookmarks without time tags using query: {search_query}")
+                
+                bookmarks = []
+                batch_size = 100
+                
+                try:
+                    page = self.karakeep.search_bookmarks(
+                        q=search_query,
+                        include_content=True,
+                        limit=batch_size,
+                    )
+                    bookmarks.extend(page.bookmarks)
+                    logger.info(f"Found {len(page.bookmarks)} bookmarks in first page")
+
+                    while page.nextCursor:
+                        page = self.karakeep.search_bookmarks(
+                            q=search_query,
+                            include_content=True,
+                            limit=batch_size,
+                            cursor=page.nextCursor,
+                        )
+                        bookmarks.extend(page.bookmarks)
+                        logger.info(f"Found {len(page.bookmarks)} additional bookmarks")
+
+                    logger.info(f"Total untagged bookmarks found: {len(bookmarks)}")
+
+                except Exception as e:
+                    logger.error(f"Error searching for untagged bookmarks: {e}")
+                    return
+
+            # Save bookmarks to cache file
+            logger.info(f"Saving {len(bookmarks)} bookmarks to cache file: {cache_file_final}")
+            with Path(cache_file_final).open("wb") as f:
+                pickle.dump(bookmarks, f)
 
         logger.info(f"Total bookmarks fetched: {len(bookmarks)}")
 
