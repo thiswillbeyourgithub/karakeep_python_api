@@ -286,7 +286,7 @@ def main(
                     assert positions, highlight
                     rel_pos = int(sum(positions) / len(positions))
                 else:
-                    breakpoint()
+                    raise ValueError(f"Could not match highlight text to corpus for highlight: {highlight[:100]}{'...' if len(highlight) > 100 else ''}")
                 start = int(rel_pos * len(high_as_text))
                 del rel_pos
 
