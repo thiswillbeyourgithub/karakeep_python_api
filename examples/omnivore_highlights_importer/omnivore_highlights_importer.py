@@ -123,8 +123,7 @@ def main(
         url = omnivore["url"]
 
         # check if the highlight is from a pdf or an html
-        if name not in content_files:
-            breakpoint()
+        assert name in content_files, name
         if content_files[name] == ".pdf":
             is_pdf = True
             if skip_pdf:
@@ -135,7 +134,7 @@ def main(
             is_pdf = False
         else:
             print("Is neither a webpage nor a pdf?!")
-            breakpoint()
+            raise RuntimeError(f"Unexpected file extension '{content_files[name]}' for file '{name}'. Expected '.pdf' or '.html'")
 
 
         found_bm = False
