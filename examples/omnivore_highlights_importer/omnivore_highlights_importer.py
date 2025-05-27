@@ -17,6 +17,59 @@ from string_context_matcher import match_highlight_to_corpus
 VERSION: str = "0.0.1"
 
 
+def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> list:
+    """
+    Load all bookmarks from Karakeep API, using local cache if available.
+    
+    This function fetches all bookmarks from the Karakeep instance, with content included.
+    To avoid repeated API calls during development, bookmarks are cached locally.
+    
+    Parameters
+    ----------
+    karakeep : KarakeepAPI
+        The Karakeep API client instance
+    karakeep_path : str
+        Path to the local cache file for storing bookmarks
+        
+    Returns
+    -------
+    list
+        List of all bookmarks from the Karakeep instance
+    """
+    if Path(karakeep_path).exists():
+        with Path(karakeep_path).open("rb") as f:
+            all_bm = pickle.load(f)
+    else:
+        n = karakeep.get_current_user_stats()["numBookmarks"]
+        pbar = tqdm(total=n, desc="Fetching bookmarks")
+        all_bm = []
+        batch_size = 100  # if you set it too high, you can crash the karakeep instance, 100 being the maximum allowed
+        page = karakeep.get_all_bookmarks(
+            include_content=True,
+            limit=batch_size,
+        )
+        all_bm.extend(page.bookmarks)
+        pbar.update(len(all_bm))
+        while page.nextCursor:
+            page = karakeep.get_all_bookmarks(
+                include_content=True,
+                limit=batch_size,
+                cursor=page.nextCursor,
+            )
+            all_bm.extend(page.bookmarks)
+            pbar.update(len(page.bookmarks))
+
+        assert (
+            len(all_bm) == n
+        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        pbar.close()
+
+        with Path(karakeep_path).open("wb") as f:
+            pickle.dump(all_bm, f)
+    
+    return all_bm
+
+
 def get_omnivores_bookmarks(omnivore_export_dir: str) -> list[dict]:
     # load and concatenate data from all omnivore export metadata files
     export_path = Path(omnivore_export_dir)
@@ -87,36 +140,7 @@ def main(
 
     # fetch all the bookmarks from karakeep, as the search feature is unreliable
     # as the loading can be pretty long, we store it to a local file
-    if Path(karakeep_path).exists():
-        with Path(karakeep_path).open("rb") as f:
-            all_bm = pickle.load(f)
-    else:
-        n = karakeep.get_current_user_stats()["numBookmarks"]
-        pbar = tqdm(total=n, desc="Fetching bookmarks")
-        all_bm = []
-        batch_size = 100  # if you set it too high, you can crash the karakeep instance, 100 being the maximum allowed
-        page = karakeep.get_all_bookmarks(
-            include_content=True,
-            limit=batch_size,
-        )
-        all_bm.extend(page.bookmarks)
-        pbar.update(len(all_bm))
-        while page.nextCursor:
-            page = karakeep.get_all_bookmarks(
-                include_content=True,
-                limit=batch_size,
-                cursor=page.nextCursor,
-            )
-            all_bm.extend(page.bookmarks)
-            pbar.update(len(page.bookmarks))
-
-        assert (
-            len(all_bm) == n
-        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
-        pbar.close()
-
-        with Path(karakeep_path).open("wb") as f:
-            pickle.dump(all_bm, f)
+    all_bm = load_bookmarks_from_karakeep(karakeep, karakeep_path)
 
     for f_ind, f in enumerate(
         tqdm(highlights_files, unit="highlight", desc="importing highlights")
