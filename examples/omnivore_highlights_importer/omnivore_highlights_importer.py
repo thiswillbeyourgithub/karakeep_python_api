@@ -471,7 +471,11 @@ def main(
                 ), f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
 
             start, end = find_highlight_position(
-                high_as_text, highlight, as_text, as_md, kara_content
+                high_as_text=high_as_text,
+                highlight=highlight,
+                as_text=as_text,
+                as_md=as_md,
+                kara_content=kara_content
             )
 
             if not dry:
