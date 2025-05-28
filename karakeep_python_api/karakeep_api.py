@@ -915,18 +915,36 @@ class KarakeepAPI:
         favourited: Optional[bool] = None,
         note: Optional[str] = None,
         summary: Optional[str] = None,
+        created_at: Optional[str] = None,
+        url: Optional[str] = None,
+        description: Optional[str] = None,
+        author: Optional[str] = None,
+        publisher: Optional[str] = None,
+        date_published: Optional[str] = None,
+        date_modified: Optional[str] = None,
+        text: Optional[str] = None,
+        asset_content: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
-        Allows updating fields like 'archived', 'favourited', 'summary', 'note', 'title'.
+        Allows updating various bookmark fields including metadata, content, and status.
 
         Args:
             bookmark_id: The ID (string) of the bookmark to update.
-            title: Optional new title for the bookmark.
+            title: Optional new title for the bookmark (max 1000 chars).
             archived: Optional new archived status for the bookmark.
             favourited: Optional new favourited status for the bookmark.
             note: Optional new note content for the bookmark.
             summary: Optional new summary content for the bookmark.
+            created_at: Optional creation timestamp override (ISO 8601 format string).
+            url: Optional new URL for the bookmark (for link-type bookmarks).
+            description: Optional new description for the bookmark.
+            author: Optional author name for the bookmark content.
+            publisher: Optional publisher name for the bookmark content.
+            date_published: Optional publication date (ISO 8601 format string).
+            date_modified: Optional modification date (ISO 8601 format string).
+            text: Optional text content for the bookmark (for text-type bookmarks).
+            asset_content: Optional asset content for the bookmark (for asset-type bookmarks).
 
         Returns:
             dict: A dictionary representing the updated bookmark (partial representation).
@@ -950,11 +968,29 @@ class KarakeepAPI:
             update_data["note"] = note
         if summary is not None:
             update_data["summary"] = summary
+        if created_at is not None:
+            update_data["createdAt"] = created_at
+        if url is not None:
+            update_data["url"] = url
+        if description is not None:
+            update_data["description"] = description
+        if author is not None:
+            update_data["author"] = author
+        if publisher is not None:
+            update_data["publisher"] = publisher
+        if date_published is not None:
+            update_data["datePublished"] = date_published
+        if date_modified is not None:
+            update_data["dateModified"] = date_modified
+        if text is not None:
+            update_data["text"] = text
+        if asset_content is not None:
+            update_data["assetContent"] = asset_content
 
         # Ensure at least one field is being updated
         if not update_data:
             raise ValueError(
-                "At least one field must be provided to update (title, archived, favourited, note, or summary)."
+                "At least one field must be provided to update."
             )
 
         endpoint = f"bookmarks/{bookmark_id}"
