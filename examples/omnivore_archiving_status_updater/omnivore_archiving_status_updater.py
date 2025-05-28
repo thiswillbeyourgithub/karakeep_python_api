@@ -20,6 +20,8 @@ logger.add("omnivore_archiving_status_updater.log", level="DEBUG", rotation="10 
 
 karakeep = KarakeepAPI(verbose=False)
 
+VERSION: str = "2.0.0"
+
 
 def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> tuple[bool, float]:
     """
