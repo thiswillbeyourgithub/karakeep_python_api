@@ -1444,25 +1444,54 @@ class KarakeepAPI:
 
     @optional_typecheck
     def update_a_list(
-        self, list_id: str, update_data: dict
+        self,
+        list_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        icon: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        query: Optional[str] = None,
     ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Update a list by its ID. Corresponds to PATCH /lists/{listId}.
-        Allows updating fields like "name", "description", "icon", "parentId", "query".
+        Allows updating various list fields including name, description, icon, parent relationship, and query.
 
         Args:
             list_id: The ID (string) of the list to update.
-            update_data: A dictionary containing the fields to update (e.g., `{"name": "new name"}`).
-                         See the OpenAPI spec for allowed fields.
+            name: Optional new name for the list (1-40 characters).
+            description: Optional new description for the list (0-100 characters, can be None to clear).
+            icon: Optional new icon for the list.
+            parent_id: Optional new parent list ID (can be None to remove parent relationship).
+            query: Optional new query string for smart lists (minimum 1 character).
 
         Returns:
             datatypes.ListModel: The updated list object.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
+            ValueError: If no fields are provided to update.
             APIError: If the API request fails (e.g., 404 list not found).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
+        # Construct update_data from provided arguments, excluding None values that weren't explicitly passed
+        update_data = {}
+        if name is not None:
+            update_data["name"] = name
+        if description is not None:
+            update_data["description"] = description
+        if icon is not None:
+            update_data["icon"] = icon
+        if parent_id is not None:
+            update_data["parentId"] = parent_id
+        if query is not None:
+            update_data["query"] = query
+
+        # Ensure at least one field is being updated
+        if not update_data:
+            raise ValueError(
+                "At least one field must be provided to update."
+            )
+
         endpoint = f"lists/{list_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
 
