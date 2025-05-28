@@ -209,15 +209,15 @@ except Exception as e:
 
 Community Scripts are a bunch of scripts made to solve specific issues. They are made by the community so don't hesitate to submit yours or open an issue if you have a bug. They also serve as example of how to use the API.
 
-They can be found in the [./community_scripts](./community_scripts) folder. Don't hesitate to submit yours!
+They can be found in the [./community_scripts](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts) folder. Don't hesitate to submit yours!
 
 | Community Script | Description | Documentation |
 |----------------|-------------|---------------|
-| **Add Time-to-Read Tags** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`README.md`](./community_scripts/add_time_to_read_tag/README.md) |
-| **List to Tag Converter** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`README.md`](./community_scripts/list_to_tag/README.md) |
-| **Omnivore Highlights Importer** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing. | [`README.md`](./community_scripts/omnivore_highlights_importer/README.md) |
-| **Omnivore Archiving Status Updater** | Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`README.md`](./community_scripts/omnivore_archiving_status_updater/README.md) |
-| **Pocket Archiving Status Updater** | Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`README.md`](./community_scripts/pocket_archiving_status_updater/README.md) |
+| **Add Time-to-Read Tags** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/add_time_to_read_tag/README.md) |
+| **List to Tag Converter** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/list_to_tag/README.md) |
+| **Omnivore Highlights Importer** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore_highlights_importer/README.md) |
+| **Omnivore Archiving Status Updater** | Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore_archiving_status_updater/README.md) |
+| **Pocket Archiving Status Updater** | Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket_archiving_status_updater/README.md) |
 
 ## Development
 
