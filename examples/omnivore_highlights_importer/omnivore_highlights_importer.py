@@ -383,6 +383,9 @@ def main(
 
         as_text = BeautifulSoup(kara_content).get_text()
 
+        # Store created highlight IDs for this bookmark
+        created_highlight_ids = []
+
         for highlight in highlights:
 
             if highlight.startswith("> "):
@@ -415,18 +418,43 @@ def main(
 
             if not dry:
                 resp = karakeep.create_a_new_highlight(
-                    highlight_data={
-                        "bookmarkId": bookmark.id,
-                        "text": high_link_replaced_as_text,
-                        "color": "yellow",
-                        "note": f"By omnivore_highlights_importer.py version {VERSION}",
-                        "startOffset": start,
-                        "endOffset": end,
-                    }
+                    bookmark_id=bookmark.id,
+                    start_offset=start,
+                    end_offset=end,
+                    color="yellow",
+                    text=high_link_replaced_as_text,
+                    note=f"By omnivore_highlights_importer.py version {VERSION}",
                 )
                 assert resp, highlight
+                # Store the highlight ID from the response
+                if hasattr(resp, 'id'):
+                    created_highlight_ids.append(resp.id)
+                elif isinstance(resp, dict) and 'id' in resp:
+                    created_highlight_ids.append(resp['id'])
 
             del high_as_text
+
+        # Update bookmark note with import metadata if highlights were created
+        if not dry and created_highlight_ids:
+            import_metadata = {
+                "omnivore_highlights_importer_version": VERSION,
+                "created_highlights": created_highlight_ids
+            }
+            
+            # Get current note or start with empty string
+            current_note = bookmark.note or ""
+            
+            # Append the import metadata as JSON
+            updated_note = current_note
+            if updated_note and not updated_note.endswith('\n'):
+                updated_note += '\n'
+            updated_note += f"Import metadata: {json.dumps(import_metadata)}"
+            
+            # Update the bookmark with the new note
+            karakeep.update_a_bookmark(
+                bookmark_id=bookmark.id,
+                update_data={"note": updated_note}
+            )
 
 
 if __name__ == "__main__":
