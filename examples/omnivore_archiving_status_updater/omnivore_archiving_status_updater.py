@@ -197,10 +197,7 @@ def main(
             bookmark_id=bookmark.id,
             update_data={"archived": True},
         )
-        if isinstance(res_arch, dict):
-            assert res_arch["archived"], res_arch
-        else:
-            assert res_arch.archived, res_arch
+        assert res_arch["archived"], res_arch
         tqdm.write(f"Succesfuly archived: {url}")
 
 
