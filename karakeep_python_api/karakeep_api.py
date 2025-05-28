@@ -95,7 +95,9 @@ class KarakeepAPI:
         verify_ssl: bool = True,
         verbose: bool = False,
         disable_response_validation: Optional[bool] = None,
-        rate_limit: float = 0.0,  # Minimum interval between API calls in seconds
+        rate_limit: Union[
+            float, int
+        ] = 0.0,  # Minimum interval between API calls in seconds
     ):
         """
         Initialize the Karakeep API client.
@@ -1701,8 +1703,8 @@ class KarakeepAPI:
     def create_a_new_highlight(
         self,
         bookmark_id: str,
-        start_offset: float,
-        end_offset: float,
+        start_offset: Union[float, int],
+        end_offset: Union[float, int],
         color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow",
         text: Optional[str] = None,
         note: Optional[str] = None,
