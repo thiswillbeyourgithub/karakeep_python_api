@@ -17,6 +17,7 @@ A community-developed Python client for the [Karakeep](https://karakeep.app/) AP
   - [Environment Variables](#environment-variables)
   - [Command Line Interface (CLI)](#command-line-interface-cli)
   - [Python Library](#python-library)
+- [Community Scripts](#community-scripts)
 - [Development](#development)
 - [License](#license)
 
@@ -204,7 +205,7 @@ except Exception as e:
 
 ```
 
-### Usage Examples
+## Community Scripts
 
 Examples of the API being used can be found in the [`./examples`](./examples) folder. Don't hesitate to submit yours!
 
