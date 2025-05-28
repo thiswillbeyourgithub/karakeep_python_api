@@ -17,6 +17,82 @@ from tqdm import tqdm
 karakeep = KarakeepAPI(verbose=False)
 
 
+def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
+    """
+    Determines if an Omnivore article matches a Karakeep bookmark.
+    
+    Uses URL matching first, then title matching (exact and fuzzy).
+    
+    Parameters:
+    - omnivore: Omnivore article dictionary
+    - bookmark: Karakeep bookmark object
+    
+    Returns:
+    - bool: True if the omnivore article matches the bookmark
+    """
+    url = omnivore["url"]
+    
+    # Try URL matching first
+    found_url = None
+    content = bookmark.content
+    if hasattr(content, "url"):
+        found_url = content.url
+    elif hasattr(content, "sourceUrl"):
+        found_url = content.sourceUrl
+    else:
+        raise ValueError(content)
+
+    # handling local PDF, they don't have proper url
+    if found_url and found_url.startswith("https://omnivore.app"):
+        found_url = None
+
+    if found_url == url:
+        return True
+
+    # couldn't find a matching url, match by title
+    # exact title match:
+    if (
+        "title" in omnivore
+        and omnivore["title"]
+        and hasattr(content, "title")
+        and content.title
+    ):
+        if omnivore["title"].lower() == content.title.lower():
+            return True
+    if (
+        "title" in omnivore
+        and omnivore["title"]
+        and hasattr(bookmark, "title")
+        and bookmark.title
+    ):
+        if omnivore["title"].lower() == bookmark.title.lower():
+            return True
+
+    # fuzzy matching, as a last resort
+    threshold = 0.95
+    if (
+        "title" in omnivore
+        and omnivore["title"]
+        and hasattr(content, "title")
+        and content.title
+    ):
+        r = ratio(omnivore["title"].lower(), content.title.lower())
+        if r >= threshold:
+            return True
+
+    if (
+        "title" in omnivore
+        and omnivore["title"]
+        and hasattr(bookmark, "title")
+        and bookmark.title
+    ):
+        r = ratio(omnivore["title"].lower(), bookmark.title.lower())
+        if r >= threshold:
+            return True
+
+    return False
+
+
 def get_omnivores_archived(
     omnivore_export_dir: str, 
     read_threshold: int = 80, 
@@ -131,67 +207,9 @@ def main(
 
         found_it = False
         for bookmark in all_bm:
-            found_url = None
-            content = bookmark.content
-            if hasattr(content, "url"):
-                found_url = content.url
-            elif hasattr(content, "sourceUrl"):
-                found_url = content.sourceUrl
-            else:
-                raise ValueError(content)
-
-            # handling local PDF, they don't have proper url
-            if found_url and found_url.startswith("https://omnivore.app"):
-                found_url = None
-
-            if found_url == url:
+            if match_omnivore_to_bookmark(omnivore, bookmark):
                 found_it = True
                 break
-
-            # couldn't find a matching url, match by title
-            # exact title match:
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(content, "title")
-                and content.title
-            ):
-                if omnivore["title"].lower() == content.title.lower():
-                    found_it = True
-                    break
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(bookmark, "title")
-                and bookmark.title
-            ):
-                if omnivore["title"].lower() == bookmark.title.lower():
-                    found_it = True
-                    break
-
-            # fuzzy matching, as a last resort
-            threshold = 0.95
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(content, "title")
-                and content.title
-            ):
-                r = ratio(omnivore["title"].lower(), content.title.lower())
-                if r >= threshold:
-                    found_it = True
-                    break
-
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(bookmark, "title")
-                and bookmark.title
-            ):
-                r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-                if r >= threshold:
-                    found_it = True
-                    break
 
         # couldn't be found
         if not found_it:
