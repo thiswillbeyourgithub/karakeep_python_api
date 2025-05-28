@@ -1,4 +1,4 @@
-# Omnivore Archiving Status Updater for Karakeep
+# Omnivore2Karakeep-archived
 
 This script addresses an issue in Karakeep (as of version 0.24.1) where the "archived" status of bookmarks imported from Omnivore is not preserved. See [karakeep issue #703](https://github.com/karakeep-app/karakeep/issues/703) for more details.
 
@@ -13,7 +13,7 @@ This tool reads your Omnivore export data and updates the corresponding bookmark
 Ensure you have your Omnivore export directory ready. Then, run the script:
 
 ```bash
-python omnivore_archiving_status_updater.py --omnivore-export-dir /path/to/your/omnivore_export_directory
+python omnivore2karakeep-archived.py --omnivore-export-dir /path/to/your/omnivore_export_directory
 ```
 
 You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_BASE_URL` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.

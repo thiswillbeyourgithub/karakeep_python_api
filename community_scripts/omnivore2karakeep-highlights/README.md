@@ -1,4 +1,4 @@
-# Omnivore Highlights Importer
+# Omnivore2Karakeep-highlights
 
 This script imports highlights from an Omnivore export to a Karakeep instance. It matches Omnivore bookmarks to existing Karakeep bookmarks and creates corresponding highlights with position information.
 
@@ -64,25 +64,25 @@ pip install karakeep-python-api fire tqdm pathlib beautifulsoup4 html2text markd
 ### Basic Usage (Dry Run)
 
 ```bash
-python omnivore_highlights_importer.py /path/to/omnivore/export
+python omniore2karakeep-highlights.py /path/to/omnivore/export
 ```
 
 ### Actually Import Highlights
 
 ```bash
-python omnivore_highlights_importer.py /path/to/omnivore/export --dry=False
+python omniore2karakeep-highlights.py /path/to/omnivore/export --dry=False
 ```
 
 ### Include PDF Processing (Experimental)
 
 ```bash
-python omnivore_highlights_importer.py /path/to/omnivore/export --skip_pdf=False --dry=False
+python omniore2karakeep-highlights.py /path/to/omnivore/export --skip_pdf=False --dry=False
 ```
 
 ### Custom Cache File Location
 
 ```bash
-python omnivore_highlights_importer.py /path/to/omnivore/export --karakeep_path=./my_bookmarks.temp --dry=False
+python Omnivore2Karakeep-highlights.py /path/to/omnivore/export --karakeep_path=./my_bookmarks.temp --dry=False
 ```
 
 ## Parameters

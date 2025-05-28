@@ -16,7 +16,7 @@ from tqdm import tqdm
 from loguru import logger
 
 # Configure loguru to log debug messages to a local file
-logger.add("omnivore_archiving_status_updater.log", level="DEBUG", rotation="10 MB")
+logger.add("omniore2karakeep-archived.log", level="DEBUG", rotation="10 MB")
 
 karakeep = KarakeepAPI(verbose=False)
 

@@ -98,7 +98,7 @@ class AddTimeToRead:
         logger.remove()
 
         # Add file logger with debug level
-        logger.add("add_time_to_read.log", level="DEBUG", rotation="10 MB")
+        logger.add("karakeep-time-tagger.log", level="DEBUG", rotation="10 MB")
 
         # Add console logger based on verbosity
         if verbose:
