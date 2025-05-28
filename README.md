@@ -213,11 +213,11 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
 
 | Community Script | Description | Documentation |
 |----------------|-------------|---------------|
-| **Karakeep-Time-Tagger** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-time-tagger/README.md) |
-| **Karakeep-List-To-Tag** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-list-to-tag/README.md) |
-| **Omnivore2Karakeep-Highlights** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-highlights/README.md) |
-| **Omnivore2Karakeep-Archived** | Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-archived/README.md) |
-| **pocket2karakeep-archived** | Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`README.md`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket2karakeep-archived/README.md) |
+| **Karakeep-Time-Tagger** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-time-tagger) |
+| **Karakeep-List-To-Tag** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-list-to-tag) |
+| **Omnivore2Karakeep-Highlights** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-highlights) |
+| **Omnivore2Karakeep-Archived** | Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-archived) |
+| **pocket2karakeep-archived** | Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket2karakeep-archived) |
 
 ## Development
 
