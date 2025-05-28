@@ -1700,23 +1700,34 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_tag(self, tag_id: str, update_data: dict) -> Dict[str, Any]:
+    def update_a_tag(self, tag_id: str, name: Optional[str] = None) -> Dict[str, Any]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
 
         Args:
             tag_id: The ID (string) of the tag to update.
-            update_data: A dictionary containing the fields to update. Must include "name" (string).
-                         Example: `{"name": "new tag name"}`
+            name: Optional new name for the tag.
 
         Returns:
             dict: A dictionary containing the updated tag information with "id" and "name" fields.
                   Validation is not performed on this response type by default.
 
         Raises:
+            ValueError: If no fields are provided to update.
             APIError: If the API request fails (e.g., 404 tag not found).
         """
+        # Construct update_data from provided arguments, excluding None values
+        update_data = {}
+        if name is not None:
+            update_data["name"] = name
+
+        # Ensure at least one field is being updated
+        if not update_data:
+            raise ValueError(
+                "At least one field must be provided to update."
+            )
+
         endpoint = f"tags/{tag_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
         # Response schema is a simple dict with id and name, return as dict
