@@ -1,4 +1,4 @@
-# List to Tag
+# Karakeep-List-To-Tag
 
 This script allows you to convert a list into a tag by adding a specified tag to all bookmarks in a specified list.
 
@@ -9,7 +9,7 @@ Sometimes it's useful to "turn a list into a tag" so you can then create more fl
 ## Usage
 
 ```bash
-python list_to_tag.py "My List Name" "my-tag"
+python karakeep-list-to-tag.py "My List Name" "my-tag"
 ```
 
 This will:
@@ -20,7 +20,7 @@ This will:
 ## Example
 
 ```bash
-python list_to_tag.py "Omnivore Imports" "omnivore"
+python karakeep-list-to-tag.py "Omnivore Imports" "omnivore"
 ```
 
 After running this, you can create a smart list with query `#omnivore -is:archived` to filter your Omnivore bookmarks by archived status.
