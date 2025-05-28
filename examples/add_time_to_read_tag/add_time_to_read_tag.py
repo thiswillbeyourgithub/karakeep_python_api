@@ -363,6 +363,14 @@ class AddTimeToRead:
             f"Processing complete. Processed: {processed}, Skipped (policy): {skipped_by_policy}, Skipped (type): {skipped_by_type}, Errors: {errors}"
         )
 
+        # Clean up cache file after successful completion
+        if Path(cache_file_final).exists():
+            try:
+                Path(cache_file_final).unlink()
+                logger.info(f"Cleaned up cache file: {cache_file_final}")
+            except Exception as e:
+                logger.warning(f"Failed to delete cache file {cache_file_final}: {e}")
+
 
 def main(
     wpm: int = 200,
