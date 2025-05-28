@@ -22,6 +22,58 @@ class AddTimeToRead:
     def __init__(self):
         """Initialize the AddTimeToRead class."""
         self.karakeep = None
+        
+    def create_time_reading_lists(self):
+        """Create smart lists for each time-to-read tag."""
+        # Mapping of time tags to zero-padded list names and descriptions
+        list_configs = [
+            {
+                "name": "00-05m",
+                "tag": "0-5m", 
+                "description": "Quick reads under 5 minutes"
+            },
+            {
+                "name": "05-10m", 
+                "tag": "5-10m",
+                "description": "Short reads 5-10 minutes"
+            },
+            {
+                "name": "10-15m",
+                "tag": "10-15m", 
+                "description": "Medium reads 10-15 minutes"
+            },
+            {
+                "name": "15-30m",
+                "tag": "15-30m",
+                "description": "Long reads 15-30 minutes"
+            },
+            {
+                "name": "30m+",
+                "tag": "30m+",
+                "description": "Extended reads over 30 minutes"
+            }
+        ]
+        
+        for config in list_configs:
+            list_name = config["name"]
+            tag_name = config["tag"] 
+            description = config["description"]
+            query = f"#{tag_name} -is:archived"
+            
+            logger.info(f"Creating smart list '{list_name}' with query '{query}'")
+            
+            try:
+                result = self.karakeep.create_a_new_list(
+                    name=list_name,
+                    icon="⏱️",  # Clock icon for time-based lists
+                    description=description,
+                    list_type="smart",
+                    query=query
+                )
+                logger.info(f"Successfully created list '{list_name}' with ID: {result.id if hasattr(result, 'id') else 'unknown'}")
+                
+            except Exception as e:
+                logger.error(f"Failed to create list '{list_name}': {e}")
 
     def setup_logging(self, verbose: bool = False):
         """Setup loguru logging with file output and console output based on verbosity."""
@@ -200,6 +252,7 @@ class AddTimeToRead:
         reset_all: bool = False,
         verbose: bool = False,
         cache_file: str = "./bookmarks.temp",
+        create_lists: bool = False,
     ):
         """
         Main method to process all bookmarks and add time-to-read tags.
@@ -209,6 +262,7 @@ class AddTimeToRead:
             reset_all: If True, process all bookmarks. If False, skip bookmarks that already have a single time tag.
             verbose: If True, show debug level logs in console
             cache_file: Path to cache file for bookmarks (default: ./bookmarks.temp)
+            create_lists: If True, create smart lists for each time slot (default: False)
         """
         # Setup logging
         self.setup_logging(verbose)
@@ -222,6 +276,11 @@ class AddTimeToRead:
         except Exception as e:
             logger.error(f"Failed to connect to Karakeep API: {e}")
             return
+
+        # Create smart lists if requested
+        if create_lists:
+            logger.info("Creating smart lists for time-to-read tags...")
+            self.create_time_reading_lists()
 
         # Determine cache file name based on reset_all mode
         if reset_all:
@@ -377,6 +436,7 @@ def main(
     reset_all: bool = False,
     verbose: bool = False,
     cache_file: str = "./bookmarks.temp",
+    create_lists: bool = False,
 ):
     """
     Main entry point for the script.
@@ -386,10 +446,11 @@ def main(
         reset_all: If True, process all bookmarks. If False, skip bookmarks that already have a single time tag.
         verbose: If True, show debug level logs in console
         cache_file: Path to cache file for bookmarks (default: ./bookmarks.temp)
+        create_lists: If True, create smart lists for each time slot (default: False)
     """
     add_time_to_read = AddTimeToRead()
     add_time_to_read.run(
-        wpm=wpm, reset_all=reset_all, verbose=verbose, cache_file=cache_file
+        wpm=wpm, reset_all=reset_all, verbose=verbose, cache_file=cache_file, create_lists=create_lists
     )
 
 
