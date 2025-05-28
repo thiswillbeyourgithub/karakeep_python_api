@@ -14,7 +14,7 @@ import fire
 
 from string_context_matcher import match_highlight_to_corpus
 
-VERSION: str = "0.0.1"
+VERSION: str = "1.0.0"
 
 
 def find_highlight_position(
