@@ -907,15 +907,26 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_bookmark(self, bookmark_id: str, update_data: dict) -> Dict[str, Any]:
+    def update_a_bookmark(
+        self,
+        bookmark_id: str,
+        title: Optional[str] = None,
+        archived: Optional[bool] = None,
+        favourited: Optional[bool] = None,
+        note: Optional[str] = None,
+        summary: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
-        Allows updating fields like 'archived', 'favourited', 'summary', 'note', 'title', etc.
+        Allows updating fields like 'archived', 'favourited', 'summary', 'note', 'title'.
 
         Args:
             bookmark_id: The ID (string) of the bookmark to update.
-            update_data: A dictionary containing the fields to update (e.g., `{"archived": True}`).
-                         See the OpenAPI spec for allowed fields in the request body.
+            title: Optional new title for the bookmark.
+            archived: Optional new archived status for the bookmark.
+            favourited: Optional new favourited status for the bookmark.
+            note: Optional new note content for the bookmark.
+            summary: Optional new summary content for the bookmark.
 
         Returns:
             dict: A dictionary representing the updated bookmark (partial representation).
@@ -924,8 +935,28 @@ class KarakeepAPI:
                   Validation is not performed on this response type by default.
 
         Raises:
+            ValueError: If no fields are provided to update.
             APIError: If the API request fails (e.g., 404 bookmark not found).
         """
+        # Construct update_data from provided arguments, excluding None values
+        update_data = {}
+        if title is not None:
+            update_data["title"] = title
+        if archived is not None:
+            update_data["archived"] = archived
+        if favourited is not None:
+            update_data["favourited"] = favourited
+        if note is not None:
+            update_data["note"] = note
+        if summary is not None:
+            update_data["summary"] = summary
+
+        # Ensure at least one field is being updated
+        if not update_data:
+            raise ValueError(
+                "At least one field must be provided to update (title, archived, favourited, note, or summary)."
+            )
+
         endpoint = f"bookmarks/{bookmark_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
         # The response schema is a subset of Bookmark, return as dict as specified in spec
