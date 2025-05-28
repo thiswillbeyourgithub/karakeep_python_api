@@ -1,4 +1,4 @@
-# Add Time-to-Read Tags
+# Karakeep-Time-Tagger
 
 Automatically adds time-to-read tags to your Karakeep bookmarks based on content length.
 
@@ -15,32 +15,32 @@ Automatically adds time-to-read tags to your Karakeep bookmarks based on content
 
 Basic usage with default settings (200 WPM):
 ```bash
-python add_time_to_read_tag.py
+python karakeep-time-tagger.py
 ```
 
 Customize reading speed:
 ```bash
-python add_time_to_read_tag.py --wpm 250
+python karakeep-time-tagger.py --wpm 250
 ```
 
 Process all bookmarks (including those already tagged):
 ```bash
-python add_time_to_read_tag.py --reset_all
+python karakeep-time-tagger.py --reset_all
 ```
 
 Enable verbose logging:
 ```bash
-python add_time_to_read_tag.py --verbose
+python karakeep-time-tagger.py --verbose
 ```
 
 Use custom cache file location:
 ```bash
-python add_time_to_read_tag.py --cache_file ./my_bookmarks.cache
+python karakeep-time-tagger.py --cache_file ./my_bookmarks.cache
 ```
 
 Skip creating smart lists:
 ```bash
-python add_time_to_read_tag.py --create_lists False
+python karakeep-time-tagger.py --create_lists False
 ```
 
 ## Options

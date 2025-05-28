@@ -1,6 +1,6 @@
 [Unit]
-Description=Run Karakeep add time tags every 4 hours
-Requires=karakeep-add-time-tags.service
+Description=Run Karakeep-Time-Tagger every 4 hours
+Requires=karakeep-time-tagger.service
 
 [Timer]
 OnBootSec=15min
