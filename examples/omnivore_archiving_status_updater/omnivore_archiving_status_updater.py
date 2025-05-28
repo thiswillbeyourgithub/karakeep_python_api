@@ -13,6 +13,10 @@ from pathlib import Path
 import json
 from karakeep_python_api import KarakeepAPI
 from tqdm import tqdm
+from loguru import logger
+
+# Configure loguru to log debug messages to a local file
+logger.add("omnivore_archiving_status_updater.log", level="DEBUG", rotation="10 MB")
 
 karakeep = KarakeepAPI(verbose=False)
 
@@ -120,13 +124,13 @@ def get_omnivores_archived(
             data: list[dict] = json.loads(content)
             all_data.extend(data)
         except json.JSONDecodeError as e:
-            print(f"Warning: Could not decode JSON from {json_file.name}: {e}")
+            logger.warning(f"Could not decode JSON from {json_file.name}: {e}")
         except Exception as e:
-            print(f"Warning: Could not read or process {json_file.name}: {e}")
+            logger.warning(f"Could not read or process {json_file.name}: {e}")
 
     if not all_data:
-        print(
-            f"Warning: No data loaded from {omnivore_export_dir}. Ensure 'metadata_*_to_*.json' files exist and are valid."
+        logger.warning(
+            f"No data loaded from {omnivore_export_dir}. Ensure 'metadata_*_to_*.json' files exist and are valid."
         )
         return []
 
@@ -169,7 +173,7 @@ def main(
     archived = get_omnivores_archived(omnivore_export_dir, read_threshold, treat_read_as_archived)
 
     if not archived:
-        print("No archived Omnivore articles found or loaded. Exiting.")
+        logger.info("No archived Omnivore articles found or loaded. Exiting.")
         return
 
     # fetch all the bookmarks from karakeep, as the search feature is unreliable
