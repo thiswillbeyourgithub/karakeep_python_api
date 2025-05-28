@@ -910,20 +910,7 @@ class KarakeepAPI:
     def update_a_bookmark(
         self,
         bookmark_id: str,
-        title: Optional[str] = None,
-        archived: Optional[bool] = None,
-        favourited: Optional[bool] = None,
-        note: Optional[str] = None,
-        summary: Optional[str] = None,
-        created_at: Optional[str] = None,
-        url: Optional[str] = None,
-        description: Optional[str] = None,
-        author: Optional[str] = None,
-        publisher: Optional[str] = None,
-        date_published: Optional[str] = None,
-        date_modified: Optional[str] = None,
-        text: Optional[str] = None,
-        asset_content: Optional[str] = None,
+        update_data: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
@@ -931,20 +918,10 @@ class KarakeepAPI:
 
         Args:
             bookmark_id: The ID (string) of the bookmark to update.
-            title: Optional new title for the bookmark (max 1000 chars).
-            archived: Optional new archived status for the bookmark.
-            favourited: Optional new favourited status for the bookmark.
-            note: Optional new note content for the bookmark.
-            summary: Optional new summary content for the bookmark.
-            created_at: Optional creation timestamp override (ISO 8601 format string).
-            url: Optional new URL for the bookmark (for link-type bookmarks).
-            description: Optional new description for the bookmark.
-            author: Optional author name for the bookmark content.
-            publisher: Optional publisher name for the bookmark content.
-            date_published: Optional publication date (ISO 8601 format string).
-            date_modified: Optional modification date (ISO 8601 format string).
-            text: Optional text content for the bookmark (for text-type bookmarks).
-            asset_content: Optional asset content for the bookmark (for asset-type bookmarks).
+            update_data: Dictionary containing the fields to update. Supported keys include:
+                        'title', 'archived', 'favourited', 'note', 'summary', 'createdAt',
+                        'url', 'description', 'author', 'publisher', 'datePublished',
+                        'dateModified', 'text', 'assetContent'.
 
         Returns:
             dict: A dictionary representing the updated bookmark (partial representation).
@@ -953,44 +930,13 @@ class KarakeepAPI:
                   Validation is not performed on this response type by default.
 
         Raises:
-            ValueError: If no fields are provided to update.
+            ValueError: If update_data is empty or no valid fields are provided to update.
             APIError: If the API request fails (e.g., 404 bookmark not found).
         """
-        # Construct update_data from provided arguments, excluding None values
-        update_data = {}
-        if title is not None:
-            update_data["title"] = title
-        if archived is not None:
-            update_data["archived"] = archived
-        if favourited is not None:
-            update_data["favourited"] = favourited
-        if note is not None:
-            update_data["note"] = note
-        if summary is not None:
-            update_data["summary"] = summary
-        if created_at is not None:
-            update_data["createdAt"] = created_at
-        if url is not None:
-            update_data["url"] = url
-        if description is not None:
-            update_data["description"] = description
-        if author is not None:
-            update_data["author"] = author
-        if publisher is not None:
-            update_data["publisher"] = publisher
-        if date_published is not None:
-            update_data["datePublished"] = date_published
-        if date_modified is not None:
-            update_data["dateModified"] = date_modified
-        if text is not None:
-            update_data["text"] = text
-        if asset_content is not None:
-            update_data["assetContent"] = asset_content
-
         # Ensure at least one field is being updated
         if not update_data:
             raise ValueError(
-                "At least one field must be provided to update."
+                "update_data must contain at least one field to update."
             )
 
         endpoint = f"bookmarks/{bookmark_id}"
@@ -1720,32 +1666,28 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_tag(self, tag_id: str, name: Optional[str] = None) -> Dict[str, Any]:
+    def update_a_tag(self, tag_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
 
         Args:
             tag_id: The ID (string) of the tag to update.
-            name: Optional new name for the tag.
+            update_data: Dictionary containing the fields to update. Supported keys include:
+                        'name' (string).
 
         Returns:
             dict: A dictionary containing the updated tag information with "id" and "name" fields.
                   Validation is not performed on this response type by default.
 
         Raises:
-            ValueError: If no fields are provided to update.
+            ValueError: If update_data is empty or no valid fields are provided to update.
             APIError: If the API request fails (e.g., 404 tag not found).
         """
-        # Construct update_data from provided arguments, excluding None values
-        update_data = {}
-        if name is not None:
-            update_data["name"] = name
-
         # Ensure at least one field is being updated
         if not update_data:
             raise ValueError(
-                "At least one field must be provided to update."
+                "update_data must contain at least one field to update."
             )
 
         endpoint = f"tags/{tag_id}"
