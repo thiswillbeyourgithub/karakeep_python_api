@@ -426,7 +426,6 @@ def main(
         elif content_files[name] == ".html":
             is_pdf = False
         else:
-            print("Is neither a webpage nor a pdf?!")
             raise RuntimeError(
                 f"Unexpected file extension '{content_files[name]}' for file '{name}'. Expected '.pdf' or '.html'"
             )
