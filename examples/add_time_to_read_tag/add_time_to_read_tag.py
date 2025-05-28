@@ -10,7 +10,7 @@ from loguru import logger
 from karakeep_python_api import KarakeepAPI
 
 
-VERSION: str = "1.0.0"
+VERSION: str = "1.1.0"
 
 
 class AddTimeToRead:
