@@ -1913,7 +1913,7 @@ class KarakeepAPI:
 
     @optional_typecheck
     def update_a_highlight(
-        self, highlight_id: str, update_data: dict
+        self, highlight_id: str, color: Optional[Literal["yellow", "red", "green", "blue"]] = None
     ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Update a highlight by its ID. Currently only supports updating the "color".
@@ -1921,17 +1921,28 @@ class KarakeepAPI:
 
         Args:
             highlight_id: The ID (string) of the highlight to update.
-            update_data: A dictionary containing the fields to update. Must include "color" (string enum).
-                         See `datatypes.Color` enum. Example: `{"color": "red"}`
+            color: Optional new color for the highlight ("yellow", "red", "green", "blue").
 
         Returns:
             datatypes.Highlight: The updated highlight object.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
+            ValueError: If no fields are provided to update.
             APIError: If the API request fails (e.g., 404 highlight not found).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
+        # Construct update_data from provided arguments, excluding None values
+        update_data = {}
+        if color is not None:
+            update_data["color"] = color
+
+        # Ensure at least one field is being updated
+        if not update_data:
+            raise ValueError(
+                "At least one field must be provided to update."
+            )
+
         endpoint = f"highlights/{highlight_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
 
