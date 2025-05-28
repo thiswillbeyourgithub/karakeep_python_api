@@ -55,7 +55,7 @@ def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
         elif d["state"] == "Unknown":
             unknown.append(d)
         else:
-            breakpoint()
+            raise ValueError(json.dumps(d))
     return archived
 
 
@@ -117,7 +117,7 @@ def main(
             elif hasattr(content, "sourceUrl"):
                 found_url = content.sourceUrl
             else:
-                breakpoint()
+                raise ValueError(content)
 
             # handling local PDF, they don't have proper url
             if found_url and found_url.startswith("https://omnivore.app"):
@@ -159,7 +159,6 @@ def main(
                 r = ratio(omnivore["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_it = True
-                    breakpoint()
                     break
 
             if (
@@ -171,14 +170,12 @@ def main(
                 r = ratio(omnivore["title"].lower(), bookmark.title.lower())
                 if r >= threshold:
                     found_it = True
-                    breakpoint()
                     break
 
         # couldn't be found
         if not found_it:
             failed.append(omnivore)
             tqdm.write(f"Failed to find {url}")
-            breakpoint()
             with open("./omnivore_archiver_failed.txt", "a") as f:
                 f.write(f"\n{omnivore}")
             continue
