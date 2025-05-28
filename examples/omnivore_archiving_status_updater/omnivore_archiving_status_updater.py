@@ -24,19 +24,19 @@ karakeep = KarakeepAPI(verbose=False)
 def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> tuple[bool, float]:
     """
     Determines if an Omnivore article matches a Karakeep bookmark.
-    
+
     Uses URL matching first, then title matching (exact and fuzzy).
-    
+
     Parameters:
     - omnivore: Omnivore article dictionary
     - bookmark: Karakeep bookmark object
-    
+
     Returns:
-    - tuple[bool, float]: (is_match, ratio) where ratio is 1.0 for exact matches 
+    - tuple[bool, float]: (is_match, ratio) where ratio is 1.0 for exact matches
       and Levenshtein ratio for fuzzy matches
     """
     url = omnivore["url"]
-    
+
     # Try URL matching first
     found_url = None
     content = bookmark.content
@@ -76,7 +76,7 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> tuple[bool, float]:
     # fuzzy matching, as a last resort
     threshold = 0.95
     best_ratio = 0.0
-    
+
     if (
         "title" in omnivore
         and omnivore["title"]
@@ -97,19 +97,19 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> tuple[bool, float]:
 
     if best_ratio >= threshold:
         return True, best_ratio
-    
+
     return False, best_ratio
 
 
 def get_omnivores_archived(
-    omnivore_export_dir: str, 
-    read_threshold: int = 80, 
-    treat_read_as_archived: bool = True
+    omnivore_export_dir: str,
+    read_threshold: int = 80,
+    treat_read_as_archived: bool = True,
 ) -> list[dict]:
     """
     Loads and concatenates all Omnivore metadata JSON files from the specified directory.
     Filters and returns a list of articles that are marked as "Archived".
-    
+
     Parameters:
     - read_threshold: Reading progress percentage threshold to consider an article as "read" (default: 80)
     - treat_read_as_archived: If True, treat articles above read_threshold as archived (default: True)
@@ -151,14 +151,16 @@ def get_omnivores_archived(
             unknown.append(d)
         else:
             raise ValueError(json.dumps(d))
-    
+
     # If treat_read_as_archived is True, add read articles to archived list (avoiding duplicates)
     if treat_read_as_archived:
-        archived_urls = {d["url"] for d in archived}  # Create set of already archived URLs
+        archived_urls = {
+            d["url"] for d in archived
+        }  # Create set of already archived URLs
         for read_article in read:
             if read_article["url"] not in archived_urls:
                 archived.append(read_article)
-    
+
     return archived
 
 
@@ -170,7 +172,9 @@ def main(
 ) -> None:
     assert Path(omnivore_export_dir).exists(), "Omnivore export dir does not exist"
     assert Path(omnivore_export_dir).is_dir(), "Omnivore export dir is not a dir"
-    archived = get_omnivores_archived(omnivore_export_dir, read_threshold, treat_read_as_archived)
+    archived = get_omnivores_archived(
+        omnivore_export_dir, read_threshold, treat_read_as_archived
+    )
 
     if not archived:
         logger.info("No archived Omnivore articles found or loaded. Exiting.")
@@ -253,6 +257,7 @@ def main(
     # Clean up the temporary file since everything worked successfully
     if Path(karakeep_temp_path).exists():
         Path(karakeep_temp_path).unlink()
+
 
 if __name__ == "__main__":
     Fire(main)
