@@ -276,7 +276,30 @@ def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> l
 
 
 def get_omnivores_bookmarks(omnivore_export_dir: str) -> list[dict]:
-    # load and concatenate data from all omnivore export metadata files
+    """
+    Load and concatenate bookmark data from all Omnivore export metadata files.
+
+    This function searches for metadata files matching the pattern 'metadata_*_to_*.json'
+    in the specified Omnivore export directory and combines all bookmark data into a
+    single list. Each metadata file is expected to contain a JSON list of bookmarks.
+
+    Parameters
+    ----------
+    omnivore_export_dir : str
+        Path to the Omnivore export directory containing metadata files
+
+    Returns
+    -------
+    list[dict]
+        Combined list of all bookmark dictionaries found in the metadata files.
+        Returns empty list if no valid metadata files are found.
+
+    Notes
+    -----
+    Files that cannot be decoded as JSON or do not contain lists will be skipped
+    with warning messages. The function processes files in sorted order to ensure
+    consistent results.
+    """
     export_path = Path(omnivore_export_dir)
     all_data: list[dict] = []
 
