@@ -80,7 +80,7 @@ def get_omnivores_archived(
 
 def main(
     omnivore_export_dir: str,
-    karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
+    karakeep_temp_path: Optional[str] = "./karakeep_bookmarks.temp",
     read_threshold: int = 80,
     treat_read_as_archived: bool = True,
 ) -> None:
@@ -94,8 +94,8 @@ def main(
 
     # fetch all the bookmarks from karakeep, as the search feature is unreliable
     # as the loading can be pretty long, we store it to a local file
-    if Path(karakeep_path).exists():
-        with Path(karakeep_path).open("rb") as f:
+    if Path(karakeep_temp_path).exists():
+        with Path(karakeep_temp_path).open("rb") as f:
             all_bm = pickle.load(f)
     else:
         n = karakeep.get_current_user_stats()["numBookmarks"]
@@ -122,7 +122,7 @@ def main(
         ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
         pbar.close()
 
-        with Path(karakeep_path).open("wb") as f:
+        with Path(karakeep_temp_path).open("wb") as f:
             pickle.dump(all_bm, f)
 
     failed = []
@@ -220,6 +220,9 @@ def main(
         assert res_arch["archived"], res_arch
         tqdm.write(f"Succesfuly archived: {url}")
 
+    # Clean up the temporary file since everything worked successfully
+    if Path(karakeep_temp_path).exists():
+        Path(karakeep_temp_path).unlink()
 
 if __name__ == "__main__":
     Fire(main)
