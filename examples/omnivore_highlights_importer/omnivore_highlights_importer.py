@@ -105,6 +105,123 @@ def find_highlight_position(
     return start, end
 
 
+def find_matching_bookmark(
+    omnivore: dict, url: str, all_bm: list, is_pdf: bool, threshold: float = 0.95
+):
+    """
+    Find a matching bookmark in Karakeep based on Omnivore bookmark data.
+
+    This function attempts to match an Omnivore bookmark to a Karakeep bookmark using
+    multiple strategies: URL matching, exact title matching, and fuzzy title matching.
+
+    Parameters
+    ----------
+    omnivore : dict
+        The Omnivore bookmark data containing URL and title information
+    url : str
+        The URL of the Omnivore bookmark
+    all_bm : list
+        List of all Karakeep bookmarks to search through
+    is_pdf : bool
+        Whether the bookmark is a PDF (not yet supported)
+    threshold : float, optional
+        Minimum similarity threshold for fuzzy matching, by default 0.95
+
+    Returns
+    -------
+    bookmark
+        The matched Karakeep bookmark
+
+    Raises
+    ------
+    NotImplementedError
+        If the bookmark is a PDF (not yet supported)
+    RuntimeError
+        If no matching bookmark is found or if bookmark content lacks URL attributes
+    """
+    found_bm = False
+    best_bookmark = None
+    best_score = 0.0
+
+    for bookmark in all_bm:
+        found_url = None
+        content = bookmark.content
+
+        if is_pdf:
+            raise NotImplementedError("PDF highlights are not yet supported")
+
+        if hasattr(content, "url"):
+            found_url = content.url
+        elif hasattr(content, "sourceUrl"):
+            found_url = content.sourceUrl
+        else:
+            raise RuntimeError(
+                f"Bookmark content has no 'url' or 'sourceUrl' attribute. Available attributes: {[attr for attr in dir(content) if not attr.startswith('_')]}"
+            )
+
+        # handling local PDF, they don't have proper url
+        if found_url and found_url.startswith("https://omnivore.app"):
+            found_url = None
+
+        if found_url == url:
+            found_bm = True
+            break
+
+        # couldn't find a matching url, match by title
+        # exact title match:
+        if (
+            "title" in omnivore
+            and omnivore["title"]
+            and hasattr(content, "title")
+            and content.title
+        ):
+            if omnivore["title"].lower() == content.title.lower():
+                found_bm = True
+                break
+        if (
+            "title" in omnivore
+            and omnivore["title"]
+            and hasattr(bookmark, "title")
+            and bookmark.title
+        ):
+            if omnivore["title"].lower() == bookmark.title.lower():
+                found_bm = True
+                break
+
+        # fuzzy matching, as a last resort - track the best match
+        if (
+            "title" in omnivore
+            and omnivore["title"]
+            and hasattr(content, "title")
+            and content.title
+        ):
+            r = ratio(omnivore["title"].lower(), content.title.lower())
+            if r > best_score:
+                best_score = r
+                best_bookmark = bookmark
+
+        if (
+            "title" in omnivore
+            and omnivore["title"]
+            and hasattr(bookmark, "title")
+            and bookmark.title
+        ):
+            r = ratio(omnivore["title"].lower(), bookmark.title.lower())
+            if r > best_score:
+                best_score = r
+                best_bookmark = bookmark
+
+    # Use the best fuzzy match if it meets the threshold
+    if not found_bm and best_score >= threshold:
+        found_bm = True
+        bookmark = best_bookmark
+
+    if not found_bm:
+        raise RuntimeError(f"Could not find bookmark for highlight file: {omnivore.get('slug', 'unknown')}")
+
+    return bookmark
+
+
 def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> list:
     """
     Load all bookmarks from Karakeep API, using local cache if available.
@@ -289,87 +406,7 @@ def main(
                 f"Unexpected file extension '{content_files[name]}' for file '{name}'. Expected '.pdf' or '.html'"
             )
 
-        found_bm = False
-        best_bookmark = None
-        best_score = 0.0
-        threshold = 0.95
-
-        for bookmark in all_bm:
-            found_url = None
-            content = bookmark.content
-
-            if is_pdf:
-                raise NotImplementedError("PDF highlights are not yet supported")
-
-            if hasattr(content, "url"):
-                found_url = content.url
-            elif hasattr(content, "sourceUrl"):
-                found_url = content.sourceUrl
-            else:
-                raise RuntimeError(
-                    f"Bookmark content has no 'url' or 'sourceUrl' attribute. Available attributes: {[attr for attr in dir(content) if not attr.startswith('_')]}"
-                )
-
-            # handling local PDF, they don't have proper url
-            if found_url and found_url.startswith("https://omnivore.app"):
-                found_url = None
-
-            if found_url == url:
-                found_bm = True
-                break
-
-            # couldn't find a matching url, match by title
-            # exact title match:
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(content, "title")
-                and content.title
-            ):
-                if omnivore["title"].lower() == content.title.lower():
-                    found_bm = True
-                    break
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(bookmark, "title")
-                and bookmark.title
-            ):
-                if omnivore["title"].lower() == bookmark.title.lower():
-                    found_bm = True
-                    break
-
-            # fuzzy matching, as a last resort - track the best match
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(content, "title")
-                and content.title
-            ):
-                r = ratio(omnivore["title"].lower(), content.title.lower())
-                if r > best_score:
-                    best_score = r
-                    best_bookmark = bookmark
-
-            if (
-                "title" in omnivore
-                and omnivore["title"]
-                and hasattr(bookmark, "title")
-                and bookmark.title
-            ):
-                r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-                if r > best_score:
-                    best_score = r
-                    best_bookmark = bookmark
-
-        # Use the best fuzzy match if it meets the threshold
-        if not found_bm and best_score >= threshold:
-            found_bm = True
-            bookmark = best_bookmark
-
-        if not found_bm:
-            print("Did not find the bookmark")
-            raise RuntimeError(f"Could not find bookmark for highlight file: {name}")
+        bookmark = find_matching_bookmark(omnivore, url, all_bm, is_pdf)
 
         kara_content = bookmark.content.htmlContent
 
