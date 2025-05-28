@@ -1222,16 +1222,28 @@ class KarakeepAPI:
 
     @optional_typecheck
     def attach_asset(
-        self, bookmark_id: str, asset_data: dict
+        self, 
+        bookmark_id: str, 
+        asset_id: str,
+        asset_type: Literal[
+            "screenshot",
+            "assetScreenshot", 
+            "bannerImage",
+            "fullPageArchive",
+            "video",
+            "bookmarkAsset",
+            "precrawledArchive",
+            "unknown"
+        ]
     ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
 
         Args:
             bookmark_id: The ID (string) of the bookmark.
-            asset_data: Dictionary specifying the asset to attach. Must contain "id" (string) and "assetType" (string enum).
-                        Example: `{"id": "asset_id_string", "assetType": "screenshot"}`
-                        See `datatypes.AssetType` enum for possible asset types.
+            asset_id: The ID (string) of the asset to attach.
+            asset_type: The type of asset being attached. Must be one of: "screenshot", "assetScreenshot", 
+                        "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive", "unknown".
 
         Returns:
             datatypes.Asset: The attached asset object.
@@ -1241,6 +1253,12 @@ class KarakeepAPI:
             APIError: If the API request fails (e.g., 404 bookmark not found).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
+        # Construct the asset data dict as expected by the API
+        asset_data = {
+            "id": asset_id,
+            "assetType": asset_type
+        }
+        
         endpoint = f"bookmarks/{bookmark_id}/assets"
         response_data = self._call("POST", endpoint, data=asset_data)
 
