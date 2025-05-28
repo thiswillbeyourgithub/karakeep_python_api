@@ -22,7 +22,7 @@ class AddTimeToRead:
     def __init__(self):
         """Initialize the AddTimeToRead class."""
         self.karakeep = None
-        
+
     def create_time_reading_lists(self):
         """Create smart lists for each time-to-read tag."""
         # Get existing lists to avoid duplicates
@@ -33,60 +33,62 @@ class AddTimeToRead:
         except Exception as e:
             logger.error(f"Failed to fetch existing lists: {e}")
             return
-        
+
         # Mapping of time tags to zero-padded list names and descriptions
         list_configs = [
             {
                 "name": "00-05m",
-                "tag": "0-5m", 
-                "description": "Quick reads under 5 minutes"
+                "tag": "0-5m",
+                "description": "Quick reads under 5 minutes",
             },
             {
-                "name": "05-10m", 
+                "name": "05-10m",
                 "tag": "5-10m",
-                "description": "Short reads 5-10 minutes"
+                "description": "Short reads 5-10 minutes",
             },
             {
                 "name": "10-15m",
-                "tag": "10-15m", 
-                "description": "Medium reads 10-15 minutes"
+                "tag": "10-15m",
+                "description": "Medium reads 10-15 minutes",
             },
             {
                 "name": "15-30m",
                 "tag": "15-30m",
-                "description": "Long reads 15-30 minutes"
+                "description": "Long reads 15-30 minutes",
             },
             {
                 "name": "30m+",
                 "tag": "30m+",
-                "description": "Extended reads over 30 minutes"
-            }
+                "description": "Extended reads over 30 minutes",
+            },
         ]
-        
+
         for config in list_configs:
             list_name = config["name"]
-            
+
             # Skip if list already exists
             if list_name in existing_list_names:
                 logger.info(f"List '{list_name}' already exists, skipping creation")
                 continue
-                
-            tag_name = config["tag"] 
+
+            tag_name = config["tag"]
             description = config["description"]
             query = f"#{tag_name} -is:archived"
-            
+
             logger.info(f"Creating smart list '{list_name}' with query '{query}'")
-            
+
             try:
                 result = self.karakeep.create_a_new_list(
                     name=list_name,
                     icon="⏱️",  # Clock icon for time-based lists
                     description=description,
                     list_type="smart",
-                    query=query
+                    query=query,
                 )
-                logger.info(f"Successfully created list '{list_name}' with ID: {result.id if hasattr(result, 'id') else 'unknown'}")
-                
+                logger.info(
+                    f"Successfully created list '{list_name}' with ID: {result.id if hasattr(result, 'id') else 'unknown'}"
+                )
+
             except Exception as e:
                 logger.error(f"Failed to create list '{list_name}': {e}")
 
@@ -465,7 +467,11 @@ def main(
     """
     add_time_to_read = AddTimeToRead()
     add_time_to_read.run(
-        wpm=wpm, reset_all=reset_all, verbose=verbose, cache_file=cache_file, create_lists=create_lists
+        wpm=wpm,
+        reset_all=reset_all,
+        verbose=verbose,
+        cache_file=cache_file,
+        create_lists=create_lists,
     )
 
 
