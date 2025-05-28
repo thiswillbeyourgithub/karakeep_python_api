@@ -18,7 +18,7 @@ VERSION: str = "0.0.1"
 
 
 def find_highlight_position(
-    high_as_text: str, highlight: str, as_text: str, as_md: str, kara_content: str
+    highlight: str, as_text: str, as_md: str, kara_content: str
 ) -> tuple[int, int]:
     """
     Find the start and end positions of a highlight within the document content.
@@ -31,8 +31,6 @@ def find_highlight_position(
 
     Parameters
     ----------
-    high_as_text : str
-        The highlight text converted to plain text
     highlight : str
         The original highlight text (may contain markdown/HTML)
     as_text : str
@@ -47,6 +45,9 @@ def find_highlight_position(
     tuple[int, int]
         A tuple containing (start_position, end_position) of the highlight
     """
+    # Convert highlight to plain text for matching
+    high_as_text = BeautifulSoup(markdown.markdown(highlight), 'html.parser').get_text()
+    
     start = 0
 
     # Strategy 1: Direct text matching
@@ -457,8 +458,6 @@ def main(
                 highlight,
             )
 
-            high_as_text = BeautifulSoup(markdown.markdown(highlight), 'html.parser').get_text()
-
             link_pattern = r"\[.*?\]\((.*?)\)"
             link_replaced = re.sub(link_pattern, r" (Link to \1)", highlight)
             high_link_replaced_as_text = BeautifulSoup(
@@ -471,7 +470,6 @@ def main(
                 ), f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
 
             start, end = find_highlight_position(
-                high_as_text=high_as_text,
                 highlight=highlight,
                 as_text=as_text,
                 as_md=as_md,
