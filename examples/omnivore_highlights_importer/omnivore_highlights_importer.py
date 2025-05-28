@@ -199,6 +199,26 @@ def main(
     dry: bool = True,
     skip_pdf: bool = True,
 ) -> None:
+    """
+    Import highlights from Omnivore export to Karakeep.
+    
+    This function processes Omnivore export data to import highlights into a Karakeep instance.
+    It matches Omnivore bookmarks to Karakeep bookmarks and creates corresponding highlights.
+    
+    The temporary Karakeep bookmarks cache file will be automatically deleted upon successful
+    completion to avoid leaving temporary files behind.
+    
+    Parameters
+    ----------
+    omnivore_export_dir : str
+        Path to the Omnivore export directory containing highlights and content
+    karakeep_path : str, optional
+        Path to temporary file for caching Karakeep bookmarks, by default "./karakeep_bookmarks.temp"
+    dry : bool, optional
+        If True, only simulate the import without actually creating highlights, by default True
+    skip_pdf : bool, optional
+        If True, skip processing PDF highlights (not yet supported), by default True
+    """
     omnivore_export_path = Path(omnivore_export_dir)
     highlights_dir_path = omnivore_export_path / "highlights"
     omnivore_content_dir_path = omnivore_export_path / "content"
