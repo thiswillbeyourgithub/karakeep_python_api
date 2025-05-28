@@ -235,15 +235,15 @@ class AddTimeToRead:
 
         # Fetch bookmarks with content, using cache to speed up testing
         # As the loading can be pretty long, we store it to a local file
-        if Path(cache_file_final).exists():
-            logger.info(f"Loading bookmarks from cache file: {cache_file_final}")
-            with Path(cache_file_final).open("rb") as f:
-                bookmarks = pickle.load(f)
-            logger.info(f"Loaded {len(bookmarks)} bookmarks from cache")
-        else:
-            logger.info("Cache file not found, fetching bookmarks from API...")
+        if reset_all:
+            if Path(cache_file_final).exists():
+                logger.info(f"Loading bookmarks from cache file: {cache_file_final}")
+                with Path(cache_file_final).open("rb") as f:
+                    bookmarks = pickle.load(f)
+                logger.info(f"Loaded {len(bookmarks)} bookmarks from cache")
+            else:
+                logger.info("Cache file not found, fetching bookmarks from API...")
 
-            if reset_all:
                 # Fetch all bookmarks when reset_all is True
                 try:
                     n = self.karakeep.get_current_user_stats()["numBookmarks"]
@@ -283,40 +283,6 @@ class AddTimeToRead:
                     pbar.close()
                     logger.error(f"Error fetching bookmarks: {e}")
                     return
-            else:
-                # Use search to find bookmarks without time tags when reset_all is False
-                search_query = "-#0-5m -#5-10m -#10-15m -#15-30m -#30m+"
-                logger.info(
-                    f"Searching for bookmarks without time tags using query: {search_query}"
-                )
-
-                bookmarks = []
-                batch_size = 100
-
-                try:
-                    page = self.karakeep.search_bookmarks(
-                        q=search_query,
-                        include_content=True,
-                        limit=batch_size,
-                    )
-                    bookmarks.extend(page.bookmarks)
-                    logger.info(f"Found {len(page.bookmarks)} bookmarks in first page")
-
-                    while page.nextCursor:
-                        page = self.karakeep.search_bookmarks(
-                            q=search_query,
-                            include_content=True,
-                            limit=batch_size,
-                            cursor=page.nextCursor,
-                        )
-                        bookmarks.extend(page.bookmarks)
-                        logger.info(f"Found {len(page.bookmarks)} additional bookmarks")
-
-                    logger.info(f"Total untagged bookmarks found: {len(bookmarks)}")
-
-                except Exception as e:
-                    logger.error(f"Error searching for untagged bookmarks: {e}")
-                    return
 
             # Save bookmarks to cache file
             logger.info(
@@ -324,6 +290,40 @@ class AddTimeToRead:
             )
             with Path(cache_file_final).open("wb") as f:
                 pickle.dump(bookmarks, f)
+        else:
+            # Use search to find bookmarks without time tags when reset_all is False
+            search_query = "-#0-5m -#5-10m -#10-15m -#15-30m -#30m+"
+            logger.info(
+                f"Searching for bookmarks without time tags using query: {search_query}"
+            )
+
+            bookmarks = []
+            batch_size = 100
+
+            try:
+                page = self.karakeep.search_bookmarks(
+                    q=search_query,
+                    include_content=True,
+                    limit=batch_size,
+                )
+                bookmarks.extend(page.bookmarks)
+                logger.info(f"Found {len(page.bookmarks)} bookmarks in first page")
+
+                while page.nextCursor:
+                    page = self.karakeep.search_bookmarks(
+                        q=search_query,
+                        include_content=True,
+                        limit=batch_size,
+                        cursor=page.nextCursor,
+                    )
+                    bookmarks.extend(page.bookmarks)
+                    logger.info(f"Found {len(page.bookmarks)} additional bookmarks")
+
+                logger.info(f"Total untagged bookmarks found: {len(bookmarks)}")
+
+            except Exception as e:
+                logger.error(f"Error searching for untagged bookmarks: {e}")
+                return
 
         logger.info(f"Total bookmarks fetched: {len(bookmarks)}")
 
