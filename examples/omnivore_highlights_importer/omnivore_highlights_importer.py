@@ -201,13 +201,13 @@ def main(
 ) -> None:
     """
     Import highlights from Omnivore export to Karakeep.
-    
+
     This function processes Omnivore export data to import highlights into a Karakeep instance.
     It matches Omnivore bookmarks to Karakeep bookmarks and creates corresponding highlights.
-    
+
     The temporary Karakeep bookmarks cache file will be automatically deleted upon successful
     completion to avoid leaving temporary files behind.
-    
+
     Parameters
     ----------
     omnivore_export_dir : str
@@ -427,10 +427,10 @@ def main(
                 )
                 assert resp, highlight
                 # Store the highlight ID from the response
-                if hasattr(resp, 'id'):
+                if hasattr(resp, "id"):
                     created_highlight_ids.append(resp.id)
-                elif isinstance(resp, dict) and 'id' in resp:
-                    created_highlight_ids.append(resp['id'])
+                elif isinstance(resp, dict) and "id" in resp:
+                    created_highlight_ids.append(resp["id"])
 
             del high_as_text
 
@@ -438,22 +438,21 @@ def main(
         if not dry and created_highlight_ids:
             import_metadata = {
                 "omnivore_highlights_importer_version": VERSION,
-                "created_highlights": created_highlight_ids
+                "created_highlights": created_highlight_ids,
             }
-            
+
             # Get current note or start with empty string
             current_note = bookmark.note or ""
-            
+
             # Append the import metadata as JSON
-            updated_note = current_note
-            if updated_note and not updated_note.endswith('\n'):
-                updated_note += '\n'
-            updated_note += f"Import metadata: {json.dumps(import_metadata)}"
-            
+            updated_note = current_note.strip()
+            if updated_note:
+                updated_note += "\n\n"
+            updated_note += f"{json.dumps(import_metadata, ensure_ascii=False)}"
+
             # Update the bookmark with the new note
             karakeep.update_a_bookmark(
-                bookmark_id=bookmark.id,
-                update_data={"note": updated_note}
+                bookmark_id=bookmark.id, update_data={"note": updated_note}
             )
 
 
