@@ -935,9 +935,7 @@ class KarakeepAPI:
         """
         # Ensure at least one field is being updated
         if not update_data:
-            raise ValueError(
-                "update_data must contain at least one field to update."
-            )
+            raise ValueError("update_data must contain at least one field to update.")
 
         endpoint = f"bookmarks/{bookmark_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
@@ -1168,19 +1166,19 @@ class KarakeepAPI:
 
     @optional_typecheck
     def attach_asset(
-        self, 
-        bookmark_id: str, 
+        self,
+        bookmark_id: str,
         asset_id: str,
         asset_type: Literal[
             "screenshot",
-            "assetScreenshot", 
+            "assetScreenshot",
             "bannerImage",
             "fullPageArchive",
             "video",
             "bookmarkAsset",
             "precrawledArchive",
-            "unknown"
-        ]
+            "unknown",
+        ],
     ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
@@ -1188,7 +1186,7 @@ class KarakeepAPI:
         Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to attach.
-            asset_type: The type of asset being attached. Must be one of: "screenshot", "assetScreenshot", 
+            asset_type: The type of asset being attached. Must be one of: "screenshot", "assetScreenshot",
                         "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive", "unknown".
 
         Returns:
@@ -1200,11 +1198,8 @@ class KarakeepAPI:
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
         # Construct the asset data dict as expected by the API
-        asset_data = {
-            "id": asset_id,
-            "assetType": asset_type
-        }
-        
+        asset_data = {"id": asset_id, "assetType": asset_type}
+
         endpoint = f"bookmarks/{bookmark_id}/assets"
         response_data = self._call("POST", endpoint, data=asset_data)
 
@@ -1216,9 +1211,7 @@ class KarakeepAPI:
             return datatypes.Asset.model_validate(response_data)
 
     @optional_typecheck
-    def replace_asset(
-        self, bookmark_id: str, asset_id: str, new_asset_id: str
-    ) -> None:
+    def replace_asset(self, bookmark_id: str, asset_id: str, new_asset_id: str) -> None:
         """
         Replace an existing asset associated with a bookmark with a new one.
         Corresponds to PUT /bookmarks/{bookmarkId}/assets/{assetId}.
@@ -1236,7 +1229,7 @@ class KarakeepAPI:
         """
         # Construct the request body as expected by the API
         new_asset_data = {"assetId": new_asset_id}
-        
+
         endpoint = f"bookmarks/{bookmark_id}/assets/{asset_id}"
         self._call("PUT", endpoint, data=new_asset_data)  # Expects 204 No Content
         return None  # Explicitly return None for 204
@@ -1454,9 +1447,7 @@ class KarakeepAPI:
 
         # Ensure at least one field is being updated
         if not update_data:
-            raise ValueError(
-                "At least one field must be provided to update."
-            )
+            raise ValueError("At least one field must be provided to update.")
 
         endpoint = f"lists/{list_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
@@ -1686,9 +1677,7 @@ class KarakeepAPI:
         """
         # Ensure at least one field is being updated
         if not update_data:
-            raise ValueError(
-                "update_data must contain at least one field to update."
-            )
+            raise ValueError("update_data must contain at least one field to update.")
 
         endpoint = f"tags/{tag_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)
@@ -1875,7 +1864,9 @@ class KarakeepAPI:
 
     @optional_typecheck
     def update_a_highlight(
-        self, highlight_id: str, color: Optional[Literal["yellow", "red", "green", "blue"]] = None
+        self,
+        highlight_id: str,
+        color: Optional[Literal["yellow", "red", "green", "blue"]] = None,
     ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
         """
         Update a highlight by its ID. Currently only supports updating the "color".
@@ -1901,9 +1892,7 @@ class KarakeepAPI:
 
         # Ensure at least one field is being updated
         if not update_data:
-            raise ValueError(
-                "At least one field must be provided to update."
-            )
+            raise ValueError("At least one field must be provided to update.")
 
         endpoint = f"highlights/{highlight_id}"
         response_data = self._call("PATCH", endpoint, data=update_data)

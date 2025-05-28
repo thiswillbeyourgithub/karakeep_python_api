@@ -46,8 +46,8 @@ def find_highlight_position(
         A tuple containing (start_position, end_position) of the highlight
     """
     # Convert highlight to plain text for matching
-    high_as_text = BeautifulSoup(markdown.markdown(highlight), 'html.parser').get_text()
-    
+    high_as_text = BeautifulSoup(markdown.markdown(highlight), "html.parser").get_text()
+
     start = 0
 
     # Strategy 1: Direct text matching
@@ -443,7 +443,7 @@ def main(
 
         as_md = html2text(kara_content, bodywidth=9999999)
 
-        as_text = BeautifulSoup(kara_content, 'html.parser').get_text()
+        as_text = BeautifulSoup(kara_content, "html.parser").get_text()
 
         for highlight in highlights:
 
@@ -461,7 +461,7 @@ def main(
             link_pattern = r"\[.*?\]\((.*?)\)"
             link_replaced = re.sub(link_pattern, r" (Link to \1)", highlight)
             high_link_replaced_as_text = BeautifulSoup(
-                markdown.markdown(link_replaced), 'html.parser'
+                markdown.markdown(link_replaced), "html.parser"
             ).get_text()
 
             if not high_link_replaced_as_text:
@@ -473,7 +473,7 @@ def main(
                 highlight=highlight,
                 as_text=as_text,
                 as_md=as_md,
-                kara_content=kara_content
+                kara_content=kara_content,
             )
 
             if not dry:
