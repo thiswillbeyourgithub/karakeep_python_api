@@ -494,8 +494,6 @@ def main(
                 )
                 assert resp, highlight
 
-            del high_as_text
-
 
 if __name__ == "__main__":
     fire.Fire(main)
