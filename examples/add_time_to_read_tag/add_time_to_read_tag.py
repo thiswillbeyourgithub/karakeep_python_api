@@ -25,6 +25,15 @@ class AddTimeToRead:
         
     def create_time_reading_lists(self):
         """Create smart lists for each time-to-read tag."""
+        # Get existing lists to avoid duplicates
+        try:
+            existing_lists = self.karakeep.get_all_lists()
+            existing_list_names = {lst.name for lst in existing_lists}
+            logger.info(f"Found {len(existing_lists)} existing lists")
+        except Exception as e:
+            logger.error(f"Failed to fetch existing lists: {e}")
+            return
+        
         # Mapping of time tags to zero-padded list names and descriptions
         list_configs = [
             {
@@ -56,6 +65,12 @@ class AddTimeToRead:
         
         for config in list_configs:
             list_name = config["name"]
+            
+            # Skip if list already exists
+            if list_name in existing_list_names:
+                logger.info(f"List '{list_name}' already exists, skipping creation")
+                continue
+                
             tag_name = config["tag"] 
             description = config["description"]
             query = f"#{tag_name} -is:archived"
