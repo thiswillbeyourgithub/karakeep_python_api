@@ -1271,7 +1271,7 @@ class KarakeepAPI:
 
     @optional_typecheck
     def replace_asset(
-        self, bookmark_id: str, asset_id: str, new_asset_data: dict
+        self, bookmark_id: str, asset_id: str, new_asset_id: str
     ) -> None:
         """
         Replace an existing asset associated with a bookmark with a new one.
@@ -1280,8 +1280,7 @@ class KarakeepAPI:
         Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to be replaced.
-            new_asset_data: Dictionary specifying the new asset ID. Must contain "assetId" (string).
-                            Example: `{"assetId": "new_asset_id_string"}`
+            new_asset_id: The ID (string) of the new asset to replace with.
 
         Returns:
             None: Returns None upon successful replacement (204 No Content).
@@ -1289,6 +1288,9 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 404 bookmark or asset not found).
         """
+        # Construct the request body as expected by the API
+        new_asset_data = {"assetId": new_asset_id}
+        
         endpoint = f"bookmarks/{bookmark_id}/assets/{asset_id}"
         self._call("PUT", endpoint, data=new_asset_data)  # Expects 204 No Content
         return None  # Explicitly return None for 204
