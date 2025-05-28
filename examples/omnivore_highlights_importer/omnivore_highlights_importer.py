@@ -415,20 +415,22 @@ def main(
 
             breakpoint()
             if not dry:
+                # Create metadata dict for this highlight
+                highlight_metadata = {
+                    "omnivore_bookmark_id": omnivore["id"],
+                    "omnivore_highlight_filename": f.name,
+                    "omnivore_highlight_importer_version": VERSION,
+                }
+                
                 resp = karakeep.create_a_new_highlight(
                     bookmark_id=bookmark.id,
                     start_offset=start,
                     end_offset=end,
                     color="yellow",
                     text=high_link_replaced_as_text,
-                    note=f"By omnivore_highlights_importer.py version {VERSION}",
+                    note=json.dumps(highlight_metadata, ensure_ascii=False),
                 )
                 assert resp, highlight
-                # Store the highlight ID from the response
-                if hasattr(resp, "id"):
-                    created_highlight_ids.append(resp.id)
-                elif isinstance(resp, dict) and "id" in resp:
-                    created_highlight_ids.append(resp["id"])
 
             del high_as_text
 
