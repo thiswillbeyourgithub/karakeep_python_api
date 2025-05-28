@@ -63,6 +63,8 @@ def main(
     omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
 ) -> None:
+    assert Path(omnivore_export_dir).exists(), "Omnivore export dir does not exist"
+    assert Path(omnivore_export_dir).is_dir(), "Omnivore export dir is not a dir"
     archived = get_omnivores_archived(omnivore_export_dir)
 
     if not archived:
