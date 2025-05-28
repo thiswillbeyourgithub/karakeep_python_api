@@ -37,7 +37,7 @@ This script imports highlights from an Omnivore export to a Karakeep instance. I
 ⚠️ **Known Limitations:**
 - **PDF highlights not supported**: The script currently skips PDF files by default (`skip_pdf=True`) as PDF highlight positioning is not yet implemented
 - **HTML content dependency**: Only works with web page bookmarks that have HTML content available in Karakeep
-- **Single highlight color**: All imported highlights use yellow color (can be modified in the code)
+- **Single highlight color**: All imported highlights use yellow color because Omnivore exports do not include color information - original highlight colors cannot be preserved (the default color can be modified in the code)
 - **No duplicate detection**: The script doesn't check if highlights already exist before creating them (relies on user to clean up duplicates if needed)
 
 ## Prerequisites
