@@ -17,7 +17,7 @@ from tqdm import tqdm
 karakeep = KarakeepAPI(verbose=False)
 
 
-def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
+def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> tuple[bool, float]:
     """
     Determines if an Omnivore article matches a Karakeep bookmark.
     
@@ -28,7 +28,8 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
     - bookmark: Karakeep bookmark object
     
     Returns:
-    - bool: True if the omnivore article matches the bookmark
+    - tuple[bool, float]: (is_match, ratio) where ratio is 1.0 for exact matches 
+      and Levenshtein ratio for fuzzy matches
     """
     url = omnivore["url"]
     
@@ -47,7 +48,7 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
         found_url = None
 
     if found_url == url:
-        return True
+        return True, 1.0
 
     # couldn't find a matching url, match by title
     # exact title match:
@@ -58,7 +59,7 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
         and content.title
     ):
         if omnivore["title"].lower() == content.title.lower():
-            return True
+            return True, 1.0
     if (
         "title" in omnivore
         and omnivore["title"]
@@ -66,10 +67,12 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
         and bookmark.title
     ):
         if omnivore["title"].lower() == bookmark.title.lower():
-            return True
+            return True, 1.0
 
     # fuzzy matching, as a last resort
     threshold = 0.95
+    best_ratio = 0.0
+    
     if (
         "title" in omnivore
         and omnivore["title"]
@@ -77,8 +80,7 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
         and content.title
     ):
         r = ratio(omnivore["title"].lower(), content.title.lower())
-        if r >= threshold:
-            return True
+        best_ratio = max(best_ratio, r)
 
     if (
         "title" in omnivore
@@ -87,10 +89,12 @@ def match_omnivore_to_bookmark(omnivore: dict, bookmark) -> bool:
         and bookmark.title
     ):
         r = ratio(omnivore["title"].lower(), bookmark.title.lower())
-        if r >= threshold:
-            return True
+        best_ratio = max(best_ratio, r)
 
-    return False
+    if best_ratio >= threshold:
+        return True, best_ratio
+    
+    return False, best_ratio
 
 
 def get_omnivores_archived(
@@ -205,19 +209,23 @@ def main(
     for omnivore in tqdm(archived, desc="Archiving", unit="doc"):
         url = omnivore["url"]
 
-        found_it = False
+        # Collect all potential matches with their ratios
+        potential_matches = []
         for bookmark in all_bm:
-            if match_omnivore_to_bookmark(omnivore, bookmark):
-                found_it = True
-                break
+            is_match, match_ratio = match_omnivore_to_bookmark(omnivore, bookmark)
+            if is_match:
+                potential_matches.append((bookmark, match_ratio))
 
         # couldn't be found
-        if not found_it:
+        if not potential_matches:
             failed.append(omnivore)
             tqdm.write(f"Failed to find {url}")
             with open("./omnivore_archiver_failed.txt", "a") as f:
                 f.write(f"\n{omnivore}")
             continue
+
+        # Choose the bookmark with the highest ratio
+        bookmark = max(potential_matches, key=lambda x: x[1])[0]
 
         # skip already archived
         if bookmark.archived:
