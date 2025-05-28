@@ -17,10 +17,18 @@ from tqdm import tqdm
 karakeep = KarakeepAPI(verbose=False)
 
 
-def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
+def get_omnivores_archived(
+    omnivore_export_dir: str, 
+    read_threshold: int = 80, 
+    treat_read_as_archived: bool = True
+) -> list[dict]:
     """
     Loads and concatenates all Omnivore metadata JSON files from the specified directory.
     Filters and returns a list of articles that are marked as "Archived".
+    
+    Parameters:
+    - read_threshold: Reading progress percentage threshold to consider an article as "read" (default: 80)
+    - treat_read_as_archived: If True, treat articles above read_threshold as archived (default: True)
     """
     export_dir = Path(omnivore_export_dir)
     all_data: list[dict] = []
@@ -46,8 +54,11 @@ def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
     data = all_data  # Use the concatenated data
     active = []
     archived = []
+    read = []
     unknown = []
     for d in data:
+        if int(d["readingProgress"]) > read_threshold:
+            read.append(d)
         if d["state"] == "Archived":
             archived.append(d)
         elif d["state"] == "Active":
@@ -56,16 +67,26 @@ def get_omnivores_archived(omnivore_export_dir: str) -> list[dict]:
             unknown.append(d)
         else:
             raise ValueError(json.dumps(d))
+    
+    # If treat_read_as_archived is True, add read articles to archived list (avoiding duplicates)
+    if treat_read_as_archived:
+        archived_urls = {d["url"] for d in archived}  # Create set of already archived URLs
+        for read_article in read:
+            if read_article["url"] not in archived_urls:
+                archived.append(read_article)
+    
     return archived
 
 
 def main(
     omnivore_export_dir: str,
     karakeep_path: Optional[str] = "./karakeep_bookmarks.temp",
+    read_threshold: int = 80,
+    treat_read_as_archived: bool = True,
 ) -> None:
     assert Path(omnivore_export_dir).exists(), "Omnivore export dir does not exist"
     assert Path(omnivore_export_dir).is_dir(), "Omnivore export dir is not a dir"
-    archived = get_omnivores_archived(omnivore_export_dir)
+    archived = get_omnivores_archived(omnivore_export_dir, read_threshold, treat_read_as_archived)
 
     if not archived:
         print("No archived Omnivore articles found or loaded. Exiting.")
