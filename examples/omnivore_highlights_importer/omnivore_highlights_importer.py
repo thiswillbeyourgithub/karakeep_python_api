@@ -474,7 +474,6 @@ def main(
                 high_as_text, highlight, as_text, as_md, kara_content
             )
 
-            breakpoint()
             if not dry:
                 # Create metadata dict for this highlight
                 highlight_metadata = {
