@@ -217,7 +217,9 @@ def find_matching_bookmark(
         bookmark = best_bookmark
 
     if not found_bm:
-        raise RuntimeError(f"Could not find bookmark for highlight file: {omnivore.get('slug', 'unknown')}")
+        raise RuntimeError(
+            f"Could not find bookmark for highlight file: {omnivore.get('slug', 'unknown')}"
+        )
 
     return bookmark
 
@@ -481,7 +483,7 @@ def main(
                     "omnivore_highlight_filename": f.name,
                     "omnivore_highlight_importer_version": VERSION,
                 }
-                
+
                 resp = karakeep.create_a_new_highlight(
                     bookmark_id=bookmark.id,
                     start_offset=start,
@@ -493,7 +495,6 @@ def main(
                 assert resp, highlight
 
             del high_as_text
-
 
 
 if __name__ == "__main__":
