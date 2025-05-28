@@ -267,7 +267,7 @@ class AddTimeToRead:
         reset_all: bool = False,
         verbose: bool = False,
         cache_file: str = "./bookmarks.temp",
-        create_lists: bool = False,
+        create_lists: bool = True,
     ):
         """
         Main method to process all bookmarks and add time-to-read tags.
@@ -451,7 +451,7 @@ def main(
     reset_all: bool = False,
     verbose: bool = False,
     cache_file: str = "./bookmarks.temp",
-    create_lists: bool = False,
+    create_lists: bool = True,
 ):
     """
     Main entry point for the script.
