@@ -442,7 +442,7 @@ def main(
 
         as_md = html2text(kara_content, bodywidth=9999999)
 
-        as_text = BeautifulSoup(kara_content).get_text()
+        as_text = BeautifulSoup(kara_content, 'html.parser').get_text()
 
         for highlight in highlights:
 
@@ -457,12 +457,12 @@ def main(
                 highlight,
             )
 
-            high_as_text = BeautifulSoup(markdown.markdown(highlight)).get_text()
+            high_as_text = BeautifulSoup(markdown.markdown(highlight), 'html.parser').get_text()
 
             link_pattern = r"\[.*?\]\((.*?)\)"
             link_replaced = re.sub(link_pattern, r" (Link to \1)", highlight)
             high_link_replaced_as_text = BeautifulSoup(
-                markdown.markdown(link_replaced)
+                markdown.markdown(link_replaced), 'html.parser'
             ).get_text()
 
             if not high_link_replaced_as_text:
