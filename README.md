@@ -102,7 +102,7 @@ This package can be used as a Python library or as a command-line interface (CLI
 
 The client can be configured using the following environment variables:
 
-*   `KARAKEEP_PYTHON_API_BASE_URL`: **Required**. The full base URL of your Karakeep API, including the `/api/v1/` path (e.g., `https://your-karakeep.example.com/api/v1/` or `https://try.karakeep.app/api/v1/`).
+*   `KARAKEEP_PYTHON_API_ENDPOINT`: **Required**. The full URL of your Karakeep API, including the `/api/v1/` path (e.g., `https://karakeep.domain.com/api/v1/` or `https://try.karakeep.app/api/v1/`).
 *   `KARAKEEP_PYTHON_API_KEY`: **Required**. Your Karakeep API key (Bearer token).
 *   `KARAKEEP_PYTHON_API_VERIFY_SSL`: Set to `false` to disable SSL certificate verification (default: `true`).
 *   `KARAKEEP_PYTHON_API_VERBOSE`: Set to `true` to enable verbose debug logging for the client and CLI (default: `false`).
@@ -111,7 +111,7 @@ The client can be configured using the following environment variables:
 
 ### Command Line Interface (CLI)
 
-The CLI dynamically generates commands based on the API methods. You need to provide your API key and base URL either via environment variables (recommended) or command-line options.
+The CLI dynamically generates commands based on the API methods. You need to provide your API key and endpoint either via environment variables (recommended) or command-line options.
 
 **Basic Structure:**
 
@@ -136,8 +136,8 @@ python -m karakeep_python_api get-all-bookmarks --help
 python -m karakeep_python_api get-all-tags
 
 # Get the first page of bookmarks with a limit, overriding env vars if needed
-# Note: Ensure the base URL includes the /api/v1/ path
-python -m karakeep_python_api --base-url https://my.karakeep.com/api/v1/ --api-key YOUR_API_KEY get-all-bookmarks --limit 10
+# Note: The /api/v1/ path will be automatically appended if not present
+python -m karakeep_python_api --base-url https://karakeep.domain.com/api/v1/ --api-key YOUR_API_KEY get-all-bookmarks --limit 10
 
 # Get all lists and pipe the JSON output to jq to extract the first list
 python -m karakeep_python_api get-all-lists | jq '.[0]'
@@ -161,14 +161,14 @@ import os
 from karakeep_python_api import KarakeepAPI, APIError, AuthenticationError, datatypes
 
 # Ensure required environment variables are set
-# Example: os.environ["KARAKEEP_PYTHON_API_BASE_URL"] = "https://your-karakeep.example.com/api/v1/"
+# Example: os.environ["KARAKEEP_PYTHON_API_ENDPOINT"] = "https://karakeep.domain.com/api/v1/"
 # Example: os.environ["KARAKEEP_PYTHON_API_KEY"] = "your_secret_api_key"
 
 try:
     # Initialize the client (reads from env vars by default)
     client = KarakeepAPI(
         # Optionally override env vars:
-        # base_url="https://another.karakeep.com",
+        # api_endpoint="https://karakeep.domain.com/api/v1/",
         # api_key="another_key",
         # verbose=True,
         # disable_response_validation=False
@@ -198,7 +198,7 @@ except AuthenticationError as e:
 except APIError as e:
     print(f"An API error occurred: {e}")
 except ValueError as e:
-    # Handles missing API key/base URL during initialization
+    # Handles missing API key/endpoint during initialization
     print(f"Configuration error: {e}")
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
@@ -229,7 +229,7 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
     ```bash
     uv pip install -e ".[dev]"
     ```
-4.  Set the required environment variables (`KARAKEEP_PYTHON_API_BASE_URL`, `KARAKEEP_PYTHON_API_KEY`) for running tests against a live instance.
+4.  Set the required environment variables (`KARAKEEP_PYTHON_API_ENDPOINT`, `KARAKEEP_PYTHON_API_KEY`) for running tests against a live instance.
 5.  Run tests:
 
     ```bash

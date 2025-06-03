@@ -77,7 +77,7 @@ class KarakeepAPI:
 
     Attributes:
         api_key (str): The API key used for authentication.
-        api_base_url (str): The base URL of the Karakeep API instance.
+        api_endpoint (str): The endpoint of the Karakeep API instance, including /api/v1 (e.g., https://instance.com/api/v1/).
         openapi_spec (dict): The parsed content of the OpenAPI specification file.
         verify_ssl (bool): Whether SSL verification is enabled.
         verbose (bool): Whether verbose logging is enabled.
@@ -90,7 +90,7 @@ class KarakeepAPI:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_endpoint: Optional[str] = None,
         openapi_spec_path: Optional[str] = None,  # Allow None, default handled below
         verify_ssl: bool = True,
         verbose: bool = False,
@@ -105,8 +105,9 @@ class KarakeepAPI:
         Args:
             api_key: Karakeep API key (Bearer token).
                      Defaults to KARAKEEP_PYTHON_API_KEY environment variable if not provided.
-            base_url: Override the base URL for the API. Must be provided either as an argument
-                      or via the KARAKEEP_PYTHON_API_BASE_URL environment variable.
+            api_endpoint: Override the base URL for the API. Must be provided either as an argument
+                          or via the KARAKEEP_PYTHON_API_ENDPOINT environment variable.
+                          Example: 'https://karakeep.domain.com/api/v1/'
             openapi_spec_path: Path to the OpenAPI JSON specification file.
                                Defaults to 'openapi_reference.json' alongside the package code if not provided.
                                The loaded spec is available via the `openapi_spec` attribute.
@@ -131,46 +132,46 @@ class KarakeepAPI:
         logger.debug("API Key loaded successfully.")
 
         # --- Base URL Validation ---
-        env_base_url = os.environ.get("KARAKEEP_PYTHON_API_BASE_URL")
+        env_endpoint = os.environ.get("KARAKEEP_PYTHON_API_ENDPOINT")
         logger.debug(
-            f"Checked KARAKEEP_PYTHON_API_BASE_URL environment variable, found: '{env_base_url}'"
+            f"Checked KARAKEEP_PYTHON_API_ENDPOINT environment variable, found: '{env_endpoint}'"
         )
-        logger.debug(f"Base URL provided as argument: '{base_url}'")
+        logger.debug(f"Base URL provided as argument: '{api_endpoint}'")
 
-        if base_url:
-            self.api_base_url = base_url
-            logger.info(f"Using provided base URL: {self.api_base_url}")
-        elif env_base_url:
-            self.api_base_url = env_base_url
+        if api_endpoint:
+            self.api_endpoint = api_endpoint
+            logger.info(f"Using provided base URL: {self.api_endpoint}")
+        elif env_endpoint:
+            self.api_endpoint = env_endpoint
             logger.info(
-                f"Using base URL from KARAKEEP_PYTHON_API_BASE_URL: {self.api_base_url}"
+                f"Using base URL from KARAKEEP_PYTHON_API_ENDPOINT: {self.api_endpoint}"
             )
         else:
-            # No base_url from arg or env var - raise error as per requirement
+            # No api_endpoint from arg or env var - raise error as per requirement
             raise ValueError(
-                "API base URL is required. Provide 'base_url' argument or set KARAKEEP_PYTHON_API_BASE_URL environment variable."
+                "API base URL is required. Provide 'api_endpoint' argument or set KARAKEEP_PYTHON_API_ENDPOINT environment variable."
             )
 
-        # Ensure base URL ends with /v1/
-        resolved_url = self.api_base_url  # Use a temporary variable for checks
-        if resolved_url.endswith("/v1"):
-            # Ends with /v1, needs a slash
-            self.api_base_url = resolved_url + "/"
+        # Ensure base URL ends with /api/v1/
+        resolved_url = self.api_endpoint  # Use a temporary variable for checks
+        if resolved_url.endswith("/api/v1"):
+            # Ends with /api/v1, needs a slash
+            self.api_endpoint = resolved_url + "/"
             logger.info(
-                f"Appended trailing slash to base URL ending in /v1: {self.api_base_url}"
+                f"Appended trailing slash to base URL ending in /api/v1: {self.api_endpoint}"
             )
-        elif resolved_url.endswith("/v1/"):
+        elif resolved_url.endswith("/api/v1/"):
             # Already ends correctly, do nothing
-            logger.debug(f"Base URL already ends with /v1/: {self.api_base_url}")
+            logger.debug(f"Base URL already ends with /api/v1/: {self.api_endpoint}")
         else:
-            # Doesn't end with /v1 or /v1/, append /v1/
-            # First, remove any existing trailing slash to avoid //v1/
+            # Doesn't end with /api/v1 or /api/v1/, append /api/v1/
+            # First, remove any existing trailing slash to avoid //api/v1/
             if resolved_url.endswith("/"):
                 resolved_url = resolved_url[:-1]
-            self.api_base_url = resolved_url + "/v1/"
-            logger.info(f"Appended /v1/ to base URL: {self.api_base_url}")
+            self.api_endpoint = resolved_url + "/api/v1/"
+            logger.info(f"Appended /api/v1/ to base URL: {self.api_endpoint}")
 
-        logger.debug(f"Final API Base URL after /v1/ check: {self.api_base_url}")
+        logger.debug(f"Final API Base URL after /api/v1/ check: {self.api_endpoint}")
 
         # --- Load and Parse OpenAPI Spec ---
         if openapi_spec_path is None:
@@ -257,7 +258,7 @@ class KarakeepAPI:
         # self.verbose is still used for conditional logging within the class methods.
 
         logger.debug("KarakeepAPI client initialized.")
-        logger.debug(f"  Base URL: {self.api_base_url}")
+        logger.debug(f"  Base URL: {self.api_endpoint}")
         logger.debug(f"  Verify SSL: {self.verify_ssl}")
         logger.debug(f"  Verbose: {self.verbose}")
         logger.debug(
@@ -319,9 +320,9 @@ class KarakeepAPI:
             AuthenticationError: If authentication fails (401).
             APIError: For other HTTP errors or request issues.
         """
-        # Ensure endpoint doesn't start with / if base_url ends with /
+        # Ensure endpoint doesn't start with / if endpoint ends with /
         safe_endpoint = endpoint.lstrip("/")
-        url = urljoin(self.api_base_url, safe_endpoint)
+        url = urljoin(self.api_endpoint, safe_endpoint)
 
         # Default headers
         headers = {

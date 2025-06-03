@@ -58,7 +58,7 @@ def test_get_all_bookmarks_paginated(karakeep_client: KarakeepAPI):
     # --- Add CLI call ---
     try:
         logger.info("\n  Running CLI equivalent: get-all-bookmarks --limit 2")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        # Assumes KARAKEEP_PYTHON_API_ENDPOINT and KARAKEEP_PYTHON_API_KEY are set in env
         subprocess.run(
             "python -m karakeep_python_api get-all-bookmarks --limit 2",
             shell=True,
@@ -95,7 +95,7 @@ def test_get_all_lists(karakeep_client: KarakeepAPI):
     # --- Add CLI call ---
     try:
         logger.info("\n  Running CLI equivalent: get-all-lists")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        # Assumes KARAKEEP_PYTHON_API_ENDPOINT and KARAKEEP_PYTHON_API_KEY are set in env
         subprocess.run(
             "python -m karakeep_python_api get-all-lists",
             shell=True,
@@ -132,7 +132,7 @@ def test_get_all_tags(karakeep_client: KarakeepAPI):
     # --- Add CLI call ---
     try:
         logger.info("\n  Running CLI equivalent: get-all-tags")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        # Assumes KARAKEEP_PYTHON_API_ENDPOINT and KARAKEEP_PYTHON_API_KEY are set in env
         subprocess.run(
             "python -m karakeep_python_api get-all-tags",
             shell=True,
@@ -195,7 +195,7 @@ def test_get_all_highlights_paginated(karakeep_client: KarakeepAPI):
     # --- Add CLI call ---
     try:
         logger.info("\n  Running CLI equivalent: get-all-highlights --limit 3")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        # Assumes KARAKEEP_PYTHON_API_ENDPOINT and KARAKEEP_PYTHON_API_KEY are set in env
         subprocess.run(
             "python -m karakeep_python_api get-all-highlights --limit 3",
             shell=True,
@@ -784,7 +784,7 @@ def test_get_current_user_stats(karakeep_client: KarakeepAPI):
     # --- Add CLI call ---
     try:
         logger.info("\n  Running CLI equivalent: get-current-user-stats")
-        # Assumes KARAKEEP_PYTHON_API_BASE_URL and KARAKEEP_PYTHON_API_KEY are set in env
+        # Assumes KARAKEEP_PYTHON_API_ENDPOINT and KARAKEEP_PYTHON_API_KEY are set in env
         subprocess.run(
             "python -m karakeep_python_api get-current-user-stats",
             shell=True,

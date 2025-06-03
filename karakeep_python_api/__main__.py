@@ -59,9 +59,9 @@ def serialize_output(data: Any) -> Any:
 # Shared options for the API client
 shared_options = [
     click.option(
-        "--base-url",
-        envvar="KARAKEEP_PYTHON_API_BASE_URL",
-        help="Full Karakeep API base URL, including /api/v1/ (e.g., https://instance.com/api/v1/).",
+        "--api-endpoint",
+        envvar="KARAKEEP_PYTHON_API_ENDPOINT",
+        help="Full Karakeep API endpoint URL, including /api/v1/ (e.g., https://instance.com/api/v1/).",
     ),
     click.option(
         "--api-key",
@@ -151,7 +151,7 @@ def print_openapi_spec(ctx, param, value):
 @click.pass_context
 def cli(
     ctx,
-    base_url,
+    api_endpoint,
     api_key,
     verify_ssl,
     verbose,
@@ -167,7 +167,7 @@ def cli(
     # Ensure the context object exists
     ctx.ensure_object(dict)
 
-    # --- Strict Check for API Key and Base URL ---
+    # --- Strict Check for API Key and Endpoint ---
     # Check for API key (must be provided via arg or env)
     resolved_api_key = api_key or os.environ.get("KARAKEEP_PYTHON_API_KEY")
     if not resolved_api_key:
@@ -175,16 +175,18 @@ def cli(
             "API Key is required. Provide --api-key option or set KARAKEEP_PYTHON_API_KEY environment variable."
         )
 
-    # Check for Base URL (must be provided via arg or env)
-    resolved_base_url = base_url or os.environ.get("KARAKEEP_PYTHON_API_BASE_URL")
-    if not resolved_base_url:
+    # Check for API endpoint (must be provided via arg or env)
+    resolved_api_endpoint = api_endpoint or os.environ.get(
+        "KARAKEEP_PYTHON_API_ENDPOINT"
+    )
+    if not resolved_api_endpoint:
         raise click.UsageError(
-            "API Base URL is required. Provide --base-url option or set KARAKEEP_PYTHON_API_BASE_URL environment variable. "
+            "API endpoint is required. Provide --api-endpoint option or set KARAKEEP_PYTHON_API_ENDPOINT environment variable. "
             "The URL must include the API path, e.g., 'https://your-instance.com/api/v1/'."
         )
 
     # Store common API parameters in the context for commands to use
-    ctx.obj["BASE_URL"] = resolved_base_url  # Store the resolved URL
+    ctx.obj["API_ENDPOINT"] = resolved_api_endpoint  # Store the resolved endpoint
     ctx.obj["API_KEY"] = resolved_api_key  # Store the resolved key
     ctx.obj["VERIFY_SSL"] = verify_ssl
     ctx.obj["VERBOSE"] = verbose
@@ -231,7 +233,7 @@ def create_click_command(
         def command_func(ctx, **kwargs):
             """Dynamically generated command function wrapper."""
             # Retrieve API parameters from context, ensuring API key is present now
-            base_url = ctx.obj["BASE_URL"]
+            api_endpoint = ctx.obj["API_ENDPOINT"]
             api_key = ctx.obj["API_KEY"]
             verify_ssl = ctx.obj["VERIFY_SSL"]
             verbose = ctx.obj["VERBOSE"]
@@ -250,7 +252,7 @@ def create_click_command(
                 # Method generation already happened during inspection phase or initial load
                 api = KarakeepAPI(
                     api_key=api_key,
-                    base_url=base_url,
+                    api_endpoint=api_endpoint,
                     verify_ssl=verify_ssl,
                     verbose=verbose,
                     disable_response_validation=disable_validation,  # Pass flag to constructor
