@@ -1306,6 +1306,7 @@ class KarakeepAPI:
         parent_id: Optional[str] = None,
         list_type: Optional[Literal["manual", "smart"]] = "manual",
         query: Optional[str] = None,
+        public: bool = False,
     ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Create a new list (manual or smart). Corresponds to POST /lists.
@@ -1317,6 +1318,7 @@ class KarakeepAPI:
             parent_id: Optional parent list ID for nested lists.
             list_type: The type of list ('manual' or 'smart'). Default is 'manual'.
             query: Optional query string for smart lists (required if list_type is 'smart').
+            public: Whether the list is public (default: False).
 
         Returns:
             datatypes.ListModel: The created list object.
@@ -1336,6 +1338,7 @@ class KarakeepAPI:
             "name": name,
             "icon": icon,
             "type": list_type,
+            "public": public,
         }
 
         # Add optional fields if provided
@@ -1410,10 +1413,11 @@ class KarakeepAPI:
         icon: Optional[str] = None,
         parent_id: Optional[str] = None,
         query: Optional[str] = None,
+        public: Optional[bool] = None,
     ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
         """
         Update a list by its ID. Corresponds to PATCH /lists/{listId}.
-        Allows updating various list fields including name, description, icon, parent relationship, and query.
+        Allows updating various list fields including name, description, icon, parent relationship, query, and public status.
 
         Args:
             list_id: The ID (string) of the list to update.
@@ -1422,6 +1426,7 @@ class KarakeepAPI:
             icon: Optional new icon for the list.
             parent_id: Optional new parent list ID (can be None to remove parent relationship).
             query: Optional new query string for smart lists (minimum 1 character).
+            public: Optional new public status for the list.
 
         Returns:
             datatypes.ListModel: The updated list object.
@@ -1444,6 +1449,8 @@ class KarakeepAPI:
             update_data["parentId"] = parent_id
         if query is not None:
             update_data["query"] = query
+        if public is not None:
+            update_data["public"] = public
 
         # Ensure at least one field is being updated
         if not update_data:

@@ -135,6 +135,7 @@ class ListModel(BaseModel):
     parentId: Optional[str]
     type: Optional[Literal["manual", "smart"]] = "manual"
     query: Optional[str] = None
+    public: bool
 
 
 class PaginatedHighlights(BaseModel):
