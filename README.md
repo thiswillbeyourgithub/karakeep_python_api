@@ -209,7 +209,7 @@ except Exception as e:
 
 Community Scripts are a bunch of scripts made to solve specific issues. They are made by the community so don't hesitate to submit yours or open an issue if you have a bug. They also serve as example of how to use the API.
 
-They can be found in the [./community_scripts](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts) folder. Don't hesitate to submit yours!
+They can be found in the [./community_scripts](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts) folder. Don't hesitate to submit yours, the contribution guidelines are in the community_scripts directory README.md file.
 
 | Community Script | Description | Documentation |
 |----------------|-------------|---------------|
