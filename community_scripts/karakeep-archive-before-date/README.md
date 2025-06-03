@@ -11,7 +11,7 @@ N/A
 Define a date to limit archiving. All not archived bookmarks before this date will be archived. 
 
 ```bash
-python archiving_before_date.py --before-date 2023-01-01
+python archiving_before_date.py --before-date 2023-12-24
 ```
 
 `--before-date` format is `YYYY-MM-DD`
