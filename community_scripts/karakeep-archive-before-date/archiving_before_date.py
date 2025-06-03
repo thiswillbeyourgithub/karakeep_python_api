@@ -17,6 +17,8 @@ import csv
 from karakeep_python_api import KarakeepAPI
 from tqdm import tqdm
 
+VERSION: str = "1.0.0"
+
 karakeep = KarakeepAPI(verbose=False)
 
 
