@@ -211,13 +211,14 @@ Community Scripts are a bunch of scripts made to solve specific issues. They are
 
 They can be found in the [./community_scripts](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts) folder. Don't hesitate to submit yours!
 
-| Community Script | Description | Documentation |
-|----------------|-------------|---------------|
+| Community Script | Description                                                                                                                                                                            | Documentation |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
 | **Karakeep-Time-Tagger** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-time-tagger) |
-| **Karakeep-List-To-Tag** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-list-to-tag) |
-| **Omnivore2Karakeep-Highlights** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-highlights) |
-| **Omnivore2Karakeep-Archived** | (Should not be needed anymore) Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-archived) |
-| **pocket2karakeep-archived** | (Should not be needed anymore) Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket2karakeep-archived) |
+| **Karakeep-List-To-Tag** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list.                                                                                        | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-list-to-tag) |
+| **Omnivore2Karakeep-Highlights** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing.                                | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-highlights) |
+| **Omnivore2Karakeep-Archived** | (Should not be needed anymore) Fixes the archived status of bookmarks imported from Omnivore by reading export data and updating Karakeep accordingly.                                 | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-archived) |
+| **pocket2karakeep-archived** | (Should not be needed anymore) Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly.                                   | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket2karakeep-archived) |
+| **karakeep-archive-before-date** | Allow you to archive all not archived post before a given date                                                                                                                         | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-archive-before-date) |
 
 ## Development
 
