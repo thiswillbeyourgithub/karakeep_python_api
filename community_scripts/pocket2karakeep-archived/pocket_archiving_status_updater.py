@@ -7,7 +7,6 @@ title,url,time_added,tags,status
 It identifies entries with status "archive" and updates their status in Karakeep.
 
 """
-
 import time
 
 from Levenshtein import ratio
@@ -137,7 +136,9 @@ def main(
             elif hasattr(content, "sourceUrl"):
                 found_url = content.sourceUrl
             else:
-                breakpoint()
+                found_url = ""
+
+
 
             if found_url == url:
                 found_it = True
@@ -175,7 +176,7 @@ def main(
                 r = ratio(pocket["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_it = True
-                    breakpoint()
+                    #breakpoint()
                     break
 
             if (
@@ -189,11 +190,12 @@ def main(
                     found_it = True
                     break
 
+
         # couldn't be found
         if not found_it:
             failed.append(pocket)
             tqdm.write(f"Failed to find {url}")
-            breakpoint()
+            #breakpoint()
             with open("./omnivore_archiver_failed.txt", "a") as f:
                 f.write(f"\n{pocket}")
             continue
@@ -202,15 +204,21 @@ def main(
         if bookmark.archived:
             tqdm.write(f"Already archived: {url}")
             continue
-        fresh = karakeep.get_a_single_bookmark(
-            bookmark_id=bookmark.id, include_content=False
-        )
+        for attempt in range(5):
+            try:
+                fresh = karakeep.get_a_single_bookmark(bookmark_id=bookmark.id, include_content=False)
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise e
+                tqdm.write(f"Get single bookmark failed, retrying ({attempt + 1}/5)")
+                time.sleep(1)
         if fresh.archived:
             tqdm.write(f"Already archived: {url}")
             continue
 
         # do the archiving
-        retries = 3
+        retries = 10
         for attempt in range(retries):
             try:
                 res_arch = karakeep.update_a_bookmark(
