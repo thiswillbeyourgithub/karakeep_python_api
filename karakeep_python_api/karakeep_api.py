@@ -105,7 +105,7 @@ class KarakeepAPI:
         Args:
             api_key: Karakeep API key (Bearer token).
                      Defaults to KARAKEEP_PYTHON_API_KEY environment variable if not provided.
-            api_endpoint: Override the base URL for the API. Must be provided either as an argument
+            api_endpoint: Override the endpoint for the API. Must be provided either as an argument
                           or via the KARAKEEP_PYTHON_API_ENDPOINT environment variable.
                           Example: 'https://karakeep.domain.com/api/v1/'
             openapi_spec_path: Path to the OpenAPI JSON specification file.
@@ -131,47 +131,47 @@ class KarakeepAPI:
         self.api_key = resolved_api_key
         logger.debug("API Key loaded successfully.")
 
-        # --- Base URL Validation ---
+        # --- Endpoint Validation ---
         env_endpoint = os.environ.get("KARAKEEP_PYTHON_API_ENDPOINT")
         logger.debug(
             f"Checked KARAKEEP_PYTHON_API_ENDPOINT environment variable, found: '{env_endpoint}'"
         )
-        logger.debug(f"Base URL provided as argument: '{api_endpoint}'")
+        logger.debug(f"Endpoint provided as argument: '{api_endpoint}'")
 
         if api_endpoint:
             self.api_endpoint = api_endpoint
-            logger.info(f"Using provided base URL: {self.api_endpoint}")
+            logger.info(f"Using provided endpoint: {self.api_endpoint}")
         elif env_endpoint:
             self.api_endpoint = env_endpoint
             logger.info(
-                f"Using base URL from KARAKEEP_PYTHON_API_ENDPOINT: {self.api_endpoint}"
+                f"Using endpoint from KARAKEEP_PYTHON_API_ENDPOINT: {self.api_endpoint}"
             )
         else:
             # No api_endpoint from arg or env var - raise error as per requirement
             raise ValueError(
-                "API base URL is required. Provide 'api_endpoint' argument or set KARAKEEP_PYTHON_API_ENDPOINT environment variable."
+                "API endpoint is required. Provide 'api_endpoint' argument or set KARAKEEP_PYTHON_API_ENDPOINT environment variable."
             )
 
-        # Ensure base URL ends with /api/v1/
+        # Ensure endpoint ends with /api/v1/
         resolved_url = self.api_endpoint  # Use a temporary variable for checks
         if resolved_url.endswith("/api/v1"):
             # Ends with /api/v1, needs a slash
             self.api_endpoint = resolved_url + "/"
             logger.info(
-                f"Appended trailing slash to base URL ending in /api/v1: {self.api_endpoint}"
+                f"Appended trailing slash to endpoint ending in /api/v1: {self.api_endpoint}"
             )
         elif resolved_url.endswith("/api/v1/"):
             # Already ends correctly, do nothing
-            logger.debug(f"Base URL already ends with /api/v1/: {self.api_endpoint}")
+            logger.debug(f"Endpoint already ends with /api/v1/: {self.api_endpoint}")
         else:
             # Doesn't end with /api/v1 or /api/v1/, append /api/v1/
             # First, remove any existing trailing slash to avoid //api/v1/
             if resolved_url.endswith("/"):
                 resolved_url = resolved_url[:-1]
             self.api_endpoint = resolved_url + "/api/v1/"
-            logger.info(f"Appended /api/v1/ to base URL: {self.api_endpoint}")
+            logger.info(f"Appended /api/v1/ to endpoint: {self.api_endpoint}")
 
-        logger.debug(f"Final API Base URL after /api/v1/ check: {self.api_endpoint}")
+        logger.debug(f"Final API Endpoint after /api/v1/ check: {self.api_endpoint}")
 
         # --- Load and Parse OpenAPI Spec ---
         if openapi_spec_path is None:
@@ -258,7 +258,7 @@ class KarakeepAPI:
         # self.verbose is still used for conditional logging within the class methods.
 
         logger.debug("KarakeepAPI client initialized.")
-        logger.debug(f"  Base URL: {self.api_endpoint}")
+        logger.debug(f"  Endpoint: {self.api_endpoint}")
         logger.debug(f"  Verify SSL: {self.verify_ssl}")
         logger.debug(f"  Verbose: {self.verbose}")
         logger.debug(
@@ -303,7 +303,7 @@ class KarakeepAPI:
 
         Args:
             method: HTTP method ('GET', 'POST', 'PUT', 'PATCH', 'DELETE').
-            endpoint: API endpoint path relative to the base URL (e.g., 'bookmarks' or 'bookmarks/some_id').
+            endpoint: API endpoint path relative to the endpoint (e.g., 'bookmarks' or 'bookmarks/some_id').
                       Path parameters (like {bookmarkId}) MUST be substituted *before* calling _call.
             params: Dictionary of URL query parameters. Values should be primitive types suitable for URLs.
             data: Request body data. Can be a Pydantic model, dict, list, bytes, or str.

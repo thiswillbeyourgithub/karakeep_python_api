@@ -237,7 +237,7 @@ def test_openapi_spec_accessible(karakeep_client: KarakeepAPI):
     # The closest CLI equivalent is dumping the spec file content
     try:
         logger.info("\n  Running CLI equivalent: --dump-openapi-specification")
-        # This command doesn't require API key or base URL
+        # This command doesn't require API key or endpoint
         subprocess.run(
             "python -m karakeep_python_api --dump-openapi-specification",
             shell=True,
