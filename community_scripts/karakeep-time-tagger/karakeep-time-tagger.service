@@ -8,7 +8,7 @@ Type=oneshot
 # Update this path to your karakeep-python-api repository location
 WorkingDirectory=%h/repos/karakeep-python-api
 ExecStart=/usr/bin/python3 community_scripts/karakeep-time-tagger/karakeep-time-tagger.py --verbose=false
-# Uncomment and set path to environment file containing KARAKEEP_PYTHON_API_KEY and KARAKEEP_PYTHON_API_BASE_URL
+# Uncomment and set path to environment file containing KARAKEEP_PYTHON_API_KEY and KARAKEEP_PYTHON_API_ENDPOINT
 EnvironmentFile=%h/.config/karakeep/env
 StandardOutput=journal
 StandardError=journal

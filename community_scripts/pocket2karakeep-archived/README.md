@@ -16,7 +16,7 @@ Ensure you have your Pocket export directory ready. Then, run the script:
 python pocket2karakeep-archived.py --pocket-export-dir /path/to/your/pocket_export_directory
 ```
 
-You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_BASE_URL` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.
+You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_ENDPOINT` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.
 
 The script will:
 1. Scan the specified Pocket export directory for `part_00000X.csv` files.

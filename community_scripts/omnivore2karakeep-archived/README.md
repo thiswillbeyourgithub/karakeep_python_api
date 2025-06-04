@@ -16,7 +16,7 @@ Ensure you have your Omnivore export directory ready. Then, run the script:
 python omnivore2karakeep-archived.py --omnivore-export-dir /path/to/your/omnivore_export_directory
 ```
 
-You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_BASE_URL` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.
+You might need to set up environment variables for the Karakeep API client or pass them as arguments if the script supports it (e.g., `KARAKEEP_PYTHON_API_ENDPOINT` and `KARAKEEP_PYTHON_API_KEY`). Refer to the script's help or the `karakeep-python-api` documentation for more details on authentication.
 
 The script will:
 1. Scan the specified Omnivore export directory for `metadata_*_to_*.json` files.

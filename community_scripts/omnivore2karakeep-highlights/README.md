@@ -131,7 +131,7 @@ omnivore_export/
 Set up your Karakeep API credentials:
 
 ```bash
-export KARAKEEP_PYTHON_API_BASE_URL="https://your-instance.com/api/v1/"
+export KARAKEEP_PYTHON_API_ENDPOINT="https://your-instance.com/api/v1/"
 export KARAKEEP_PYTHON_API_KEY="your-api-key"
 ```
 
