@@ -211,8 +211,8 @@ Community Scripts are a bunch of scripts made to solve specific issues. They are
 
 They can be found in the [./community_scripts](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts) folder. Don't hesitate to submit yours, the contribution guidelines are in the community_scripts directory README.md file.
 
-| Community Script | Description                                                                                                                                                                            | Documentation |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| Community Script | Description                                                                                                | Documentation |
+|----------------|--------------------------------------------------------------------------------------------------------------|---------------|
 | **Karakeep-Time-Tagger** | Automatically adds time-to-read tags (`0-5m`, `5-10m`, etc.) to bookmarks based on content length analysis. Includes systemd service and timer files for automated periodic execution. | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-time-tagger) |
 | **Karakeep-List-To-Tag** | Converts a Karakeep list into tags by adding a specified tag to all bookmarks within that list.                                                                                        | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-list-to-tag) |
 | **Omnivore2Karakeep-Highlights** | Imports highlights from Omnivore export data to Karakeep, with intelligent position detection and bookmark matching. Supports dry-run mode for testing.                                | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/omnivore2karakeep-highlights) |
