@@ -1,3 +1,4 @@
 [submodule "community_scripts/Freshrss-To-Karakeep"]
 	path = community_scripts/Freshrss-To-Karakeep
 	url = https://github.com/thiswillbeyourgithub/freshrss_to_karakeep
+    branch = main
