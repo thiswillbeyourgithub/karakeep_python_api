@@ -483,6 +483,7 @@ class KarakeepAPI:
                         url=url,
                         params=request_params,  # Use params with stringified booleans
                         data=request_body_arg,  # Serialized data (bytes or str)
+                        files=files,  # File uploads for multipart/form-data
                         headers=headers,
                         verify=self.verify_ssl,
                         timeout=60,  # Increased default timeout
@@ -1972,14 +1973,13 @@ class KarakeepAPI:
 
     @optional_typecheck
     def upload_a_new_asset(
-        self, file_path: str, file_name: Optional[str] = None
+        self, file: str
     ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
         Args:
-            file_path: Path to the file to upload.
-            file_name: Optional custom filename. If not provided, uses the basename of file_path.
+            file: Path to the file to upload.
 
         Returns:
             datatypes.Asset: Details about the uploaded asset (assetId, contentType, size, fileName).
@@ -1993,60 +1993,32 @@ class KarakeepAPI:
         import os
         import mimetypes
 
-        # Validate file path is provided
-        if not file_path or not file_path.strip():
-            raise ValueError("file_path cannot be empty")
+        # Validate file path exists
+        if not os.path.isfile(file):
+            raise FileNotFoundError(f"File not found: {file}")
 
-        file_path = file_path.strip()
-
-        # Validate file exists and is readable
-        if not os.path.isfile(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
-
-        if not os.access(file_path, os.R_OK):
-            raise APIError(f"File is not readable: {file_path}")
-
-        # Check file size (reasonable limit to prevent accidental large uploads)
-        try:
-            file_size = os.path.getsize(file_path)
-        except OSError as e:
-            raise APIError(f"Failed to get file size for {file_path}: {e}") from e
-
-        if file_size == 0:
-            raise APIError(f"File is empty: {file_path}")
-        if file_size > 100 * 1024 * 1024:  # 100MB limit
-            logger.warning(
-                f"Large file detected ({file_size / (1024*1024):.1f}MB): {file_path}"
-            )
-
-        # Determine filename
-        if file_name is None:
-            file_name = os.path.basename(file_path)
-
-        # Validate filename is not empty
-        if not file_name or not file_name.strip():
-            raise ValueError("Filename cannot be empty")
-
-        file_name = file_name.strip()
+        # Get filename from path
+        file_name = os.path.basename(file)
 
         # Detect MIME type
-        mime_type, _ = mimetypes.guess_type(file_path)
+        mime_type, _ = mimetypes.guess_type(file)
         if mime_type is None:
-            mime_type = "application/octet-stream"  # Fallback for unknown types
+            mime_type = "application/octet-stream"
 
         if self.verbose:
             logger.debug(
-                f"Uploading asset: {file_path} (filename: {file_name}, size: {file_size} bytes, type: {mime_type})"
+                f"Uploading asset: {file} (filename: {file_name}, type: {mime_type})"
             )
 
         # Prepare file for upload
         try:
-            with open(file_path, "rb") as f:
-                # Note: The 'file' key must match the OpenAPI spec parameter name
-                files = {"file": (file_name, f, mime_type)}
-                response_data = self._call("POST", "assets", files=files)
+            with open(file, "rb") as f:
+                file_content = f.read()
+            # Note: The 'file' key must match the OpenAPI spec parameter name
+            files = {"file": (file_name, file_content, mime_type)}
+            response_data = self._call("POST", "assets", files=files)
         except IOError as e:
-            raise APIError(f"Failed to read file {file_path}: {e}") from e
+            raise APIError(f"Failed to read file {file}: {e}") from e
 
         if self.disable_response_validation:
             logger.debug("Skipping response validation as requested.")

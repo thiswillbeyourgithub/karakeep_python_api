@@ -803,4 +803,89 @@ def test_get_current_user_stats(karakeep_client: KarakeepAPI):
         pytest.fail(f"An unexpected error occurred running the CLI command: {e}")
 
 
+def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
+    """Test creating a PDF bookmark, verifying its asset, and deleting it."""
+    pdf_file_path = "tests/PDF Bookmark Sample.pdf"
+    uploaded_asset_id = None
+    created_bookmark_id = None
+
+    # Generate unique title to avoid collisions
+    timestamp = int(time.time())
+    random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    bookmark_title = f"Test PDF Bookmark {timestamp}-{random_suffix}"
+
+    try:
+        # 1. Upload the PDF asset
+        logger.info(f"\nUploading PDF asset from: {pdf_file_path}")
+        uploaded_asset = karakeep_client.upload_a_new_asset(file=pdf_file_path)
+        assert isinstance(uploaded_asset, datatypes.Asset)
+        assert uploaded_asset.assetId, "Uploaded asset must have an ID"
+        assert "pdf" in uploaded_asset.contentType.lower(), "Asset should be PDF type"
+        assert (
+            uploaded_asset.fileName == "PDF Bookmark Sample.pdf"
+        ), "Asset filename should match the original file"
+        uploaded_asset_id = uploaded_asset.assetId
+        logger.info(f"✓ PDF uploaded with asset ID: {uploaded_asset_id}")
+
+        # 2. Create a PDF bookmark using the uploaded asset
+        logger.info(f"\nCreating PDF bookmark with title: '{bookmark_title}'")
+        bookmark = karakeep_client.create_a_new_bookmark(
+            type="asset",
+            asset_type="pdf",
+            assetId=uploaded_asset_id,
+            title=bookmark_title,
+            fileName="PDF Bookmark Sample.pdf",
+        )
+        assert isinstance(bookmark, datatypes.Bookmark)
+        assert bookmark.id, "Created bookmark must have an ID"
+        assert bookmark.title == bookmark_title, "Bookmark title should match"
+        created_bookmark_id = bookmark.id
+        logger.info(f"✓ PDF bookmark created with ID: {created_bookmark_id}")
+
+        # 3. Verify the bookmark has the correct asset
+        logger.info(f"\nVerifying bookmark {created_bookmark_id} has the PDF asset")
+        retrieved_bookmark = karakeep_client.get_a_single_bookmark(
+            bookmark_id=created_bookmark_id
+        )
+        assert isinstance(retrieved_bookmark, datatypes.Bookmark)
+        assert (
+            len(retrieved_bookmark.assets) > 0
+        ), "Bookmark should have at least one asset"
+
+        # Check that our uploaded asset is among the bookmark's assets
+        asset_ids = [asset.id for asset in retrieved_bookmark.assets]
+        assert (
+            uploaded_asset_id in asset_ids
+        ), f"Uploaded asset {uploaded_asset_id} should be attached to bookmark"
+        logger.info(f"✓ Verified bookmark contains the PDF asset {uploaded_asset_id}")
+
+        # 4. Retrieve and verify the asset content
+        logger.info(f"\nRetrieving asset content for ID: {uploaded_asset_id}")
+        asset_content = karakeep_client.get_a_single_asset(asset_id=uploaded_asset_id)
+        assert isinstance(asset_content, bytes), "Asset content should be bytes"
+        assert len(asset_content) > 0, "Asset content should not be empty"
+        assert asset_content.startswith(b"%PDF"), "PDF should start with PDF header"
+        logger.info(f"✓ Retrieved PDF asset content ({len(asset_content)} bytes)")
+
+    except FileNotFoundError:
+        pytest.skip(f"PDF test file not found: {pdf_file_path}")
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during PDF asset test: {e}")
+    except Exception as e:
+        pytest.fail(f"Unexpected error during PDF asset test: {e}")
+    finally:
+        # 5. Clean up: Delete the bookmark
+        if created_bookmark_id:
+            logger.info(f"\nCleaning up: Deleting bookmark {created_bookmark_id}")
+            try:
+                karakeep_client.delete_a_bookmark(bookmark_id=created_bookmark_id)
+                logger.info(f"✓ Successfully deleted bookmark {created_bookmark_id}")
+            except Exception as e:
+                logger.info(
+                    f"  Error during cleanup - failed to delete bookmark {created_bookmark_id}: {e}"
+                )
+        else:
+            logger.info("\nNo bookmark to clean up")
+
+
 # --- End of Tests ---
