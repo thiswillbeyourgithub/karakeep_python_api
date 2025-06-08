@@ -295,8 +295,9 @@ class KarakeepAPI:
         data: Optional[
             Union[BaseModel, dict, list, str, bytes]
         ] = None,  # More specific type hint
+        files: Optional[Dict[str, Any]] = None,
         extra_headers: Optional[Dict[str, str]] = None,
-    ) -> Union[Dict[str, Any], List[Any], None]:
+    ) -> Union[Dict[str, Any], List[Any], None, bytes]:
         """
         Internal method to make an HTTP call to the Karakeep API. Handles authentication,
         request formatting, response parsing, and error handling.
@@ -310,11 +311,13 @@ class KarakeepAPI:
                   - Pydantic models, dicts, and lists will be automatically JSON-encoded
                     with 'Content-Type: application/json' unless overridden in extra_headers.
                   - For bytes or str, ensure 'Content-Type' is set correctly via extra_headers if needed.
+            files: Dictionary for file uploads (multipart/form-data). If provided, data parameter is ignored.
             extra_headers: Additional headers to include or override default headers.
 
         Returns:
-            The parsed JSON response from the API as a dict or list, or None for 204 No Content responses.
-            The calling wrapper method is responsible for further parsing/validation into specific Pydantic models.
+            The parsed JSON response from the API as a dict or list, None for 204 No Content responses,
+            or raw bytes for non-JSON responses. The calling wrapper method is responsible for further
+            parsing/validation into specific Pydantic models.
 
         Raises:
             AuthenticationError: If authentication fails (401).
@@ -346,7 +349,16 @@ class KarakeepAPI:
         # Determine Content-Type, prioritizing extra_headers
         content_type = headers.get("Content-Type")
 
-        if data is not None:
+        # Handle file uploads (multipart/form-data)
+        if files is not None:
+            # When files are provided, let requests handle Content-Type automatically
+            # Don't set Content-Type header for multipart uploads
+            if "Content-Type" in headers:
+                # Remove Content-Type if it was set, let requests set it for multipart
+                headers.pop("Content-Type")
+            # Don't process data when files are provided
+            request_body_arg = None
+        elif data is not None:
             if isinstance(data, BaseModel):
                 # Serialize Pydantic model to JSON bytes
                 request_body_arg = data.model_dump_json(

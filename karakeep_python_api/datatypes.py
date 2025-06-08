@@ -92,6 +92,13 @@ class Asset(BaseModel):
     ]
 
 
+class AssetDetails(BaseModel):
+    assetId: str
+    contentType: str
+    size: float
+    fileName: str
+
+
 class Bookmark(BaseModel):
     id: str
     createdAt: str
