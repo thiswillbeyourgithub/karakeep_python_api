@@ -46,7 +46,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | Method Name                      | Pytest | CLI  | Remarks                                      |
 | -------------------------------- | :----: | :--: | -------------------------------------------- |
 | `get_all_bookmarks`              |   ✅   |  ✅  | Tested with pagination.                      |
-| `create_a_new_bookmark`          |   ✅   |  ❌  | Pytest for `type="link"` via fixture. CLI not directly tested. |
+| `create_a_new_bookmark`          |   ✅   |  ❌  | Pytest for `type="link"` via fixture and `type="asset"` via PDF test. CLI not directly tested. |
 | `search_bookmarks`               |   ✅   |  ✅  | Seems to be nondeterministic and fails if using more than 3 words        |
 | `get_a_single_bookmark`          |   ✅   |  ❌  |  |
 | `delete_a_bookmark`              |   ✅   |  ❌  |  |
@@ -77,6 +77,8 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_highlight`         |   ❌   |  ❌  |                                              |
 | `delete_a_highlight`             |   ❌   |  ❌  | Works from the CLI; not yet added to Pytest. |
 | `update_a_highlight`             |   ❌   |  ❌  |                                              |
+| `upload_a_new_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
+| `get_a_single_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
 | `get_current_user_info`          |   ✅   |  ❌  | Pytest: Tested indirectly during client init. CLI not directly tested. |
 | `get_current_user_stats`         |   ✅   |  ✅  |                                              |
 
