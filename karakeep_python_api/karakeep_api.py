@@ -1206,7 +1206,7 @@ class KarakeepAPI:
             "precrawledArchive",
             "unknown",
         ],
-    ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.BookmarkAsset, Dict[str, Any], List[Any]]:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
 
@@ -1217,7 +1217,7 @@ class KarakeepAPI:
                         "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive", "unknown".
 
         Returns:
-            datatypes.Asset: The attached asset object.
+            datatypes.BookmarkAsset: The attached asset object.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1234,8 +1234,8 @@ class KarakeepAPI:
             logger.debug("Skipping response validation as requested.")
             return response_data
         else:
-            # Response should match Asset schema
-            return datatypes.Asset.model_validate(response_data)
+            # Response should match BookmarkAsset schema
+            return datatypes.BookmarkAsset.model_validate(response_data)
 
     @optional_typecheck
     def replace_asset(self, bookmark_id: str, asset_id: str, new_asset_id: str) -> None:
@@ -1973,7 +1973,7 @@ class KarakeepAPI:
     @optional_typecheck
     def upload_a_new_asset(
         self, file_path: str, file_name: Optional[str] = None
-    ) -> Union[datatypes.AssetDetails, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
@@ -1982,28 +1982,68 @@ class KarakeepAPI:
             file_name: Optional custom filename. If not provided, uses the basename of file_path.
 
         Returns:
-            datatypes.AssetDetails: Details about the uploaded asset (assetId, contentType, size, fileName).
+            datatypes.Asset: Details about the uploaded asset (assetId, contentType, size, fileName).
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
             FileNotFoundError: If the specified file does not exist.
-            APIError: If the API request fails (e.g., unsupported file type).
+            APIError: If the API request fails (e.g., unsupported file type, file too large).
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
         import os
+        import mimetypes
 
-        # Validate file exists
+        # Validate file path is provided
+        if not file_path or not file_path.strip():
+            raise ValueError("file_path cannot be empty")
+
+        file_path = file_path.strip()
+
+        # Validate file exists and is readable
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
+
+        if not os.access(file_path, os.R_OK):
+            raise APIError(f"File is not readable: {file_path}")
+
+        # Check file size (reasonable limit to prevent accidental large uploads)
+        try:
+            file_size = os.path.getsize(file_path)
+        except OSError as e:
+            raise APIError(f"Failed to get file size for {file_path}: {e}") from e
+
+        if file_size == 0:
+            raise APIError(f"File is empty: {file_path}")
+        if file_size > 100 * 1024 * 1024:  # 100MB limit
+            logger.warning(
+                f"Large file detected ({file_size / (1024*1024):.1f}MB): {file_path}"
+            )
 
         # Determine filename
         if file_name is None:
             file_name = os.path.basename(file_path)
 
+        # Validate filename is not empty
+        if not file_name or not file_name.strip():
+            raise ValueError("Filename cannot be empty")
+
+        file_name = file_name.strip()
+
+        # Detect MIME type
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if mime_type is None:
+            mime_type = "application/octet-stream"  # Fallback for unknown types
+
+        if self.verbose:
+            logger.debug(
+                f"Uploading asset: {file_path} (filename: {file_name}, size: {file_size} bytes, type: {mime_type})"
+            )
+
         # Prepare file for upload
         try:
             with open(file_path, "rb") as f:
-                files = {"file": (file_name, f, None)}  # Let requests detect MIME type
+                # Note: The 'file' key must match the OpenAPI spec parameter name
+                files = {"file": (file_name, f, mime_type)}
                 response_data = self._call("POST", "assets", files=files)
         except IOError as e:
             raise APIError(f"Failed to read file {file_path}: {e}") from e
@@ -2012,8 +2052,8 @@ class KarakeepAPI:
             logger.debug("Skipping response validation as requested.")
             return response_data
         else:
-            # Response should match AssetDetails schema
-            return datatypes.AssetDetails.model_validate(response_data)
+            # Response should match Asset schema
+            return datatypes.Asset.model_validate(response_data)
 
     @optional_typecheck
     def get_a_single_asset(self, asset_id: str) -> bytes:
@@ -2029,29 +2069,54 @@ class KarakeepAPI:
 
         Raises:
             APIError: If the API request fails (e.g., 404 asset not found).
+            ValueError: If asset_id is empty or invalid.
 
         Note:
             This method always returns raw bytes regardless of the disable_response_validation setting,
             as the response is binary content rather than JSON.
         """
+        # Validate asset_id
+        if not asset_id or not asset_id.strip():
+            raise ValueError("asset_id cannot be empty")
+
+        asset_id = asset_id.strip()
+
+        # Validate asset_id format (basic check for reasonable ID format)
+        if len(asset_id) < 5:  # Assuming asset IDs are at least 5 characters
+            raise ValueError(f"asset_id appears to be invalid: {asset_id}")
+
         endpoint = f"assets/{asset_id}"
 
         # Override the Accept header to get raw content instead of JSON
+        # This is crucial for the assets endpoint to return binary data
         extra_headers = {"Accept": "*/*"}
+
+        if self.verbose:
+            logger.debug(f"Retrieving asset: {asset_id}")
 
         response_data = self._call("GET", endpoint, extra_headers=extra_headers)
 
-        # The _call method should return bytes for non-JSON responses
+        # The _call method should return bytes for non-JSON responses when Accept is not application/json
         if isinstance(response_data, bytes):
+            if self.verbose:
+                logger.debug(f"Retrieved asset {asset_id}: {len(response_data)} bytes")
             return response_data
         elif response_data is None:
-            # Handle empty response
+            # Handle empty response (valid for some assets like empty files)
+            if self.verbose:
+                logger.debug(f"Retrieved empty asset {asset_id}")
             return b""
         else:
             # This shouldn't happen with the updated _call method, but handle gracefully
-            logger.warning(
-                f"Expected bytes from asset endpoint, got {type(response_data)}: {response_data}"
-            )
-            raise APIError(
-                f"Unexpected response type from asset endpoint: {type(response_data)}"
-            )
+            error_msg = f"Expected bytes from asset endpoint for asset {asset_id}, got {type(response_data).__name__}"
+            if isinstance(response_data, (dict, list)):
+                # If we got JSON, it might be an error response that wasn't caught
+                error_detail = (
+                    str(response_data)[:200] + "..."
+                    if len(str(response_data)) > 200
+                    else str(response_data)
+                )
+                error_msg += f". Response content: {error_detail}"
+
+            logger.error(error_msg)
+            raise APIError(error_msg)

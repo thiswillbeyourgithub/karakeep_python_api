@@ -78,7 +78,7 @@ class ContentTypeAsset(BaseModel):
     content: Optional[str] = None
 
 
-class Asset(BaseModel):
+class BookmarkAsset(BaseModel):
     id: str
     assetType: Literal[
         "screenshot",
@@ -92,7 +92,7 @@ class Asset(BaseModel):
     ]
 
 
-class AssetDetails(BaseModel):
+class Asset(BaseModel):
     assetId: str
     contentType: str
     size: float
@@ -114,7 +114,7 @@ class Bookmark(BaseModel):
     content: Union[
         ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown
     ]
-    assets: List[Asset]
+    assets: List[BookmarkAsset]
 
 
 class PaginatedBookmarks(BaseModel):
