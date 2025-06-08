@@ -527,28 +527,42 @@ class KarakeepAPI:
                     logger.debug("  Body: None (204 No Content or empty response body)")
                 return None
 
-            # Attempt to parse successful response as JSON
-            try:
-                result = response.json()
+            # Check if the response is expected to be JSON based on Accept header
+            accept_header = headers.get("Accept", "application/json")
+            expects_json = "application/json" in accept_header
+
+            # Attempt to parse successful response as JSON if we expect JSON
+            if expects_json:
+                try:
+                    result = response.json()
+                    if self.verbose:
+                        # Log parsed response body carefully
+                        log_resp_str = repr(result)
+                        if len(log_resp_str) > 1000:
+                            log_resp_str = log_resp_str[:1000] + "...(truncated)"
+                        logger.debug(f"  Body (JSON Parsed): {log_resp_str}")
+                    # Return the raw parsed JSON (dict/list). Deserialization into
+                    # specific Pydantic models should happen in the calling wrapper method.
+                    return result
+                except json.JSONDecodeError as e:
+                    # Handle cases where the response is successful (2xx) but not valid JSON
+                    logger.error(
+                        f"API Error: Failed to decode JSON response from {method} {url}. Status: {response.status_code}. Content: {response.text[:500]}..."
+                    )
+                    # Raise APIError as the response format is unexpected
+                    raise APIError(
+                        message=f"Failed to parse successful API response JSON from {url}: {e}. Response text: {response.text[:200]}...",
+                        status_code=response.status_code,
+                    ) from e
+            else:
+                # For non-JSON responses (like asset downloads), return raw bytes
                 if self.verbose:
-                    # Log parsed response body carefully
-                    log_resp_str = repr(result)
-                    if len(log_resp_str) > 1000:
-                        log_resp_str = log_resp_str[:1000] + "...(truncated)"
-                    logger.debug(f"  Body (JSON Parsed): {log_resp_str}")
-                # Return the raw parsed JSON (dict/list). Deserialization into
-                # specific Pydantic models should happen in the calling wrapper method.
-                return result
-            except json.JSONDecodeError as e:
-                # Handle cases where the response is successful (2xx) but not valid JSON
-                logger.error(
-                    f"API Error: Failed to decode JSON response from {method} {url}. Status: {response.status_code}. Content: {response.text[:500]}..."
-                )
-                # Raise APIError as the response format is unexpected
-                raise APIError(
-                    message=f"Failed to parse successful API response JSON from {url}: {e}. Response text: {response.text[:200]}...",
-                    status_code=response.status_code,
-                ) from e
+                    content_type = response.headers.get("Content-Type", "unknown")
+                    content_length = len(response.content)
+                    logger.debug(
+                        f"  Body (Binary): {content_length} bytes, Content-Type: {content_type}"
+                    )
+                return response.content
 
         except requests.exceptions.HTTPError as e:
             # Handle 4xx/5xx errors raised by response.raise_for_status()
@@ -1955,3 +1969,89 @@ class KarakeepAPI:
         response_data = self._call("GET", "users/me/stats")
         # No Pydantic validation applied here as the spec defines a simple dict response
         return response_data
+
+    @optional_typecheck
+    def upload_a_new_asset(
+        self, file_path: str, file_name: Optional[str] = None
+    ) -> Union[datatypes.AssetDetails, Dict[str, Any], List[Any]]:
+        """
+        Upload a new asset file. Corresponds to POST /assets.
+
+        Args:
+            file_path: Path to the file to upload.
+            file_name: Optional custom filename. If not provided, uses the basename of file_path.
+
+        Returns:
+            datatypes.AssetDetails: Details about the uploaded asset (assetId, contentType, size, fileName).
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+            APIError: If the API request fails (e.g., unsupported file type).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        import os
+
+        # Validate file exists
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        # Determine filename
+        if file_name is None:
+            file_name = os.path.basename(file_path)
+
+        # Prepare file for upload
+        try:
+            with open(file_path, "rb") as f:
+                files = {"file": (file_name, f, None)}  # Let requests detect MIME type
+                response_data = self._call("POST", "assets", files=files)
+        except IOError as e:
+            raise APIError(f"Failed to read file {file_path}: {e}") from e
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match AssetDetails schema
+            return datatypes.AssetDetails.model_validate(response_data)
+
+    @optional_typecheck
+    def get_a_single_asset(self, asset_id: str) -> bytes:
+        """
+        Get the raw content of an asset by its ID. Corresponds to GET /assets/{assetId}.
+
+        Args:
+            asset_id: The ID (string) of the asset to retrieve.
+
+        Returns:
+            bytes: The raw asset content. The Content-Type is determined by the asset type.
+                   Use response headers to determine the actual content type if needed.
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 asset not found).
+
+        Note:
+            This method always returns raw bytes regardless of the disable_response_validation setting,
+            as the response is binary content rather than JSON.
+        """
+        endpoint = f"assets/{asset_id}"
+
+        # Override the Accept header to get raw content instead of JSON
+        extra_headers = {"Accept": "*/*"}
+
+        response_data = self._call("GET", endpoint, extra_headers=extra_headers)
+
+        # The _call method should return bytes for non-JSON responses
+        if isinstance(response_data, bytes):
+            return response_data
+        elif response_data is None:
+            # Handle empty response
+            return b""
+        else:
+            # This shouldn't happen with the updated _call method, but handle gracefully
+            logger.warning(
+                f"Expected bytes from asset endpoint, got {type(response_data)}: {response_data}"
+            )
+            raise APIError(
+                f"Unexpected response type from asset endpoint: {type(response_data)}"
+            )
