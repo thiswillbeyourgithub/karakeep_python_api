@@ -5,7 +5,7 @@ Automatically adds time-to-read tags to your Karakeep bookmarks based on content
 ## What it does
 
 - Analyzes bookmark content (text and HTML) to estimate reading time
-- Adds appropriate time tags: `0-5m`, `5-10m`, `10-15m`, `15-30m`, `30m+`
+- Adds appropriate time tags: `0-1m`, `1-5m`, `5-10m`, `10-15m`, `15-30m`, `30m+`
 - Removes conflicting time tags to ensure each bookmark has only one time estimate
 - Creates smart lists for each time category (can be disabled)
 - Supports both link and text bookmark types
