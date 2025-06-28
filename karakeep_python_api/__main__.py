@@ -80,7 +80,6 @@ shared_options = [
         "-v",
         is_flag=True,
         default=False,
-        envvar="KARAKEEP_PYTHON_API_VERBOSE",
         help="Enable verbose logging.",
     ),
     click.option(
@@ -184,6 +183,12 @@ def cli(
             "API endpoint is required. Provide --api-endpoint option or set KARAKEEP_PYTHON_API_ENDPOINT environment variable. "
             "The URL must include the API path, e.g., 'https://your-instance.com/api/v1/'."
         )
+
+    # Handle verbose environment variable manually since Click's is_flag=True + envvar
+    # treats any non-empty value (including "false") as True
+    if not verbose:  # Only check env var if not already set via CLI flag
+        env_verbose = os.environ.get("KARAKEEP_PYTHON_API_VERBOSE", "").lower()
+        verbose = env_verbose in ("true", "1", "yes")
 
     # Store common API parameters in the context for commands to use
     ctx.obj["API_ENDPOINT"] = resolved_api_endpoint  # Store the resolved endpoint
