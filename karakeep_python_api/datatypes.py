@@ -82,6 +82,7 @@ class ContentTypeAsset(BaseModel):
 class BookmarkAsset(BaseModel):
     id: str
     assetType: Literal[
+        "linkHtmlContent",
         "screenshot",
         "assetScreenshot",
         "bannerImage",

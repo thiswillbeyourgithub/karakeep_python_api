@@ -295,6 +295,7 @@
                 "assetType": {
                   "type": "string",
                   "enum": [
+                    "linkHtmlContent",
                     "screenshot",
                     "assetScreenshot",
                     "bannerImage",
@@ -1555,6 +1556,7 @@
                   "assetType": {
                     "type": "string",
                     "enum": [
+                      "linkHtmlContent",
                       "screenshot",
                       "assetScreenshot",
                       "bannerImage",
@@ -1588,6 +1590,7 @@
                     "assetType": {
                       "type": "string",
                       "enum": [
+                        "linkHtmlContent",
                         "screenshot",
                         "assetScreenshot",
                         "bannerImage",
