@@ -33,7 +33,7 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "requests >= 2.32.3",
-        "loguru",
+        "loguru >= 0.7.3",
         "pydantic >= 2.0",  # For data validation and modeling based on datatypes.py
         "click >= 8.0",  # For the CLI
     ],
