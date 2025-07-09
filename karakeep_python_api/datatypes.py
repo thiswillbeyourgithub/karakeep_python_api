@@ -51,6 +51,7 @@ class ContentTypeLink(BaseModel):
     videoAssetId: Optional[str] = None
     favicon: Optional[str] = None
     htmlContent: Optional[str] = None
+    contentAssetId: Optional[str] = None
     crawledAt: Optional[str] = None
     author: Optional[str] = None
     publisher: Optional[str] = None
