@@ -184,12 +184,6 @@ def cli(
             "The URL must include the API path, e.g., 'https://your-instance.com/api/v1/'."
         )
 
-    # Handle verbose environment variable manually since Click's is_flag=True + envvar
-    # treats any non-empty value (including "false") as True
-    if not verbose:  # Only check env var if not already set via CLI flag
-        env_verbose = os.environ.get("KARAKEEP_PYTHON_API_VERBOSE", "").lower()
-        verbose = env_verbose in ("true", "1", "yes")
-
     # Store common API parameters in the context for commands to use
     ctx.obj["API_ENDPOINT"] = resolved_api_endpoint  # Store the resolved endpoint
     ctx.obj["API_KEY"] = resolved_api_key  # Store the resolved key
@@ -199,21 +193,6 @@ def cli(
         disable_response_validation  # Store the flag
     )
     ctx.obj["ENSURE_ASCII"] = ensure_ascii  # Store the ensure_ascii flag
-
-    # --- Configure Logger ---
-    log_level = "DEBUG" if verbose else "INFO"
-    logger.remove()  # Remove default handler
-    if verbose:
-        logger.add(
-            sys.stderr,
-            level=log_level,
-            format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        )
-        logger.debug("Verbose logging enabled with detailed format.")
-    else:
-        logger.add(sys.stderr, level=log_level)  # Default format for INFO
-    logger.debug("Logger configured for level: {}", log_level)
-    logger.debug("CLI context initialized.")
 
 
 def create_click_command(

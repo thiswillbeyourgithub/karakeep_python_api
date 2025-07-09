@@ -93,7 +93,7 @@ class KarakeepAPI:
         api_endpoint: Optional[str] = None,
         openapi_spec_path: Optional[str] = None,  # Allow None, default handled below
         verify_ssl: bool = True,
-        verbose: bool = False,
+        verbose: Optional[bool] = None,
         disable_response_validation: Optional[bool] = None,
         rate_limit: Union[
             float, int
@@ -113,8 +113,8 @@ class KarakeepAPI:
                                The loaded spec is available via the `openapi_spec` attribute.
             verify_ssl: Whether to verify SSL certificates (default: True).
                         Can be overridden with KARAKEEP_PYTHON_API_VERIFY_SSL environment variable (true/false).
-            verbose: Enable verbose logging (default: False).
-                     Can be overridden with KARAKEEP_PYTHON_API_VERBOSE environment variable (true/false).
+            verbose: Enable verbose logging. If None (default), reads from KARAKEEP_PYTHON_API_VERBOSE environment variable.
+                     If True or False, uses the explicit value regardless of environment variable.
             disable_response_validation: If True, skip Pydantic validation of API responses and return raw data.
                                          Defaults to False. Can be overridden by setting the
                                          KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION environment variable to "true".
@@ -122,6 +122,32 @@ class KarakeepAPI:
                         Defaults to 0.0 (no explicit rate limiting).
                         Can be overridden with KARAKEEP_PYTHON_API_RATE_LIMIT environment variable.
         """
+        # --- Verbose Setting and Logger Configuration ---
+        # Handle verbose environment variable if not explicitly provided
+        if verbose is None:
+            env_verbose = os.environ.get("KARAKEEP_PYTHON_API_VERBOSE", "").lower()
+            self.verbose = env_verbose in ("true", "1", "yes")
+            verbose_mess = f"Verbose set to {self.verbose} from KARAKEEP_PYTHON_API_VERBOSE environment variable."
+        else:
+            self.verbose = verbose
+            verbose_mess = f"Verbose explicitly set to {self.verbose} via argument."
+
+        # Configure logger based on verbose setting
+        log_level = "DEBUG" if self.verbose else "INFO"
+        logger.remove()  # Remove default handler
+        if self.verbose:
+            logger.add(
+                sys.stderr,
+                level=log_level,
+                format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            )
+            logger.debug("Verbose logging enabled with detailed format.")
+        else:
+            logger.add(sys.stderr, level=log_level)  # Default format for INFO
+
+        logger.debug(verbose_mess)
+        logger.debug("Logger configured for level: {}", log_level)
+
         # --- API Key Validation ---
         resolved_api_key = api_key or os.environ.get("KARAKEEP_PYTHON_API_KEY")
         if not resolved_api_key:
@@ -210,7 +236,6 @@ class KarakeepAPI:
             # raise APIError(f"Failed to load OpenAPI spec: {openapi_spec_path}") from e
 
         self.verify_ssl = verify_ssl
-        self.verbose = verbose
 
         # --- Rate Limit Setting ---
         # Argument takes precedence over environment variable
@@ -252,10 +277,6 @@ class KarakeepAPI:
             logger.debug(
                 f"Response validation set to {not self.disable_response_validation} via environment variable (KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION={env_disable_validation})."
             )
-
-        # Logger configuration is now handled by the calling application (e.g., __main__.py)
-        # or defaults to loguru's standard setup if KarakeepAPI is used as a library.
-        # self.verbose is still used for conditional logging within the class methods.
 
         logger.debug("KarakeepAPI client initialized.")
         logger.debug(f"  Endpoint: {self.api_endpoint}")
