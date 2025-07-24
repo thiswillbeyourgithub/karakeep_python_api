@@ -222,6 +222,7 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
 | **pocket2karakeep-archived** by [@youenchene](https://github.com/youenchene) | (Should not be needed anymore) Fixes the archived status of bookmarks imported from Pocket by reading export data and updating Karakeep accordingly.                                   | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/pocket2karakeep-archived) |
 | **Karakeep-Archive-Before-Date** by [@youenchene](https://github.com/youenchene) | Allow you to archive all not archived post before a given date                                                                                                                         | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-archive-before-date) |
 | **Freshrss-To-Karakeep**  |  Syncs some links from Freshrss to Karakeep      | [`Link`](https://github.com/thiswillbeyourgithub/freshrss_to_karakeep) |
+| **Karanki (WIP)**  |  Bidirectional sync between anki notes and highlights      | [`Link`](https://github.com/thiswillbeyourgithub/Karanki) |
 
 ## Development
 
