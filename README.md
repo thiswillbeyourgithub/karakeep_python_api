@@ -223,7 +223,7 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
 | **Karakeep-Archive-Before-Date** by [@youenchene](https://github.com/youenchene) | Allow you to archive all not archived post before a given date                                                                                                          | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-archive-before-date) |
 | **Freshrss-To-Karakeep**                                                         | Syncs some links from Freshrss to Karakeep                                                                                                                              | [`Link`](https://github.com/thiswillbeyourgithub/freshrss_to_karakeep) |
 | **Karanki (WIP)**                                                                | Bidirectional sync between anki notes and highlights                                                                                                                    | [`Link`](https://github.com/thiswillbeyourgithub/Karanki) |
-| **Karakeep-remove-ai-tags**  by [@youenchene](https://github.com/youenchene)                                                   | Remove all tags attached by AI and not human attached       | [`Link`](https://github.com/thiswillbeyourgithub/karakeep-remove-ai-tags) |
+| **Karakeep-remove-ai-tags**  by [@youenchene](https://github.com/youenchene)                                                   | Remove all tags attached by AI and not human attached       | [`Link`](https://github.com/thiswillbeyourgithub/karakeep_python_api/tree/main/community_scripts/karakeep-remove-ai-tags) |
 
 ## Development
 
