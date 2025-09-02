@@ -81,6 +81,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
 | `get_current_user_info`          |   ✅   |  ❌  | Pytest: Tested indirectly during client init. CLI not directly tested. |
 | `get_current_user_stats`         |   ✅   |  ✅  |                                              |
+| `update_user`         |    ❌   |   ❌  |                                              |
 
 ## Installation
 
