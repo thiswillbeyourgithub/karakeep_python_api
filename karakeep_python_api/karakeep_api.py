@@ -1361,7 +1361,7 @@ class KarakeepAPI:
         Create a new list (manual or smart). Corresponds to POST /lists.
 
         Args:
-            name: The name of the list (required, max 40 characters).
+            name: The name of the list (required, max 100 characters).
             icon: The icon for the list (required).
             description: Optional description for the list (max 100 characters).
             parent_id: Optional parent list ID for nested lists.
@@ -1470,7 +1470,7 @@ class KarakeepAPI:
 
         Args:
             list_id: The ID (string) of the list to update.
-            name: Optional new name for the list (1-40 characters).
+            name: Optional new name for the list (1-100 characters).
             description: Optional new description for the list (0-100 characters, can be None to clear).
             icon: Optional new icon for the list.
             parent_id: Optional new parent list ID (can be None to remove parent relationship).
