@@ -1997,6 +1997,57 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
+    def update_user(
+        self,
+        user_id: str,
+        role: Optional[Literal["user", "admin"]] = None,
+        bookmark_quota: Optional[int] = None,
+        storage_quota: Optional[int] = None,
+        browser_crawling_enabled: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """
+        Update a user's role, bookmark quota, or storage quota. Admin access required.
+        Corresponds to PUT /admin/users/{userId}.
+
+        Args:
+            user_id: The ID of the user to update.
+            role: Optional new role for the user ("user", "admin").
+            bookmark_quota: Optional new bookmark quota (minimum 0, can be None for unlimited).
+            storage_quota: Optional new storage quota in bytes (minimum 0, can be None for unlimited).
+            browser_crawling_enabled: Optional boolean to enable/disable browser crawling for the user.
+
+        Returns:
+            dict: A dictionary containing success status.
+                  Example: `{"success": True}`
+                  Validation is not performed on this response type by default.
+
+        Raises:
+            ValueError: If no fields are provided to update.
+            APIError: If the API request fails (e.g., 400 bad request, 401 unauthorized, 403 forbidden, 404 user not found).
+        """
+        # Construct update_data from provided arguments, excluding None values
+        update_data = {}
+        if role is not None:
+            update_data["role"] = role
+        if bookmark_quota is not None:
+            update_data["bookmarkQuota"] = bookmark_quota
+        if storage_quota is not None:
+            update_data["storageQuota"] = storage_quota
+        if browser_crawling_enabled is not None:
+            update_data["browserCrawlingEnabled"] = browser_crawling_enabled
+
+        # Ensure at least one field is being updated
+        if not update_data:
+            raise ValueError("At least one field must be provided to update.")
+
+        endpoint = f"admin/users/{user_id}"
+        response_data = self._call("PUT", endpoint, data=update_data)
+        
+        # Response schema is a simple dict with success field, return as dict
+        # No Pydantic validation applied here as the spec defines a simple dict response
+        return response_data
+
+    @optional_typecheck
     def upload_a_new_asset(
         self, file: str
     ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
