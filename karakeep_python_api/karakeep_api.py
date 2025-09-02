@@ -1970,7 +1970,7 @@ class KarakeepAPI:
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
         Returns:
-            dict: A dictionary containing user information ('id', 'name', 'email').
+            dict: A dictionary containing user information ('id', 'name', 'email', 'localUser').
                   Validation is not performed on this response type by default.
 
         Raises:
