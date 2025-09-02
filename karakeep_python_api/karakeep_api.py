@@ -2042,7 +2042,7 @@ class KarakeepAPI:
 
         endpoint = f"admin/users/{user_id}"
         response_data = self._call("PUT", endpoint, data=update_data)
-        
+
         # Response schema is a simple dict with success field, return as dict
         # No Pydantic validation applied here as the spec defines a simple dict response
         return response_data
