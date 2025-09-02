@@ -757,6 +757,7 @@ class KarakeepAPI:
         note: Optional[str] = None,
         summary: Optional[str] = None,
         createdAt: Optional[str] = None,  # ISO 8601 format string
+        crawlPriority: Optional[Literal["low", "normal"]] = None,
         # Link specific
         url: Optional[str] = None,
         precrawledArchiveId: Optional[str] = None,
@@ -781,6 +782,7 @@ class KarakeepAPI:
             note: Optional note content for the bookmark.
             summary: Optional summary content for the bookmark.
             createdAt: Optional creation timestamp override (ISO 8601 format string).
+            crawlPriority: Optional either 'low' or 'normal'.
 
             --- Link Type Specific ---
             url: The URL for the link bookmark. Required if type='link'.
@@ -821,6 +823,8 @@ class KarakeepAPI:
             request_body["summary"] = summary
         if createdAt is not None:
             request_body["createdAt"] = createdAt
+        if crawlPriority is not None:
+            request_body["crawlPriority"] = crawlPriority
 
         # Add type-specific fields and perform validation
         if type == "link":
