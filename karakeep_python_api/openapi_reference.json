@@ -1811,7 +1811,7 @@
                   "description": {
                     "type": "string",
                     "minLength": 0,
-                    "maxLength": 100
+                    "maxLength": 500
                   },
                   "icon": {
                     "type": "string"
@@ -2005,7 +2005,7 @@
                     "type": "string",
                     "nullable": true,
                     "minLength": 0,
-                    "maxLength": 100
+                    "maxLength": 500
                   },
                   "icon": {
                     "type": "string"

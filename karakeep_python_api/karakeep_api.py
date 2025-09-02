@@ -1471,7 +1471,7 @@ class KarakeepAPI:
         Args:
             list_id: The ID (string) of the list to update.
             name: Optional new name for the list (1-100 characters).
-            description: Optional new description for the list (0-100 characters, can be None to clear).
+            description: Optional new description for the list (0-500 characters, can be None to clear).
             icon: Optional new icon for the list.
             parent_id: Optional new parent list ID (can be None to remove parent relationship).
             query: Optional new query string for smart lists (minimum 1 character).
