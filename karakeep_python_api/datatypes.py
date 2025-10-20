@@ -17,8 +17,8 @@ class StatusTypes(str, Enum):
 
 
 class NumBookmarksByAttachedType(BaseModel):
-    ai: Optional[float] = None
-    human: Optional[float] = None
+    ai: Optional[int] = None
+    human: Optional[int] = None
 
 
 class TagShort(BaseModel):
@@ -30,7 +30,7 @@ class TagShort(BaseModel):
 class Tag(BaseModel):
     id: str
     name: str
-    numBookmarks: float
+    numBookmarks: int
     numBookmarksByAttachedType: NumBookmarksByAttachedType
 
 
