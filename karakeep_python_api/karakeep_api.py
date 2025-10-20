@@ -814,7 +814,9 @@ class KarakeepAPI:
             sourceUrl: Optional source URL where the asset originated.
 
         Returns:
-            datatypes.Bookmark: The created bookmark.
+            datatypes.Bookmark: The bookmark object.
+                               Returns with status 200 if the bookmark already exists,
+                               or status 201 if the bookmark was newly created.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
