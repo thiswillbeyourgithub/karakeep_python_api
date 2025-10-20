@@ -1189,6 +1189,54 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
+    def get_lists_of_a_bookmark(
+        self, bookmark_id: str
+    ) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
+        """
+        Get all lists associated with a specific bookmark. Corresponds to GET /bookmarks/{bookmarkId}/lists.
+
+        Args:
+            bookmark_id: The ID (string) of the bookmark.
+
+        Returns:
+            List[datatypes.ListModel]: A list of list objects associated with the bookmark.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 bookmark not found).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        endpoint = f"bookmarks/{bookmark_id}/lists"
+        response_data = self._call("GET", endpoint)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            # Return raw data, which might be {"lists": [...]} or something else
+            return response_data
+        else:
+            # Response schema is {"lists": [ListModel]}, extract the list and validate
+            if (
+                isinstance(response_data, dict)
+                and "lists" in response_data
+                and isinstance(response_data["lists"], list)
+            ):
+                try:
+                    return [
+                        datatypes.ListModel.model_validate(lst)
+                        for lst in response_data["lists"]
+                    ]
+                except (
+                    Exception
+                ) as e:  # Catch validation errors during list comprehension
+                    logger.error(f"Validation failed for one or more lists: {e}")
+                    raise  # Re-raise the validation error
+            else:
+                # Raise error if format is unexpected and validation is enabled
+                raise APIError(
+                    f"Unexpected response format for get_lists_of_a_bookmark when validation is enabled: {response_data}"
+                )
+
+    @optional_typecheck
     def get_highlights_of_a_bookmark(
         self, bookmark_id: str
     ) -> Union[List[datatypes.Highlight], Dict[str, Any], List[Any]]:
