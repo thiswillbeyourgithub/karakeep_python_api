@@ -363,6 +363,50 @@
       "Cursor": {
         "type": "string"
       },
+      "List": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "default": "manual"
+          },
+          "query": {
+            "type": "string",
+            "nullable": true
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "icon",
+          "parentId",
+          "public"
+        ]
+      },
       "Highlight": {
         "type": "object",
         "properties": {
@@ -412,50 +456,6 @@
           "id",
           "userId",
           "createdAt"
-        ]
-      },
-      "List": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "icon": {
-            "type": "string"
-          },
-          "parentId": {
-            "type": "string",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "manual",
-              "smart"
-            ],
-            "default": "manual"
-          },
-          "query": {
-            "type": "string",
-            "nullable": true
-          },
-          "public": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "icon",
-          "parentId",
-          "public"
         ]
       },
       "Tag": {

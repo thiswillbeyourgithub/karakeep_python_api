@@ -129,6 +129,17 @@ class PaginatedBookmarks(BaseModel):
     nextCursor: Optional[str]
 
 
+class ListModel(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    icon: str
+    parentId: Optional[str]
+    type: Optional[Literal["manual", "smart"]] = "manual"
+    query: Optional[str] = None
+    public: bool
+
+
 class Highlight(BaseModel):
     bookmarkId: str
     startOffset: float
@@ -139,17 +150,6 @@ class Highlight(BaseModel):
     id: str
     userId: str
     createdAt: str
-
-
-class ListModel(BaseModel):
-    id: str
-    name: str
-    description: Optional[str] = None
-    icon: str
-    parentId: Optional[str]
-    type: Optional[Literal["manual", "smart"]] = "manual"
-    query: Optional[str] = None
-    public: bool
 
 
 class PaginatedHighlights(BaseModel):
