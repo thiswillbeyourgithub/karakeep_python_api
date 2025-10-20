@@ -112,6 +112,11 @@ class Bookmark(BaseModel):
     summarizationStatus: Optional[Literal["success", "failure", "pending"]] = None
     note: Optional[str] = None
     summary: Optional[str] = None
+    source: Optional[
+        Literal[
+            "api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"
+        ]
+    ] = None
     tags: List[TagShort]
     content: Union[
         ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown

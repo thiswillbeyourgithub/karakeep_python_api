@@ -94,6 +94,20 @@
             "type": "string",
             "nullable": true
           },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "api",
+              "web",
+              "cli",
+              "mobile",
+              "extension",
+              "singlefile",
+              "rss",
+              "import"
+            ]
+          },
           "tags": {
             "type": "array",
             "items": {
