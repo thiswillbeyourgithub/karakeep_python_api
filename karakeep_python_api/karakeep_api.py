@@ -1675,7 +1675,7 @@ class KarakeepAPI:
         attached_by: Optional[Literal["ai", "human", "none"]] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> Union[List[datatypes.Tag], Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedTags, Dict[str, Any], List[Any]]:
         """
         Get all tags for the current user. Corresponds to GET /tags.
 
@@ -1687,7 +1687,7 @@ class KarakeepAPI:
             limit: Maximum number of tags to return (optional).
 
         Returns:
-            List[datatypes.Tag]: A list of tag objects, including bookmark counts.
+            datatypes.PaginatedTags: Paginated list of tags with nextCursor for pagination.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1705,30 +1705,10 @@ class KarakeepAPI:
 
         if self.disable_response_validation:
             logger.debug("Skipping response validation as requested.")
-            # Return raw data, which might be {"tags": [...]} or something else
             return response_data
         else:
-            # Response schema is {"tags": [Tag]}, extract the list and validate
-            if (
-                isinstance(response_data, dict)
-                and "tags" in response_data
-                and isinstance(response_data["tags"], list)
-            ):
-                try:
-                    return [
-                        datatypes.Tag.model_validate(tag)
-                        for tag in response_data["tags"]
-                    ]
-                except (
-                    Exception
-                ) as e:  # Catch validation errors during list comprehension
-                    logger.error(f"Validation failed for one or more tags: {e}")
-                    raise  # Re-raise the validation error
-            else:
-                # Raise error if format is unexpected and validation is enabled
-                raise APIError(
-                    f"Unexpected response format for get_all_tags when validation is enabled: {response_data}"
-                )
+            # Response should match PaginatedTags schema
+            return datatypes.PaginatedTags.model_validate(response_data)
 
     @optional_typecheck
     def create_a_new_tag(self, name: str) -> Dict[str, Any]:

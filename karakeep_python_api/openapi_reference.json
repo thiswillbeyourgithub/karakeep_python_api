@@ -2481,10 +2481,15 @@
                       "items": {
                         "$ref": "#/components/schemas/Tag"
                       }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
-                    "tags"
+                    "tags",
+                    "nextCursor"
                   ]
                 }
               }

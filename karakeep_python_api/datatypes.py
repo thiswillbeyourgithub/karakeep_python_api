@@ -155,3 +155,8 @@ class Highlight(BaseModel):
 class PaginatedHighlights(BaseModel):
     highlights: List[Highlight]
     nextCursor: Optional[str]
+
+
+class PaginatedTags(BaseModel):
+    tags: List[Tag]
+    nextCursor: Optional[str]
