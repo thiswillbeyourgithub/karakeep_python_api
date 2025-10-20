@@ -118,7 +118,11 @@ def test_get_all_tags(karakeep_client: KarakeepAPI):
     """Test retrieving all tags."""
     try:
         tags = karakeep_client.get_all_tags()
-        assert isinstance(tags, list), "Response should be a list"
+        assert isinstance(
+            tags, datatypes.PaginatedTags
+        ), "Response should be of type PaginatedTags"
+        tags = tags.tags
+        assert isinstance(tags, list), "tags var should be of type list at this point"
         if tags:  # Only check elements if the list is not empty
             assert all(
                 isinstance(item, datatypes.Tag) for item in tags
