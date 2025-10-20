@@ -126,7 +126,7 @@ class Bookmark(BaseModel):
 
 class PaginatedBookmarks(BaseModel):
     bookmarks: List[Bookmark]
-    nextCursor: Optional[str]
+    nextCursor: Optional[str] = ""
 
 
 class ListModel(BaseModel):
@@ -154,9 +154,9 @@ class Highlight(BaseModel):
 
 class PaginatedHighlights(BaseModel):
     highlights: List[Highlight]
-    nextCursor: Optional[str]
+    nextCursor: Optional[str] = ""
 
 
 class PaginatedTags(BaseModel):
     tags: List[Tag]
-    nextCursor: Optional[str]
+    nextCursor: Optional[str] = ""
