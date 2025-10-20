@@ -1668,9 +1668,23 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def get_all_tags(self) -> Union[List[datatypes.Tag], Dict[str, Any], List[Any]]:
+    def get_all_tags(
+        self,
+        name_contains: Optional[str] = None,
+        sort: Optional[Literal["name", "usage", "relevance"]] = None,
+        attached_by: Optional[Literal["ai", "human", "none"]] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> Union[List[datatypes.Tag], Dict[str, Any], List[Any]]:
         """
         Get all tags for the current user. Corresponds to GET /tags.
+
+        Args:
+            name_contains: Filter tags by name substring (optional).
+            sort: Sort order for tags ("name", "usage", "relevance"). Default from API is "usage" (optional).
+            attached_by: Filter tags by how they were attached ("ai", "human", "none") (optional).
+            cursor: Pagination cursor for the next page (optional).
+            limit: Maximum number of tags to return (optional).
 
         Returns:
             List[datatypes.Tag]: A list of tag objects, including bookmark counts.
@@ -1680,7 +1694,14 @@ class KarakeepAPI:
             APIError: If the API request fails.
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
-        response_data = self._call("GET", "tags")
+        params = {
+            "nameContains": name_contains,
+            "sort": sort,
+            "attachedBy": attached_by,
+            "cursor": cursor,
+            "limit": limit,
+        }
+        response_data = self._call("GET", "tags", params=params)
 
         if self.disable_response_validation:
             logger.debug("Skipping response validation as requested.")
