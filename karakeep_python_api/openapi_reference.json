@@ -707,6 +707,22 @@
                           "low",
                           "normal"
                         ]
+                      },
+                      "importSessionId": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "api",
+                          "web",
+                          "cli",
+                          "mobile",
+                          "extension",
+                          "singlefile",
+                          "rss",
+                          "import"
+                        ]
                       }
                     }
                   },
@@ -1149,6 +1165,20 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss",
+                        "import"
+                      ]
                     }
                   },
                   "required": [
@@ -1259,6 +1289,20 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss",
+                        "import"
+                      ]
                     }
                   },
                   "required": [

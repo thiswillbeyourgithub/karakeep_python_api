@@ -758,6 +758,19 @@ class KarakeepAPI:
         summary: Optional[str] = None,
         createdAt: Optional[str] = None,  # ISO 8601 format string
         crawlPriority: Optional[Literal["low", "normal"]] = None,
+        importSessionId: Optional[str] = None,
+        source: Optional[
+            Literal[
+                "api",
+                "web",
+                "cli",
+                "mobile",
+                "extension",
+                "singlefile",
+                "rss",
+                "import",
+            ]
+        ] = None,
         # Link specific
         url: Optional[str] = None,
         precrawledArchiveId: Optional[str] = None,
@@ -783,6 +796,8 @@ class KarakeepAPI:
             summary: Optional summary content for the bookmark.
             createdAt: Optional creation timestamp override (ISO 8601 format string).
             crawlPriority: Optional either 'low' or 'normal'.
+            importSessionId: Optional import session ID for tracking imported bookmarks.
+            source: Optional source of the bookmark ("api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import").
 
             --- Link Type Specific ---
             url: The URL for the link bookmark. Required if type='link'.
@@ -825,6 +840,10 @@ class KarakeepAPI:
             request_body["createdAt"] = createdAt
         if crawlPriority is not None:
             request_body["crawlPriority"] = crawlPriority
+        if importSessionId is not None:
+            request_body["importSessionId"] = importSessionId
+        if source is not None:
+            request_body["source"] = source
 
         # Add type-specific fields and perform validation
         if type == "link":
