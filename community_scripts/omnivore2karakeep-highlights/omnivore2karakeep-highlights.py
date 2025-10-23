@@ -83,9 +83,7 @@ def find_highlight_position(
             rel_pos = as_text.index(match_text.matches[0]) / len(as_text)
         elif match_md.matches:
             rel_pos = as_md.index(match_md.matches[0]) / len(as_md)
-        elif (
-            not high_as_text
-        ):  # probably contains only a link, so we have to find that link in the raw html
+        elif not high_as_text:  # probably contains only a link, so we have to find that link in the raw html
             links = re.findall(
                 r"\bhttp:\/\/[-\w+&@#\/%?=~()|!:,.;]*[-\w+&@#\/%=~()|]",
                 highlight,
@@ -267,9 +265,9 @@ def load_bookmarks_from_karakeep(karakeep: KarakeepAPI, karakeep_path: str) -> l
             all_bm.extend(page.bookmarks)
             pbar.update(len(page.bookmarks))
 
-        assert (
-            len(all_bm) == n
-        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        assert len(all_bm) == n, (
+            f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        )
         pbar.close()
 
         with Path(karakeep_path).open("wb") as f:
@@ -366,15 +364,15 @@ def main(
     highlights_dir_path = omnivore_export_path / "highlights"
     omnivore_content_dir_path = omnivore_export_path / "content"
 
-    assert (
-        omnivore_export_path.exists() and omnivore_export_path.is_dir()
-    ), f"Omnivore export directory not found: {omnivore_export_dir}"
-    assert (
-        highlights_dir_path.exists() and highlights_dir_path.is_dir()
-    ), f"Highlights directory not found: {highlights_dir_path}"
-    assert (
-        omnivore_content_dir_path.exists() and omnivore_content_dir_path.is_dir()
-    ), f"Omnivore content directory not found: {omnivore_content_dir_path}"
+    assert omnivore_export_path.exists() and omnivore_export_path.is_dir(), (
+        f"Omnivore export directory not found: {omnivore_export_dir}"
+    )
+    assert highlights_dir_path.exists() and highlights_dir_path.is_dir(), (
+        f"Highlights directory not found: {highlights_dir_path}"
+    )
+    assert omnivore_content_dir_path.exists() and omnivore_content_dir_path.is_dir(), (
+        f"Omnivore content directory not found: {omnivore_content_dir_path}"
+    )
 
     highlights_files = [
         p
@@ -446,7 +444,6 @@ def main(
         as_text = BeautifulSoup(kara_content, "html.parser").get_text()
 
         for highlight in highlights:
-
             if highlight.startswith("> "):
                 highlight = highlight[1:]
                 highlight.strip()
@@ -465,9 +462,9 @@ def main(
             ).get_text()
 
             if not high_link_replaced_as_text:
-                assert (
-                    high_link_replaced_as_text
-                ), f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
+                assert high_link_replaced_as_text, (
+                    f"Empty highlight text after processing. Original highlight: {highlight[:200]}{'...' if len(highlight) > 200 else ''}, Link replaced: {link_replaced[:200]}{'...' if len(link_replaced) > 200 else ''}"
+                )
 
             start, end = find_highlight_position(
                 highlight=highlight,

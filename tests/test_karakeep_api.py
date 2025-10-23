@@ -21,9 +21,9 @@ def test_get_all_bookmarks_paginated(karakeep_client: KarakeepAPI):
     try:
         # Get the first page
         page1 = karakeep_client.get_all_bookmarks(limit=2)
-        assert isinstance(
-            page1, datatypes.PaginatedBookmarks
-        ), "Response should be PaginatedBookmarks model"
+        assert isinstance(page1, datatypes.PaginatedBookmarks), (
+            "Response should be PaginatedBookmarks model"
+        )
         assert isinstance(page1.bookmarks, list), "Bookmarks attribute should be a list"
         assert len(page1.bookmarks) <= 2, "Should return at most 'limit' bookmarks"
         logger.info(f"✓ Retrieved first page with {len(page1.bookmarks)} bookmarks.")
@@ -42,9 +42,9 @@ def test_get_all_bookmarks_paginated(karakeep_client: KarakeepAPI):
             )
             # Ensure bookmarks are different from page 1 (simple check)
             if page1.bookmarks and page2.bookmarks:
-                assert (
-                    page1.bookmarks[0].id != page2.bookmarks[0].id
-                ), "Bookmarks on page 1 and 2 should differ"
+                assert page1.bookmarks[0].id != page2.bookmarks[0].id, (
+                    "Bookmarks on page 1 and 2 should differ"
+                )
         else:
             logger.info("  No next cursor found, pagination test ends.")
 
@@ -83,9 +83,9 @@ def test_get_all_lists(karakeep_client: KarakeepAPI):
         lists = karakeep_client.get_all_lists()
         assert isinstance(lists, list), "Response should be a list"
         if lists:  # Only check elements if the list is not empty
-            assert all(
-                isinstance(item, datatypes.ListModel) for item in lists
-            ), "All items should be ListModel instances"
+            assert all(isinstance(item, datatypes.ListModel) for item in lists), (
+                "All items should be ListModel instances"
+            )
         logger.info(f"✓ Successfully retrieved {len(lists)} lists.")
     except (APIError, AuthenticationError) as e:
         pytest.fail(f"API error during list retrieval: {e}")
@@ -118,15 +118,15 @@ def test_get_all_tags(karakeep_client: KarakeepAPI):
     """Test retrieving all tags."""
     try:
         tags = karakeep_client.get_all_tags()
-        assert isinstance(
-            tags, datatypes.PaginatedTags
-        ), "Response should be of type PaginatedTags"
+        assert isinstance(tags, datatypes.PaginatedTags), (
+            "Response should be of type PaginatedTags"
+        )
         tags = tags.tags
         assert isinstance(tags, list), "tags var should be of type list at this point"
         if tags:  # Only check elements if the list is not empty
-            assert all(
-                isinstance(item, datatypes.Tag) for item in tags
-            ), "All items should be Tag instances"
+            assert all(isinstance(item, datatypes.Tag) for item in tags), (
+                "All items should be Tag instances"
+            )
         logger.info(f"✓ Successfully retrieved {len(tags)} tags.")
     except (APIError, AuthenticationError) as e:
         pytest.fail(f"API error during tag retrieval: {e}")
@@ -160,12 +160,12 @@ def test_get_all_highlights_paginated(karakeep_client: KarakeepAPI):
     try:
         # Get the first page
         page1 = karakeep_client.get_all_highlights(limit=3)
-        assert isinstance(
-            page1, datatypes.PaginatedHighlights
-        ), "Response should be PaginatedHighlights model"
-        assert isinstance(
-            page1.highlights, list
-        ), "Highlights attribute should be a list"
+        assert isinstance(page1, datatypes.PaginatedHighlights), (
+            "Response should be PaginatedHighlights model"
+        )
+        assert isinstance(page1.highlights, list), (
+            "Highlights attribute should be a list"
+        )
         assert len(page1.highlights) <= 3, "Should return at most 'limit' highlights"
         logger.info(f"✓ Retrieved first page with {len(page1.highlights)} highlights.")
 
@@ -183,9 +183,9 @@ def test_get_all_highlights_paginated(karakeep_client: KarakeepAPI):
             )
             # Ensure highlights are different from page 1 (simple check)
             if page1.highlights and page2.highlights:
-                assert (
-                    page1.highlights[0].id != page2.highlights[0].id
-                ), "Highlights on page 1 and 2 should differ"
+                assert page1.highlights[0].id != page2.highlights[0].id, (
+                    "Highlights on page 1 and 2 should differ"
+                )
         else:
             logger.info("  No next cursor found, pagination test ends.")
 
@@ -228,9 +228,9 @@ def test_openapi_spec_accessible(karakeep_client: KarakeepAPI):
         assert spec is not None, "openapi_spec attribute should not be None"
         assert isinstance(spec, dict), "openapi_spec should be a dictionary"
         # Check for a top-level key expected in an OpenAPI spec
-        assert (
-            "openapi" in spec
-        ), "openapi_spec should contain the 'openapi' version key"
+        assert "openapi" in spec, (
+            "openapi_spec should contain the 'openapi' version key"
+        )
         logger.info(
             f"✓ Successfully accessed openapi_spec attribute. Version: {spec.get('openapi', 'N/A')}"
         )
@@ -288,9 +288,9 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
         created_list = karakeep_client.create_a_new_list(
             name=list_name, icon=list_icon, list_type="manual"
         )
-        assert isinstance(
-            created_list, datatypes.ListModel
-        ), "Response should be a ListModel"
+        assert isinstance(created_list, datatypes.ListModel), (
+            "Response should be a ListModel"
+        )
         assert created_list.name == list_name, "Created list name should match"
         assert created_list.icon == list_icon, "Created list icon should match"
         assert created_list.id, "Created list must have an ID"
@@ -299,12 +299,12 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
 
         # 4. Verify the list appears in get_all_lists
         current_lists_after_create = karakeep_client.get_all_lists()
-        assert (
-            len(current_lists_after_create) == initial_list_count + 1
-        ), "List count should increase by one after creation"
-        assert any(
-            lst.id == created_list_id for lst in current_lists_after_create
-        ), "Created list should be present in the list of all lists"
+        assert len(current_lists_after_create) == initial_list_count + 1, (
+            "List count should increase by one after creation"
+        )
+        assert any(lst.id == created_list_id for lst in current_lists_after_create), (
+            "Created list should be present in the list of all lists"
+        )
         logger.info(f"  List count after creation: {len(current_lists_after_create)}")
         logger.info(f"✓ Verified list {created_list_id} is present in get_all_lists.")
 
@@ -335,21 +335,21 @@ def test_create_and_delete_list(karakeep_client: KarakeepAPI):
                         f"List with ID {created_list_id} should not exist after deletion, but get_a_single_list succeeded."
                     )
                 except APIError as e:
-                    assert (
-                        e.status_code == 404
-                    ), f"Expected 404 Not Found when getting deleted list, but got status {e.status_code}"
+                    assert e.status_code == 404, (
+                        f"Expected 404 Not Found when getting deleted list, but got status {e.status_code}"
+                    )
                     logger.info(
                         f"✓ Confirmed list {created_list_id} is deleted (received 404)."
                     )
 
                 # 8. Verify list count decreased (optional check)
                 final_lists = karakeep_client.get_all_lists()
-                assert (
-                    len(final_lists) == initial_list_count
-                ), "List count should return to initial count after deletion"
-                assert not any(
-                    lst.id == created_list_id for lst in final_lists
-                ), "Deleted list should not be present in the final list of all lists"
+                assert len(final_lists) == initial_list_count, (
+                    "List count should return to initial count after deletion"
+                )
+                assert not any(lst.id == created_list_id for lst in final_lists), (
+                    "Deleted list should not be present in the final list of all lists"
+                )
                 logger.info(f"  Final list count: {len(final_lists)}")
 
             except (APIError, AuthenticationError) as e:
@@ -414,12 +414,12 @@ def test_create_and_delete_bookmark(
             search_results = karakeep_client.search_bookmarks(
                 q=search_query_component, limit=100, include_content=False
             )
-            assert isinstance(
-                search_results, datatypes.PaginatedBookmarks
-            ), "Search response should be PaginatedBookmarks model"
-            assert isinstance(
-                search_results.bookmarks, list
-            ), "Search results bookmarks attribute should be a list"
+            assert isinstance(search_results, datatypes.PaginatedBookmarks), (
+                "Search response should be PaginatedBookmarks model"
+            )
+            assert isinstance(search_results.bookmarks, list), (
+                "Search results bookmarks attribute should be a list"
+            )
 
             titles_in_search = [b.title for b in search_results.bookmarks]
             found_in_search = any(
@@ -429,9 +429,9 @@ def test_create_and_delete_bookmark(
                 break
             else:
                 time.sleep(3)
-        assert (
-            found_in_search
-        ), f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in {trial + 1} different search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
+        assert found_in_search, (
+            f"Managed bookmark {created_bookmark_id} (Title: '{original_title}') not found in {trial + 1} different search results for '{search_query_component}'. Titles were: '{titles_in_search}'."
+        )
         logger.info(
             f"✓ Found managed bookmark in search results for '{search_query_component}'."
         )
@@ -449,9 +449,9 @@ def test_create_and_delete_bookmark(
                 capture_output=True,
                 text=True,
             )
-            assert (
-                created_bookmark_id in search_cli_output.stdout
-            ), f"Managed bookmark ID {created_bookmark_id} not found in CLI search output for '{search_query_component}'"
+            assert created_bookmark_id in search_cli_output.stdout, (
+                f"Managed bookmark ID {created_bookmark_id} not found in CLI search output for '{search_query_component}'"
+            )
             logger.info(
                 "✓ CLI search command executed successfully and contained the bookmark ID."
             )
@@ -502,12 +502,12 @@ def test_update_bookmark_title(
         updated_bookmark_partial = karakeep_client.update_a_bookmark(
             bookmark_id=created_bookmark_id, update_data=update_payload_api
         )
-        assert isinstance(
-            updated_bookmark_partial, dict
-        ), "Update response should be a dict"
-        assert (
-            updated_bookmark_partial.get("title") == target_api_title
-        ), f"Partial response title '{updated_bookmark_partial.get('title')}' does not match target API title '{target_api_title}'"
+        assert isinstance(updated_bookmark_partial, dict), (
+            "Update response should be a dict"
+        )
+        assert updated_bookmark_partial.get("title") == target_api_title, (
+            f"Partial response title '{updated_bookmark_partial.get('title')}' does not match target API title '{target_api_title}'"
+        )
         logger.info(
             f"✓ API call to update_a_bookmark successful. Partial response title: '{updated_bookmark_partial.get('title')}'"
         )
@@ -520,9 +520,9 @@ def test_update_bookmark_title(
             bookmark_id=created_bookmark_id
         )
         assert isinstance(retrieved_bookmark_after_api_update, datatypes.Bookmark)
-        assert (
-            retrieved_bookmark_after_api_update.title == target_api_title
-        ), f"Retrieved bookmark title '{retrieved_bookmark_after_api_update.title}' does not match expected API-updated title '{target_api_title}'"
+        assert retrieved_bookmark_after_api_update.title == target_api_title, (
+            f"Retrieved bookmark title '{retrieved_bookmark_after_api_update.title}' does not match expected API-updated title '{target_api_title}'"
+        )
         logger.info(
             f"✓ Successfully verified bookmark title updated by API to: '{retrieved_bookmark_after_api_update.title}'"
         )
@@ -553,9 +553,9 @@ def test_update_bookmark_title(
                 bookmark_id=created_bookmark_id
             )
             assert isinstance(retrieved_bookmark_after_cli_update, datatypes.Bookmark)
-            assert (
-                retrieved_bookmark_after_cli_update.title == target_cli_title
-            ), f"Retrieved bookmark title '{retrieved_bookmark_after_cli_update.title}' after CLI update does not match expected '{target_cli_title}'"
+            assert retrieved_bookmark_after_cli_update.title == target_cli_title, (
+                f"Retrieved bookmark title '{retrieved_bookmark_after_cli_update.title}' after CLI update does not match expected '{target_cli_title}'"
+            )
             logger.info(
                 f"✓ Successfully verified bookmark title updated by CLI to: '{retrieved_bookmark_after_cli_update.title}'"
             )
@@ -621,9 +621,9 @@ def test_tag_lifecycle_on_bookmark(
         # assert isinstance(updated_tag, datatypes.Tag), "Update tag response should be Tag model"
         # assert updated_tag.name == updated_tag_name, "Tag name was not updated as expected"
         # logger.info(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag.name}'")
-        assert (
-            updated_tag["name"] == updated_tag_name
-        ), "Tag name was not updated as expected"
+        assert updated_tag["name"] == updated_tag_name, (
+            "Tag name was not updated as expected"
+        )
         logger.info(f"✓ Tag {tag_id_to_manage} updated to name '{updated_tag['name']}'")
 
         # 3. Verify tag update by getting it directly
@@ -631,12 +631,12 @@ def test_tag_lifecycle_on_bookmark(
             f"\nFetching tag {tag_id_to_manage} to verify its name is '{updated_tag_name}'"
         )
         retrieved_tag = karakeep_client.get_a_single_tag(tag_id=tag_id_to_manage)
-        assert isinstance(
-            retrieved_tag, datatypes.Tag
-        ), "Get single tag response should be Tag model"
-        assert (
-            retrieved_tag.name == updated_tag_name
-        ), "Retrieved tag name does not match updated name"
+        assert isinstance(retrieved_tag, datatypes.Tag), (
+            "Get single tag response should be Tag model"
+        )
+        assert retrieved_tag.name == updated_tag_name, (
+            "Retrieved tag name does not match updated name"
+        )
         assert retrieved_tag.id == tag_id_to_manage, "Retrieved tag ID does not match"
         logger.info(
             f"✓ Verified tag {tag_id_to_manage} has name '{retrieved_tag.name}'"
@@ -674,9 +674,9 @@ def test_tag_lifecycle_on_bookmark(
                         f"Tag {tag_id_to_manage} should not exist after deletion, but get_a_single_tag succeeded."
                     )
                 except APIError as e:
-                    assert (
-                        e.status_code == 404
-                    ), f"Expected 404 Not Found when getting deleted tag, but got status {e.status_code}"
+                    assert e.status_code == 404, (
+                        f"Expected 404 Not Found when getting deleted tag, but got status {e.status_code}"
+                    )
                     logger.info(
                         f"✓ Confirmed tag {tag_id_to_manage} is deleted (received 404)."
                     )
@@ -729,9 +729,9 @@ def test_cli_get_bookmarks_count_with_jq(karakeep_client: KarakeepAPI):
             logger.info(f"✓ Command returned {actual_count} bookmarks")
 
             # Check if we got exactly the requested number or fewer (if there aren't enough bookmarks)
-            assert (
-                actual_count <= test_limit
-            ), f"Expected at most {test_limit} bookmarks, got {actual_count}"
+            assert actual_count <= test_limit, (
+                f"Expected at most {test_limit} bookmarks, got {actual_count}"
+            )
 
             # Check if we got any bookmarks at all (to ensure the test is meaningful)
             # This could fail if the account has no bookmarks
@@ -825,9 +825,9 @@ def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
         assert isinstance(uploaded_asset, datatypes.Asset)
         assert uploaded_asset.assetId, "Uploaded asset must have an ID"
         assert "pdf" in uploaded_asset.contentType.lower(), "Asset should be PDF type"
-        assert (
-            uploaded_asset.fileName == "PDF Bookmark Sample.pdf"
-        ), "Asset filename should match the original file"
+        assert uploaded_asset.fileName == "PDF Bookmark Sample.pdf", (
+            "Asset filename should match the original file"
+        )
         uploaded_asset_id = uploaded_asset.assetId
         logger.info(f"✓ PDF uploaded with asset ID: {uploaded_asset_id}")
 
@@ -852,15 +852,15 @@ def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
             bookmark_id=created_bookmark_id
         )
         assert isinstance(retrieved_bookmark, datatypes.Bookmark)
-        assert (
-            len(retrieved_bookmark.assets) > 0
-        ), "Bookmark should have at least one asset"
+        assert len(retrieved_bookmark.assets) > 0, (
+            "Bookmark should have at least one asset"
+        )
 
         # Check that our uploaded asset is among the bookmark's assets
         asset_ids = [asset.id for asset in retrieved_bookmark.assets]
-        assert (
-            uploaded_asset_id in asset_ids
-        ), f"Uploaded asset {uploaded_asset_id} should be attached to bookmark"
+        assert uploaded_asset_id in asset_ids, (
+            f"Uploaded asset {uploaded_asset_id} should be attached to bookmark"
+        )
         logger.info(f"✓ Verified bookmark contains the PDF asset {uploaded_asset_id}")
 
         # 4. Retrieve and verify the asset content

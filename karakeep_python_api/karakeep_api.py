@@ -932,7 +932,9 @@ class KarakeepAPI:
 
     @optional_typecheck
     def get_a_single_bookmark(
-        self, bookmark_id: str, include_content: bool = True  # Default from spec
+        self,
+        bookmark_id: str,
+        include_content: bool = True,  # Default from spec
     ) -> Union[datatypes.Bookmark, Dict[str, Any], List[Any]]:
         """
         Get a single bookmark by its ID. Corresponds to GET /bookmarks/{bookmarkId}.

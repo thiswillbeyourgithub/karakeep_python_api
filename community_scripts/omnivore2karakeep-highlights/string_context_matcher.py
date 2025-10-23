@@ -120,9 +120,7 @@ def match_highlight_to_corpus(
             ratios = Parallel(
                 backend="threading",
                 n_jobs=n_jobs,
-            )(
-                delayed(lev_ratio)(query, b) for b in batches
-            )  # Use lev_ratio
+            )(delayed(lev_ratio)(query, b) for b in batches)  # Use lev_ratio
             max_rat = max(ratios) if ratios else -1.0
             max_rat_idx = [i for i, r in enumerate(ratios) if r == max_rat]
 
@@ -360,8 +358,7 @@ def match_highlight_to_corpus(
             best_ngram_from_initial_pass_idx = dists_initial.index(min_dist_val)
             best_ngram_str_initial_pass_original_case = corpus[
                 best_ngram_from_initial_pass_idx
-                * query_len_by_2 : best_ngram_from_initial_pass_idx
-                * query_len_by_2
+                * query_len_by_2 : best_ngram_from_initial_pass_idx * query_len_by_2
                 + query_len
             ]
             ratio_for_initial_best = lev_ratio(

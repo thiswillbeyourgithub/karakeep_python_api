@@ -65,9 +65,9 @@ def managed_bookmark(karakeep_client: KarakeepAPI) -> datatypes.Bookmark:
         bookmark = karakeep_client.create_a_new_bookmark(
             type="link", url=test_url, title=original_title
         )
-        assert isinstance(
-            bookmark, datatypes.Bookmark
-        ), "Fixture: create_a_new_bookmark should return a Bookmark model"
+        assert isinstance(bookmark, datatypes.Bookmark), (
+            "Fixture: create_a_new_bookmark should return a Bookmark model"
+        )
         assert bookmark.id, "Fixture: Created bookmark must have an ID"
         created_bookmark_id = bookmark.id
         print(

@@ -4,6 +4,7 @@ Small script to clean old article not archived after an import from another read
 Parameters:
     before_date: Date in YYYY-MM-DD format. Articles created before this date will be archived.
 """
+
 import time
 from datetime import datetime
 
@@ -49,20 +50,16 @@ def main(before_date: str) -> None:
         all_bm.extend(page.bookmarks)
         pbar.update(len(page.bookmarks))
 
-    assert (
-        len(all_bm) == n
-    ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+    assert len(all_bm) == n, f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
     pbar.close()
 
     failed = []
     for bookmark in all_bm:
-
         # skip already archived
         if bookmark.archived:
             continue
 
-
-        #tqdm.write(f"Creation Date: {bookmark.createdAt}")
+        # tqdm.write(f"Creation Date: {bookmark.createdAt}")
         creation_date = datetime.strptime(bookmark.createdAt, "%Y-%m-%dT%H:%M:%S.%fZ")
 
         if creation_date > before_date:

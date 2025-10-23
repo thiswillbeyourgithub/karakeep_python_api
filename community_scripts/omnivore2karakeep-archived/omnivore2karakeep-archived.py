@@ -207,9 +207,9 @@ def main(
             all_bm.extend(page.bookmarks)
             pbar.update(len(page.bookmarks))
 
-        assert (
-            len(all_bm) == n
-        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        assert len(all_bm) == n, (
+            f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        )
         pbar.close()
 
         with Path(karakeep_temp_path).open("wb") as f:

@@ -7,6 +7,7 @@ title,url,time_added,tags,status
 It identifies entries with status "archive" and updates their status in Karakeep.
 
 """
+
 import time
 
 from Levenshtein import ratio
@@ -117,9 +118,9 @@ def main(
             all_bm.extend(page.bookmarks)
             pbar.update(len(page.bookmarks))
 
-        assert (
-            len(all_bm) == n
-        ), f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        assert len(all_bm) == n, (
+            f"Only retrieved {len(all_bm)} bookmarks instead of {n}"
+        )
         pbar.close()
 
         with Path(karakeep_path).open("wb") as f:
@@ -139,8 +140,6 @@ def main(
                 found_url = content.sourceUrl
             else:
                 found_url = ""
-
-
 
             if found_url == url:
                 found_it = True
@@ -178,7 +177,7 @@ def main(
                 r = ratio(pocket["title"].lower(), content.title.lower())
                 if r >= threshold:
                     found_it = True
-                    #breakpoint()
+                    # breakpoint()
                     break
 
             if (
@@ -192,12 +191,11 @@ def main(
                     found_it = True
                     break
 
-
         # couldn't be found
         if not found_it:
             failed.append(pocket)
             tqdm.write(f"Failed to find {url}")
-            #breakpoint()
+            # breakpoint()
             with open("./omnivore_archiver_failed.txt", "a") as f:
                 f.write(f"\n{pocket}")
             continue
@@ -208,7 +206,9 @@ def main(
             continue
         for attempt in range(5):
             try:
-                fresh = karakeep.get_a_single_bookmark(bookmark_id=bookmark.id, include_content=False)
+                fresh = karakeep.get_a_single_bookmark(
+                    bookmark_id=bookmark.id, include_content=False
+                )
                 break
             except Exception as e:
                 if attempt == 4:

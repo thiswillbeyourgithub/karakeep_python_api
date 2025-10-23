@@ -350,9 +350,9 @@ class AddTimeToRead:
                         bookmarks.extend(page.bookmarks)
                         pbar.update(len(page.bookmarks))
 
-                    assert (
-                        len(bookmarks) == n
-                    ), f"Only retrieved {len(bookmarks)} bookmarks instead of {n}"
+                    assert len(bookmarks) == n, (
+                        f"Only retrieved {len(bookmarks)} bookmarks instead of {n}"
+                    )
                     pbar.close()
 
                 except Exception as e:
