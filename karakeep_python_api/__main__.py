@@ -409,6 +409,116 @@ def create_click_command(
                                 break
 
                         result = all_bookmarks_data  # This will be a list of Bookmark models or dicts
+                    elif method_name == "get_all_highlights":
+                        logger.debug(
+                            f"Special CLI pagination handling for '{method_name}'."
+                        )
+                        cli_total_limit = call_args.pop("limit", None)
+
+                        call_args.pop("cursor", None)  # Ignore CLI cursor
+
+                        all_highlights_data = []
+                        current_page_api_cursor = None
+                        fetched_count = 0
+                        API_INTERNAL_PAGE_SIZE = 50  # Define a page size for API calls
+
+                        while True:
+                            api_call_limit = API_INTERNAL_PAGE_SIZE
+                            if cli_total_limit is not None:
+                                remaining_needed = cli_total_limit - fetched_count
+                                if remaining_needed <= 0:
+                                    break  # Reached or exceeded CLI total limit
+                                api_call_limit = min(
+                                    API_INTERNAL_PAGE_SIZE, remaining_needed
+                                )
+
+                            if (
+                                api_call_limit <= 0 and cli_total_limit is not None
+                            ):  # Avoid asking for 0 or negative items unless fetching all
+                                break
+
+                            logger.debug(
+                                f"Fetching page for '{method_name}' with cursor: {current_page_api_cursor}, api_limit: {api_call_limit}"
+                            )
+
+                            page_call_args = {
+                                "limit": api_call_limit,
+                                "cursor": current_page_api_cursor,
+                            }
+                            page_call_args_filtered = {
+                                k: v for k, v in page_call_args.items() if v is not None
+                            }
+
+                            try:
+                                page_result_obj = instance_method(
+                                    **page_call_args_filtered
+                                )
+                            except TypeError as call_error_page:
+                                logger.error(
+                                    f"Error calling API method '{method_name}' (paginated): {call_error_page}"
+                                )
+                                logger.error(
+                                    f"Provided arguments for page: {page_call_args_filtered}"
+                                )
+                                if verbose:
+                                    logger.debug(traceback.format_exc())
+                                ctx.exit(1)
+
+                            highlights_on_this_page = []
+                            next_api_cursor = None
+
+                            # Convert Pydantic model to dict using model_dump if available
+                            if hasattr(page_result_obj, "model_dump"):
+                                result_dict = page_result_obj.model_dump()
+                            elif isinstance(page_result_obj, dict):
+                                result_dict = page_result_obj
+                            else:
+                                logger.warning(
+                                    f"Unexpected result type: {type(page_result_obj)}"
+                                )
+                                result_dict = {}
+
+                            # Extract data and cursor from the dict
+                            highlights_on_this_page = result_dict.get("highlights", [])
+                            next_api_cursor = result_dict.get("nextCursor")
+
+                            logger.debug(
+                                f"Extracted {len(highlights_on_this_page)} highlights and cursor: {next_api_cursor}"
+                            )
+
+                            if not isinstance(highlights_on_this_page, list):
+                                logger.warning(
+                                    f"Expected a list of highlights, got {type(highlights_on_this_page)}. Stopping pagination."
+                                )
+                                break
+
+                            all_highlights_data.extend(highlights_on_this_page)
+                            fetched_count += len(highlights_on_this_page)
+                            logger.debug(
+                                f"Fetched {len(highlights_on_this_page)} highlights this page. Total fetched: {fetched_count}."
+                            )
+
+                            current_page_api_cursor = next_api_cursor
+                            if not current_page_api_cursor:
+                                logger.debug(
+                                    "No nextCursor from API, pagination complete."
+                                )
+                                break
+                            if (
+                                cli_total_limit is not None
+                                and fetched_count >= cli_total_limit
+                            ):
+                                logger.debug(
+                                    f"CLI total limit of {cli_total_limit} reached or exceeded."
+                                )
+                                break
+                            if not highlights_on_this_page and api_call_limit > 0:
+                                logger.debug(
+                                    "API returned an empty list of highlights while a positive limit was set, assuming end of data."
+                                )
+                                break
+
+                        result = all_highlights_data  # This will be a list of Highlight models or dicts
                     else:
                         # Original behavior for other commands
                         logger.debug(
@@ -612,6 +722,23 @@ def create_click_command(
                 )
             elif param.name == "limit":
                 current_param_help = "Total maximum number of bookmarks to fetch across pages for get-all-bookmarks. If omitted, all are fetched."
+                # For 'limit', required status and default remain as derived from its Optional[int] type hint
+                # current_click_required and current_default_value will be correctly False and None respectively.
+
+        # Special handling for 'get_all_highlights' command parameters
+        if api_method_name == "get_all_highlights":
+            if param.name == "cursor":
+                current_param_help = (
+                    "[Ignored by CLI for get-all-highlights] " + param_help
+                )
+                current_click_required = (
+                    False  # Cursor is handled by CLI, not required from user
+                )
+                current_default_value = (
+                    None  # Explicitly set default to None for ignored param
+                )
+            elif param.name == "limit":
+                current_param_help = "Total maximum number of highlights to fetch across pages for get-all-highlights. If omitted, all are fetched."
                 # For 'limit', required status and default remain as derived from its Optional[int] type hint
                 # current_click_required and current_default_value will be correctly False and None respectively.
 
