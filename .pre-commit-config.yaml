@@ -1,8 +1,35 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/psf/black
-    rev: stable # Using 'stable' for the latest stable release, or specify a version like '24.4.2'
+-   repo: local
     hooks:
-    -   id: black
-        # language_version: python3 # black auto-detects, but can be specified
+    -   id: pytest
+        name: pytest
+        # entry: pytest tests
+        entry: pytest tests --quiet
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-merge-commit]
+# -   repo: https://github.com/psf/black
+#     rev: 22.10.0
+#     hooks:
+#     -   id: black
+#         args: ["--quiet"]
+#         language: system
+# -   repo: https://github.com/pycqa/isort
+#     rev: 5.12.0
+#     hooks:
+#       - id: isort
+#         args: ["--profile", "black", "--quiet"]
+#         language: system
+
+# https://github.com/astral-sh/ruff-pre-commit
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.14.1
+  hooks:
+    # # Run the linter.
+    # - id: ruff-check
+    #   args: [ --fix ]
+    # Run the formatter.
+    - id: ruff-format
