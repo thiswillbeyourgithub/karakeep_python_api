@@ -134,7 +134,7 @@ class KarakeepAPI:
 
         # Configure logger based on verbose setting
         log_level = "DEBUG" if self.verbose else "INFO"
-        logger.remove()  # Remove default handler
+        # logger.remove()  # Remove default handler
         if self.verbose:
             logger.add(
                 sys.stderr,
