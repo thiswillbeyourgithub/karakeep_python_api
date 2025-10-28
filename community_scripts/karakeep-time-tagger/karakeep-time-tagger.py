@@ -95,7 +95,7 @@ class AddTimeToRead:
     def setup_logging(self, verbose: bool = False):
         """Setup loguru logging with file output and console output based on verbosity."""
         # Remove default logger
-        logger.remove()
+        # logger.remove()
 
         # Add file logger with debug level
         logger.add("karakeep-time-tagger.log", level="DEBUG", rotation="10 MB")
