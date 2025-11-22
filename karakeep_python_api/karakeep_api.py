@@ -2121,13 +2121,14 @@ class KarakeepAPI:
 
     @optional_typecheck
     def upload_a_new_asset(
-        self, file: str
+        self, file: str, content: Optional[Union[bytes, str]] = None
     ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
         Args:
             file: Path to the file to upload.
+            content: Optional content of the new asset.
 
         Returns:
             datatypes.Asset: Details about the uploaded asset (assetId, contentType, size, fileName).
@@ -2142,14 +2143,14 @@ class KarakeepAPI:
         import mimetypes
 
         # Validate file path exists
-        if not os.path.isfile(file):
+        if not content and not os.path.isfile(file):
             raise FileNotFoundError(f"File not found: {file}")
 
         # Get filename from path
         file_name = os.path.basename(file)
 
         # Detect MIME type
-        mime_type, _ = mimetypes.guess_type(file)
+        mime_type, _ = mimetypes.guess_file_type(file_name)
         if mime_type is None:
             mime_type = "application/octet-stream"
 
@@ -2159,14 +2160,16 @@ class KarakeepAPI:
             )
 
         # Prepare file for upload
-        try:
-            with open(file, "rb") as f:
-                file_content = f.read()
-            # Note: The 'file' key must match the OpenAPI spec parameter name
-            files = {"file": (file_name, file_content, mime_type)}
-            response_data = self._call("POST", "assets", files=files)
-        except IOError as e:
-            raise APIError(f"Failed to read file {file}: {e}") from e
+        if not content:
+            try:
+                with open(file, "rb") as f:
+                    content = f.read()
+            except IOError as e:
+                raise APIError(f"Failed to read file {file}: {e}") from e
+
+        # Note: The 'file' key must match the OpenAPI spec parameter name
+        files = {"file": (file_name, content, mime_type)}
+        response_data = self._call("POST", "assets", files=files)
 
         if self.disable_response_validation:
             logger.debug("Skipping response validation as requested.")

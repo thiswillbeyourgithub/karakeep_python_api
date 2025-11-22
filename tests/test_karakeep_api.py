@@ -892,4 +892,25 @@ def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
             logger.info("\nNo bookmark to clean up")
 
 
+def test_asset_with_content_upload(karakeep_client: KarakeepAPI):
+    """Test uploading asset with contents from a variable."""
+
+    try:
+        uploaded_asset = karakeep_client.upload_a_new_asset(
+            file="image.png", content=b"abc"
+        )
+        assert isinstance(uploaded_asset, datatypes.Asset)
+        assert uploaded_asset.assetId, "Uploaded asset must have an ID"
+        assert (
+            uploaded_asset.contentType.lower() == "image/png"
+        ), "Asset should be PNG type"
+        assert (
+            uploaded_asset.fileName == "image.png"
+        ), "Asset filename should match the original file"
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during asset test: {e}")
+    except Exception as e:
+        pytest.fail(f"Unexpected error during asset test: {e}")
+
+
 # --- End of Tests ---
