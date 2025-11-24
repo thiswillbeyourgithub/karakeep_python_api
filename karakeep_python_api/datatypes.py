@@ -141,6 +141,8 @@ class ListModel(BaseModel):
     type: Optional[Literal["manual", "smart"]] = "manual"
     query: Optional[str] = None
     public: bool
+    hasCollaborators: bool
+    userRole: Literal["owner", "editor", "viewer", "public"]
 
 
 class Highlight(BaseModel):

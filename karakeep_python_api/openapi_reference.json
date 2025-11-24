@@ -406,6 +406,18 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "hasCollaborators": {
+            "type": "boolean"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer",
+              "public"
+            ]
           }
         },
         "required": [
@@ -413,7 +425,9 @@
           "name",
           "icon",
           "parentId",
-          "public"
+          "public",
+          "hasCollaborators",
+          "userRole"
         ]
       },
       "Highlight": {
@@ -3145,6 +3159,10 @@
                       "green",
                       "blue"
                     ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
