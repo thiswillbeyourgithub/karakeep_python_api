@@ -2060,7 +2060,15 @@ class KarakeepAPI:
         Get statistics about the current authenticated user's data. Corresponds to GET /users/me/stats.
 
         Returns:
-            dict: A dictionary containing user statistics ('numBookmarks', 'numFavorites', 'numArchived', etc.).
+            dict: A dictionary containing user statistics including:
+                  - numBookmarks, numFavorites, numArchived, numTags, numLists, numHighlights
+                  - bookmarksByType: breakdown by content type (link, text, asset)
+                  - topDomains: most bookmarked domains
+                  - totalAssetSize: total size of stored assets
+                  - assetsByType: breakdown of assets by type
+                  - bookmarkingActivity: activity metrics (thisWeek, thisMonth, thisYear, byHour, byDayOfWeek)
+                  - tagUsage: most used tags
+                  - bookmarksBySource: breakdown by source (api, web, cli, mobile, extension, singlefile, rss, import)
                   Validation is not performed on this response type by default.
 
         Raises:
