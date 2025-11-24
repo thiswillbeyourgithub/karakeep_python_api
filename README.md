@@ -35,6 +35,7 @@ The development process involved:
 
 *   **Experimental Methods:** The included Pytest suite currently only covers a subset of the available API methods (primarily 'get all' endpoints and client initialization). Methods *not* explicitly tested should be considered **experimental**.
 *   **Ongoing Development:** The author intends to improve and validate methods as they are needed for personal use cases. Contributions and bug reports are welcome!
+* **Updating process**: I have local scripts to keep track of the changes in the OpenAPI specs on the server side. From time to time I go and use aider to make the code reflect the latest openapi and push that to the `dev` branch. When there is a new karakeep release, I will merge the `dev` branch to the `main` branch and create my own release. This way, `dev` hopefully is up to date with the latest code of karakeep, while `main` is up to date with the latest release of karakeep.
 
 ## API Method Coverage
 
