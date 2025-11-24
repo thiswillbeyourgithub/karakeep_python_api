@@ -90,6 +90,7 @@ class BookmarkAsset(BaseModel):
         "video",
         "bookmarkAsset",
         "precrawledArchive",
+        "userUploaded",
         "unknown",
     ]
 

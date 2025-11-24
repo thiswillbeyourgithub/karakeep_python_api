@@ -320,6 +320,7 @@
                     "video",
                     "bookmarkAsset",
                     "precrawledArchive",
+                    "userUploaded",
                     "unknown"
                   ]
                 }
@@ -1715,6 +1716,7 @@
                       "video",
                       "bookmarkAsset",
                       "precrawledArchive",
+                      "userUploaded",
                       "unknown"
                     ]
                   }
@@ -1749,6 +1751,7 @@
                         "video",
                         "bookmarkAsset",
                         "precrawledArchive",
+                        "userUploaded",
                         "unknown"
                       ]
                     }
