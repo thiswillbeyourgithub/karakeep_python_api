@@ -117,6 +117,7 @@ class Bookmark(BaseModel):
             "api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"
         ]
     ] = None
+    userId: str
     tags: List[TagShort]
     content: Union[
         ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown
