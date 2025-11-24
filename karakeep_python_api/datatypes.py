@@ -93,6 +93,7 @@ class BookmarkAsset(BaseModel):
         "userUploaded",
         "unknown",
     ]
+    fileName: Optional[str] = None
 
 
 class Asset(BaseModel):

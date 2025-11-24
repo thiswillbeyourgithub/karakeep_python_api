@@ -323,6 +323,10 @@
                     "userUploaded",
                     "unknown"
                   ]
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
                 }
               },
               "required": [
@@ -1754,6 +1758,10 @@
                         "userUploaded",
                         "unknown"
                       ]
+                    },
+                    "fileName": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
