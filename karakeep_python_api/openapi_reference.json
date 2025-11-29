@@ -108,6 +108,9 @@
               "import"
             ]
           },
+          "userId": {
+            "type": "string"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -317,8 +320,13 @@
                     "video",
                     "bookmarkAsset",
                     "precrawledArchive",
+                    "userUploaded",
                     "unknown"
                   ]
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
                 }
               },
               "required": [
@@ -336,6 +344,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "userId",
           "tags",
           "content",
           "assets"
@@ -397,6 +406,18 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "hasCollaborators": {
+            "type": "boolean"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer",
+              "public"
+            ]
           }
         },
         "required": [
@@ -404,7 +425,9 @@
           "name",
           "icon",
           "parentId",
-          "public"
+          "public",
+          "hasCollaborators",
+          "userRole"
         ]
       },
       "Highlight": {
@@ -1189,6 +1212,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1198,7 +1224,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }
@@ -1313,6 +1340,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1322,7 +1352,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }
@@ -1703,6 +1734,7 @@
                       "video",
                       "bookmarkAsset",
                       "precrawledArchive",
+                      "userUploaded",
                       "unknown"
                     ]
                   }
@@ -1737,8 +1769,13 @@
                         "video",
                         "bookmarkAsset",
                         "precrawledArchive",
+                        "userUploaded",
                         "unknown"
                       ]
+                    },
+                    "fileName": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -3122,6 +3159,10 @@
                       "green",
                       "blue"
                     ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -3386,6 +3427,35 @@
                         ]
                       },
                       "maxItems": 10
+                    },
+                    "bookmarksBySource": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "api",
+                              "web",
+                              "cli",
+                              "mobile",
+                              "extension",
+                              "singlefile",
+                              "rss",
+                              "import"
+                            ]
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "count"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3400,7 +3470,8 @@
                     "totalAssetSize",
                     "assetsByType",
                     "bookmarkingActivity",
-                    "tagUsage"
+                    "tagUsage",
+                    "bookmarksBySource"
                   ]
                 }
               }

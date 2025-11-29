@@ -90,8 +90,10 @@ class BookmarkAsset(BaseModel):
         "video",
         "bookmarkAsset",
         "precrawledArchive",
+        "userUploaded",
         "unknown",
     ]
+    fileName: Optional[str] = None
 
 
 class Asset(BaseModel):
@@ -117,6 +119,7 @@ class Bookmark(BaseModel):
             "api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"
         ]
     ] = None
+    userId: str
     tags: List[TagShort]
     content: Union[
         ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown
@@ -138,6 +141,8 @@ class ListModel(BaseModel):
     type: Optional[Literal["manual", "smart"]] = "manual"
     query: Optional[str] = None
     public: bool
+    hasCollaborators: bool
+    userRole: Literal["owner", "editor", "viewer", "public"]
 
 
 class Highlight(BaseModel):
