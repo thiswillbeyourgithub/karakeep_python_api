@@ -892,4 +892,134 @@ def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
             logger.info("\nNo bookmark to clean up")
 
 
+def test_backup_lifecycle(karakeep_client: KarakeepAPI):
+    """Test creating, retrieving, downloading, and deleting a backup."""
+    created_backup_id = None
+
+    try:
+        # 1. Get initial backup count
+        logger.info("\nGetting initial backup list")
+        initial_backups = karakeep_client.get_all_backups()
+        assert isinstance(initial_backups, list), "Response should be a list"
+        initial_backup_count = len(initial_backups)
+        logger.info(f"  Initial backup count: {initial_backup_count}")
+
+        # 2. Trigger a new backup
+        logger.info("\nTriggering a new backup")
+        created_backup = karakeep_client.trigger_a_new_backup()
+        assert isinstance(created_backup, datatypes.Backup), (
+            "Response should be a Backup model"
+        )
+        assert created_backup.id, "Created backup must have an ID"
+        assert created_backup.status in ["pending", "success", "failure"], (
+            "Backup status should be one of the valid enum values"
+        )
+        created_backup_id = created_backup.id
+        logger.info(f"✓ Successfully triggered backup with ID: {created_backup_id}")
+        logger.info(f"  Backup status: {created_backup.status}")
+
+        # 3. Verify the backup appears in get_all_backups
+        logger.info(f"\nVerifying backup {created_backup_id} appears in backup list")
+        current_backups = karakeep_client.get_all_backups()
+        assert len(current_backups) >= initial_backup_count + 1, (
+            "Backup count should increase after creation"
+        )
+        assert any(backup.id == created_backup_id for backup in current_backups), (
+            "Created backup should be present in the list of all backups"
+        )
+        logger.info(
+            f"✓ Verified backup {created_backup_id} is present in get_all_backups"
+        )
+
+        # 4. Get the backup by ID to verify it exists
+        logger.info(f"\nRetrieving backup {created_backup_id} by ID")
+        retrieved_backup = karakeep_client.get_a_single_backup(
+            backup_id=created_backup_id
+        )
+        assert isinstance(retrieved_backup, datatypes.Backup)
+        assert retrieved_backup.id == created_backup_id
+        logger.info(f"✓ Successfully retrieved backup by ID")
+        logger.info(f"  Status: {retrieved_backup.status}")
+        logger.info(f"  Bookmark count: {retrieved_backup.bookmarkCount}")
+        logger.info(f"  Size: {retrieved_backup.size} bytes")
+
+        # 5. Try to download the backup (only if status is "success")
+        if retrieved_backup.status == "success" and retrieved_backup.assetId:
+            logger.info(f"\nAttempting to download backup {created_backup_id}")
+            try:
+                backup_data = karakeep_client.download_a_backup(
+                    backup_id=created_backup_id
+                )
+                assert isinstance(backup_data, bytes), (
+                    "Downloaded backup should be bytes"
+                )
+                assert len(backup_data) > 0, "Downloaded backup should not be empty"
+                # Verify it's a zip file by checking the magic number
+                assert backup_data.startswith(b"PK\x03\x04") or backup_data.startswith(
+                    b"PK\x05\x06"
+                ), "Downloaded file should be a valid ZIP archive"
+                logger.info(
+                    f"✓ Successfully downloaded backup ({len(backup_data)} bytes)"
+                )
+            except APIError as e:
+                # Some backups might not be downloadable immediately, log but don't fail
+                logger.info(f"  Note: Could not download backup: {e}")
+        else:
+            logger.info(
+                f"  Skipping download test (status: {retrieved_backup.status}, assetId: {retrieved_backup.assetId})"
+            )
+
+        # 6. Test CLI equivalent for getting all backups
+        logger.info("\n  Running CLI equivalent: get-all-backups")
+        try:
+            subprocess.run(
+                "python -m karakeep_python_api get-all-backups",
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            logger.info("✓ CLI command executed successfully.")
+        except subprocess.CalledProcessError as e:
+            logger.info(f"  CLI command failed with exit code {e.returncode}")
+            logger.info(f"  Stdout: {e.stdout}")
+            logger.info(f"  Stderr: {e.stderr}")
+            pytest.fail(f"CLI command 'get-all-backups' failed: {e}")
+
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during backup lifecycle test: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred during backup lifecycle test: {e}")
+    finally:
+        # 7. Clean up: Delete the backup
+        if created_backup_id:
+            logger.info(f"\nCleaning up: Deleting backup {created_backup_id}")
+            try:
+                karakeep_client.delete_a_backup(backup_id=created_backup_id)
+                logger.info(f"✓ Successfully deleted backup {created_backup_id}")
+
+                # 8. Verify the backup is deleted
+                try:
+                    karakeep_client.get_a_single_backup(backup_id=created_backup_id)
+                    pytest.fail(
+                        f"Backup {created_backup_id} should not exist after deletion, but get_a_single_backup succeeded."
+                    )
+                except APIError as e:
+                    assert e.status_code == 404, (
+                        f"Expected 404 Not Found when getting deleted backup, but got status {e.status_code}"
+                    )
+                    logger.info(
+                        f"✓ Confirmed backup {created_backup_id} is deleted (received 404)"
+                    )
+
+            except (APIError, AuthenticationError) as e:
+                logger.info(
+                    f"  Error during cleanup - failed to delete backup {created_backup_id}: {e}"
+                )
+            except Exception as e:
+                logger.info(f"  Unexpected error during cleanup: {e}")
+        else:
+            logger.info("\nNo backup to clean up")
+
+
 # --- End of Tests ---
