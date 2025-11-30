@@ -2186,6 +2186,186 @@ class KarakeepAPI:
             return datatypes.Asset.model_validate(response_data)
 
     @optional_typecheck
+    def get_all_backups(
+        self,
+    ) -> Union[List[datatypes.Backup], Dict[str, Any], List[Any]]:
+        """
+        Get all backups for the current user. Corresponds to GET /backups.
+
+        Returns:
+            List[datatypes.Backup]: A list of backup objects.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        response_data = self._call("GET", "backups")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            # Return raw data, which might be {"backups": [...]} or something else
+            return response_data
+        else:
+            # Response schema is {"backups": [Backup]}, extract the list and validate
+            if (
+                isinstance(response_data, dict)
+                and "backups" in response_data
+                and isinstance(response_data["backups"], list)
+            ):
+                try:
+                    return [
+                        datatypes.Backup.model_validate(backup)
+                        for backup in response_data["backups"]
+                    ]
+                except (
+                    Exception
+                ) as e:  # Catch validation errors during list comprehension
+                    logger.error(f"Validation failed for one or more backups: {e}")
+                    raise  # Re-raise the validation error
+            else:
+                # Raise error if format is unexpected and validation is enabled
+                raise APIError(
+                    f"Unexpected response format for get_all_backups when validation is enabled: {response_data}"
+                )
+
+    @optional_typecheck
+    def trigger_a_new_backup(
+        self,
+    ) -> Union[datatypes.Backup, Dict[str, Any], List[Any]]:
+        """
+        Trigger a new backup. Corresponds to POST /backups.
+
+        Returns:
+            datatypes.Backup: The created backup object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        response_data = self._call("POST", "backups")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match Backup schema
+            return datatypes.Backup.model_validate(response_data)
+
+    @optional_typecheck
+    def get_a_single_backup(
+        self, backup_id: str
+    ) -> Union[datatypes.Backup, Dict[str, Any], List[Any]]:
+        """
+        Get a single backup by its ID. Corresponds to GET /backups/{backupId}.
+
+        Args:
+            backup_id: The ID (string) of the backup to retrieve.
+
+        Returns:
+            datatypes.Backup: The requested backup object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 backup not found).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        endpoint = f"backups/{backup_id}"
+        response_data = self._call("GET", endpoint)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match Backup schema
+            return datatypes.Backup.model_validate(response_data)
+
+    @optional_typecheck
+    def delete_a_backup(self, backup_id: str) -> None:
+        """
+        Delete a backup by its ID. Corresponds to DELETE /backups/{backupId}.
+
+        Args:
+            backup_id: The ID (string) of the backup to delete.
+
+        Returns:
+            None: Returns None upon successful deletion (204 No Content).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 backup not found).
+        """
+        endpoint = f"backups/{backup_id}"
+        self._call("DELETE", endpoint)  # Expects 204 No Content
+        return None  # Explicitly return None for 204
+
+    @optional_typecheck
+    def download_a_backup(self, backup_id: str) -> bytes:
+        """
+        Download the backup file (zip archive) by its ID. Corresponds to GET /backups/{backupId}/download.
+
+        Args:
+            backup_id: The ID (string) of the backup to download.
+
+        Returns:
+            bytes: The raw backup file content (zip archive).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 backup not found).
+            ValueError: If backup_id is empty or invalid.
+
+        Note:
+            This method always returns raw bytes regardless of the disable_response_validation setting,
+            as the response is binary content (zip file) rather than JSON.
+        """
+        # Validate backup_id
+        if not backup_id or not backup_id.strip():
+            raise ValueError("backup_id cannot be empty")
+
+        backup_id = backup_id.strip()
+
+        # Validate backup_id format (basic check for reasonable ID format)
+        if len(backup_id) < 5:  # Assuming backup IDs are at least 5 characters
+            raise ValueError(f"backup_id appears to be invalid: {backup_id}")
+
+        endpoint = f"backups/{backup_id}/download"
+
+        # Override the Accept header to get the zip file instead of JSON
+        extra_headers = {"Accept": "application/zip"}
+
+        if self.verbose:
+            logger.debug(f"Downloading backup: {backup_id}")
+
+        response_data = self._call("GET", endpoint, extra_headers=extra_headers)
+
+        # The _call method should return bytes for non-JSON responses
+        if isinstance(response_data, bytes):
+            if self.verbose:
+                logger.debug(
+                    f"Downloaded backup {backup_id}: {len(response_data)} bytes"
+                )
+            return response_data
+        elif response_data is None:
+            # Handle empty response
+            if self.verbose:
+                logger.debug(f"Downloaded empty backup {backup_id}")
+            return b""
+        else:
+            # This shouldn't happen with the updated _call method, but handle gracefully
+            error_msg = f"Expected bytes from backup download endpoint for backup {backup_id}, got {type(response_data).__name__}"
+            if isinstance(response_data, (dict, list)):
+                # If we got JSON, it might be an error response that wasn't caught
+                error_detail = (
+                    str(response_data)[:200] + "..."
+                    if len(str(response_data)) > 200
+                    else str(response_data)
+                )
+                error_msg += f". Response content: {error_detail}"
+
+            logger.error(error_msg)
+            raise APIError(error_msg)
+
+    @optional_typecheck
     def get_a_single_asset(self, asset_id: str) -> bytes:
         """
         Get the raw content of an asset by its ID. Corresponds to GET /assets/{assetId}.
