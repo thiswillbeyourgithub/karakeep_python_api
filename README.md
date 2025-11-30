@@ -81,7 +81,12 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
 | `get_current_user_info`          |   ✅   |  ❌  | Pytest: Tested indirectly during client init. CLI not directly tested. |
 | `get_current_user_stats`         |   ✅   |  ✅  |                                              |
-| `update_user`         |    ❌   |   ❌  |                                              |
+| `update_user`                    |   ❌   |  ❌  |                                              |
+| `get_all_backups`                |   ✅   |  ✅  | Tested in backup lifecycle test.            |
+| `trigger_a_new_backup`           |   ✅   |  ❌  | Tested in backup lifecycle test.            |
+| `get_a_single_backup`            |   ✅   |  ❌  | Tested in backup lifecycle test.            |
+| `delete_a_backup`                |   ✅   |  ❌  | Tested in backup lifecycle test.            |
+| `download_a_backup`              |   ✅   |  ❌  | Tested in backup lifecycle test.            |
 
 ## Installation
 
