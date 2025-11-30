@@ -165,3 +165,14 @@ class PaginatedHighlights(BaseModel):
 class PaginatedTags(BaseModel):
     tags: List[Tag]
     nextCursor: Optional[str] = ""
+
+
+class Backup(BaseModel):
+    id: str
+    userId: str
+    assetId: Optional[str]
+    createdAt: str
+    size: float
+    bookmarkCount: int
+    status: Literal["pending", "success", "failure"]
+    errorMessage: Optional[str] = None
