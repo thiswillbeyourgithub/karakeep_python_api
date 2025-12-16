@@ -1,6 +1,5 @@
 # Karakeep Python API Client
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/karakeep-python-api.svg)](https://badge.fury.io/py/karakeep-python-api)
 
 A community-developed Python client for the [Karakeep](https://karakeep.app/) API.
@@ -19,7 +18,6 @@ A community-developed Python client for the [Karakeep](https://karakeep.app/) AP
   - [Python Library](#python-library)
 - [Community Scripts](#community-scripts)
 - [Development](#development)
-- [License](#license)
 
 ## Overview
 
@@ -248,9 +246,6 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
     pytest
     ```
 
-## License
-
-This project is licensed under the **GNU General Public License v3 (GPLv3)**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
