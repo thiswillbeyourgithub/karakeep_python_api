@@ -1295,6 +1295,7 @@ class KarakeepAPI:
         asset_id: str,
         asset_type: Literal[
             "screenshot",
+            "pdf",
             "assetScreenshot",
             "bannerImage",
             "fullPageArchive",
@@ -1311,7 +1312,7 @@ class KarakeepAPI:
         Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to attach.
-            asset_type: The type of asset being attached. Must be one of: "screenshot", "assetScreenshot",
+            asset_type: The type of asset being attached. Must be one of: "screenshot", "pdf", "assetScreenshot",
                         "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive",
                         "userUploaded", "unknown".
 

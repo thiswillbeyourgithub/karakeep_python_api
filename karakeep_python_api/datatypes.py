@@ -46,6 +46,7 @@ class ContentTypeLink(BaseModel):
     imageUrl: Optional[str] = None
     imageAssetId: Optional[str] = None
     screenshotAssetId: Optional[str] = None
+    pdfAssetId: Optional[str] = None
     fullPageArchiveAssetId: Optional[str] = None
     precrawledArchiveAssetId: Optional[str] = None
     videoAssetId: Optional[str] = None
@@ -84,6 +85,7 @@ class BookmarkAsset(BaseModel):
     assetType: Literal[
         "linkHtmlContent",
         "screenshot",
+        "pdf",
         "assetScreenshot",
         "bannerImage",
         "fullPageArchive",
