@@ -54,6 +54,7 @@ class ContentTypeLink(BaseModel):
     htmlContent: Optional[str] = None
     contentAssetId: Optional[str] = None
     crawledAt: Optional[str] = None
+    crawlStatus: Optional[Literal["success", "failure", "pending"]] = None
     author: Optional[str] = None
     publisher: Optional[str] = None
     datePublished: Optional[str] = None
