@@ -339,6 +339,7 @@
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
+                    "avatar",
                     "unknown"
                   ]
                 },
@@ -1762,6 +1763,7 @@
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
+                      "avatar",
                       "unknown"
                     ]
                   }
@@ -1798,6 +1800,7 @@
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",
+                        "avatar",
                         "unknown"
                       ]
                     },
@@ -3261,6 +3264,10 @@
                       "nullable": true
                     },
                     "email": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "image": {
                       "type": "string",
                       "nullable": true
                     },

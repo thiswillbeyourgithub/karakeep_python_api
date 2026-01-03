@@ -94,6 +94,7 @@ class BookmarkAsset(BaseModel):
         "bookmarkAsset",
         "precrawledArchive",
         "userUploaded",
+        "avatar",
         "unknown",
     ]
     fileName: Optional[str] = None

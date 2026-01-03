@@ -1303,6 +1303,7 @@ class KarakeepAPI:
             "bookmarkAsset",
             "precrawledArchive",
             "userUploaded",
+            "avatar",
             "unknown",
         ],
     ) -> Union[datatypes.BookmarkAsset, Dict[str, Any], List[Any]]:
@@ -1314,7 +1315,7 @@ class KarakeepAPI:
             asset_id: The ID (string) of the asset to attach.
             asset_type: The type of asset being attached. Must be one of: "screenshot", "pdf", "assetScreenshot",
                         "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive",
-                        "userUploaded", "unknown".
+                        "userUploaded", "avatar", "unknown".
 
         Returns:
             datatypes.BookmarkAsset: The attached asset object.
@@ -2045,7 +2046,7 @@ class KarakeepAPI:
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
         Returns:
-            dict: A dictionary containing user information ('id', 'name', 'email', 'localUser').
+            dict: A dictionary containing user information ('id', 'name', 'email', 'image', 'localUser').
                   Validation is not performed on this response type by default.
 
         Raises:
