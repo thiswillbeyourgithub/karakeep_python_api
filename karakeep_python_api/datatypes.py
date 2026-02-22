@@ -136,6 +136,10 @@ class PaginatedBookmarks(BaseModel):
     nextCursor: Optional[str] = ""
 
 
+class CheckUrlResponse(BaseModel):
+    bookmarkId: Optional[str]
+
+
 class ListModel(BaseModel):
     id: str
     name: str

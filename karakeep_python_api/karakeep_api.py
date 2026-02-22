@@ -931,6 +931,38 @@ class KarakeepAPI:
             return datatypes.PaginatedBookmarks.model_validate(response_data)
 
     @optional_typecheck
+    def check_url(
+        self,
+        url: str,
+    ) -> Union[datatypes.CheckUrlResponse, Dict[str, Any], List[Any]]:
+        """
+        Check if a URL is already bookmarked. Corresponds to GET /bookmarks/check-url.
+        Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
+
+        Args:
+            url: The URL to check.
+
+        Returns:
+            datatypes.CheckUrlResponse: Object indicating whether the URL is bookmarked. bookmarkId is null if not found.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        params = {
+            "url": url,
+        }
+        response_data = self._call("GET", "bookmarks/check-url", params=params)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match CheckUrlResponse schema
+            return datatypes.CheckUrlResponse.model_validate(response_data)
+
+    @optional_typecheck
     def get_a_single_bookmark(
         self,
         bookmark_id: str,
