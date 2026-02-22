@@ -1048,6 +1048,7 @@ class KarakeepAPI:
         bookmark_id: str,
         tag_ids: Optional[List[str]] = None,
         tag_names: Optional[List[str]] = None,
+        attached_by: Optional[Literal["ai", "human"]] = "human",
     ) -> Dict[str, Any]:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
@@ -1056,6 +1057,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
             tag_ids: List of existing tag IDs to attach (optional).
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
+            attached_by: Who attached the tag, either "ai" or "human" (default: "human").
 
         Returns:
             dict: A dictionary containing the list of attached tag IDs under the key "attached".
@@ -1097,11 +1099,17 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
+                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         if tag_names:
             for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
+                tag_entry = {"tagName": tag_name.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         tags_data = {"tags": tags_list}
 
@@ -1123,6 +1131,7 @@ class KarakeepAPI:
         bookmark_id: str,
         tag_ids: Optional[List[str]] = None,
         tag_names: Optional[List[str]] = None,
+        attached_by: Optional[Literal["ai", "human"]] = "human",
     ) -> Dict[str, Any]:
         """
         Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
@@ -1131,6 +1140,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
             tag_ids: List of existing tag IDs to detach (optional).
             tag_names: List of tag names to detach (optional).
+            attached_by: Who attached the tag, either "ai" or "human" (default: "human").
 
         Returns:
             dict: A dictionary containing the list of detached tag IDs under the key "detached".
@@ -1172,11 +1182,17 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
+                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         if tag_names:
             for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
+                tag_entry = {"tagName": tag_name.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         tags_data = {"tags": tags_list}
 
