@@ -114,7 +114,7 @@ class Bookmark(BaseModel):
     title: Optional[str] = None
     archived: bool
     favourited: bool
-    taggingStatus: Literal["success", "failure", "pending"]
+    taggingStatus: Optional[Literal["success", "failure", "pending"]] = None
     summarizationStatus: Optional[Literal["success", "failure", "pending"]] = None
     note: Optional[str] = None
     summary: Optional[str] = None
