@@ -85,7 +85,7 @@ class KarakeepAPI:
     """
 
     # Version reflects the client library version, updated by bumpver
-    VERSION: str = "1.4.1"
+    VERSION: str = "1.8.0"
 
     def __init__(
         self,
@@ -931,6 +931,38 @@ class KarakeepAPI:
             return datatypes.PaginatedBookmarks.model_validate(response_data)
 
     @optional_typecheck
+    def check_url(
+        self,
+        url: str,
+    ) -> Union[datatypes.CheckUrlResponse, Dict[str, Any], List[Any]]:
+        """
+        Check if a URL is already bookmarked. Corresponds to GET /bookmarks/check-url.
+        Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
+
+        Args:
+            url: The URL to check.
+
+        Returns:
+            datatypes.CheckUrlResponse: Object indicating whether the URL is bookmarked. bookmarkId is null if not found.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        params = {
+            "url": url,
+        }
+        response_data = self._call("GET", "bookmarks/check-url", params=params)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match CheckUrlResponse schema
+            return datatypes.CheckUrlResponse.model_validate(response_data)
+
+    @optional_typecheck
     def get_a_single_bookmark(
         self,
         bookmark_id: str,
@@ -1048,6 +1080,7 @@ class KarakeepAPI:
         bookmark_id: str,
         tag_ids: Optional[List[str]] = None,
         tag_names: Optional[List[str]] = None,
+        attached_by: Optional[Literal["ai", "human"]] = "human",
     ) -> Dict[str, Any]:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
@@ -1056,6 +1089,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
             tag_ids: List of existing tag IDs to attach (optional).
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
+            attached_by: Who attached the tag, either "ai" or "human" (default: "human").
 
         Returns:
             dict: A dictionary containing the list of attached tag IDs under the key "attached".
@@ -1097,11 +1131,17 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
+                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         if tag_names:
             for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
+                tag_entry = {"tagName": tag_name.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         tags_data = {"tags": tags_list}
 
@@ -1123,6 +1163,7 @@ class KarakeepAPI:
         bookmark_id: str,
         tag_ids: Optional[List[str]] = None,
         tag_names: Optional[List[str]] = None,
+        attached_by: Optional[Literal["ai", "human"]] = "human",
     ) -> Dict[str, Any]:
         """
         Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
@@ -1131,6 +1172,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
             tag_ids: List of existing tag IDs to detach (optional).
             tag_names: List of tag names to detach (optional).
+            attached_by: Who attached the tag, either "ai" or "human" (default: "human").
 
         Returns:
             dict: A dictionary containing the list of detached tag IDs under the key "detached".
@@ -1172,11 +1214,17 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
+                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         if tag_names:
             for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
+                tag_entry = {"tagName": tag_name.strip()}
+                if attached_by is not None:
+                    tag_entry["attachedBy"] = attached_by
+                tags_list.append(tag_entry)
 
         tags_data = {"tags": tags_list}
 
@@ -1295,6 +1343,7 @@ class KarakeepAPI:
         asset_id: str,
         asset_type: Literal[
             "screenshot",
+            "pdf",
             "assetScreenshot",
             "bannerImage",
             "fullPageArchive",
@@ -1302,6 +1351,7 @@ class KarakeepAPI:
             "bookmarkAsset",
             "precrawledArchive",
             "userUploaded",
+            "avatar",
             "unknown",
         ],
     ) -> Union[datatypes.BookmarkAsset, Dict[str, Any], List[Any]]:
@@ -1311,9 +1361,9 @@ class KarakeepAPI:
         Args:
             bookmark_id: The ID (string) of the bookmark.
             asset_id: The ID (string) of the asset to attach.
-            asset_type: The type of asset being attached. Must be one of: "screenshot", "assetScreenshot",
+            asset_type: The type of asset being attached. Must be one of: "screenshot", "pdf", "assetScreenshot",
                         "bannerImage", "fullPageArchive", "video", "bookmarkAsset", "precrawledArchive",
-                        "userUploaded", "unknown".
+                        "userUploaded", "avatar", "unknown".
 
         Returns:
             datatypes.BookmarkAsset: The attached asset object.
@@ -2044,7 +2094,7 @@ class KarakeepAPI:
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
         Returns:
-            dict: A dictionary containing user information ('id', 'name', 'email', 'localUser').
+            dict: A dictionary containing user information ('id', 'name', 'email', 'image', 'localUser').
                   Validation is not performed on this response type by default.
 
         Raises:
@@ -2132,7 +2182,7 @@ class KarakeepAPI:
     @optional_typecheck
     def upload_a_new_asset(
         self, file: str
-    ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.UploadedAsset, Dict[str, Any], List[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
@@ -2140,7 +2190,7 @@ class KarakeepAPI:
             file: Path to the file to upload.
 
         Returns:
-            datatypes.Asset: Details about the uploaded asset (assetId, contentType, size, fileName).
+            datatypes.UploadedAsset: Details about the uploaded asset (assetId, contentType, size, fileName).
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -2183,7 +2233,7 @@ class KarakeepAPI:
             return response_data
         else:
             # Response should match Asset schema
-            return datatypes.Asset.model_validate(response_data)
+            return datatypes.UploadedAsset.model_validate(response_data)
 
     @optional_typecheck
     def get_all_backups(
@@ -2430,3 +2480,251 @@ class KarakeepAPI:
 
             logger.error(error_msg)
             raise APIError(error_msg)
+
+    # --- Admin: Job Triggers ---
+
+    @optional_typecheck
+    def admin_trigger_recrawl(
+        self,
+        crawl_status: Literal["success", "failure", "pending", "all"] = "all",
+        run_inference: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Trigger a recrawl of link bookmarks. Admin only.
+        Corresponds to POST /admin/jobs/trigger/recrawl.
+
+        Args:
+            crawl_status: Filter bookmarks by their current crawl status.
+                          Use "failure" to retry only failed crawls. Default: "all".
+            run_inference: Whether to run AI inference after crawling. Default: False.
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        body = {"crawlStatus": crawl_status, "runInference": run_inference}
+        return self._call("POST", "admin/jobs/trigger/recrawl", data=body)
+
+    @optional_typecheck
+    def admin_trigger_reindex(self) -> Dict[str, Any]:
+        """
+        Trigger a reindex of all bookmarks in the search engine. Admin only.
+        Corresponds to POST /admin/jobs/trigger/reindex.
+
+        Clears the existing index and re-queues all bookmarks for indexing.
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        return self._call("POST", "admin/jobs/trigger/reindex")
+
+    @optional_typecheck
+    def admin_trigger_inference(
+        self,
+        type: Literal["tag", "summarize"],
+        status: Literal["success", "failure", "pending", "all"] = "all",
+    ) -> Dict[str, Any]:
+        """
+        Trigger AI inference (tagging or summarization) on bookmarks. Admin only.
+        Corresponds to POST /admin/jobs/trigger/inference.
+
+        Args:
+            type: The type of inference to run: "tag" for AI tagging,
+                  "summarize" for AI summarization.
+            status: Filter bookmarks by their current inference status.
+                    Use "failure" to retry only failed ones. Default: "all".
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        body = {"type": type, "status": status}
+        return self._call("POST", "admin/jobs/trigger/inference", data=body)
+
+    # --- Feeds ---
+
+    @optional_typecheck
+    def get_all_feeds(
+        self,
+    ) -> Union[List[datatypes.Feed], Dict[str, Any], List[Any]]:
+        """
+        Get all RSS feed subscriptions for the current user. Corresponds to GET /feeds.
+
+        Returns:
+            List[datatypes.Feed]: A list of feed objects.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        response_data = self._call("GET", "feeds")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        if (
+            isinstance(response_data, dict)
+            and "feeds" in response_data
+            and isinstance(response_data["feeds"], list)
+        ):
+            return [
+                datatypes.Feed.model_validate(feed) for feed in response_data["feeds"]
+            ]
+        raise APIError(
+            f"Unexpected response format for get_all_feeds when validation is enabled: {response_data}"
+        )
+
+    @optional_typecheck
+    def create_a_new_feed(
+        self,
+        name: str,
+        url: str,
+        enabled: bool = True,
+        import_tags: bool = False,
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Create a new RSS feed subscription. Corresponds to POST /feeds.
+
+        Args:
+            name: Display name for the feed (1-100 characters).
+            url: The RSS feed URL.
+            enabled: Whether the feed is active and will be fetched (default: True).
+            import_tags: Whether to import tags from the feed items (default: False).
+
+        Returns:
+            datatypes.Feed: The created feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 400 quota exceeded).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        feed_data = {
+            "name": name,
+            "url": url,
+            "enabled": enabled,
+            "importTags": import_tags,
+        }
+        response_data = self._call("POST", "feeds", data=feed_data)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def get_a_single_feed(
+        self, feed_id: str
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Get a single RSS feed by its ID. Corresponds to GET /feeds/{feedId}.
+
+        Args:
+            feed_id: The ID (string) of the feed to retrieve.
+
+        Returns:
+            datatypes.Feed: The requested feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        response_data = self._call("GET", f"feeds/{feed_id}")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def update_a_feed(
+        self,
+        feed_id: str,
+        name: Optional[str] = None,
+        url: Optional[str] = None,
+        enabled: Optional[bool] = None,
+        import_tags: Optional[bool] = None,
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Update an RSS feed subscription. Corresponds to PATCH /feeds/{feedId}.
+
+        Args:
+            feed_id: The ID (string) of the feed to update.
+            name: Optional new display name for the feed (1-100 characters).
+            url: Optional new feed URL.
+            enabled: Optional new enabled state.
+            import_tags: Optional new importTags flag.
+
+        Returns:
+            datatypes.Feed: The updated feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            ValueError: If no fields are provided to update.
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        update_data: Dict[str, Any] = {}
+        if name is not None:
+            update_data["name"] = name
+        if url is not None:
+            update_data["url"] = url
+        if enabled is not None:
+            update_data["enabled"] = enabled
+        if import_tags is not None:
+            update_data["importTags"] = import_tags
+
+        if not update_data:
+            raise ValueError("At least one field must be provided to update.")
+
+        response_data = self._call("PATCH", f"feeds/{feed_id}", data=update_data)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def delete_a_feed(self, feed_id: str) -> None:
+        """
+        Delete an RSS feed subscription. Corresponds to DELETE /feeds/{feedId}.
+
+        Previously imported bookmarks are not affected.
+
+        Args:
+            feed_id: The ID (string) of the feed to delete.
+
+        Returns:
+            None: Returns None upon successful deletion (204 No Content).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        self._call("DELETE", f"feeds/{feed_id}")
+        return None
+
+    @optional_typecheck
+    def fetch_a_feed(self, feed_id: str) -> None:
+        """
+        Trigger an immediate fetch of an RSS feed. Corresponds to POST /feeds/{feedId}/fetch.
+
+        The fetch is enqueued and processed asynchronously by the server.
+
+        Args:
+            feed_id: The ID (string) of the feed to fetch.
+
+        Returns:
+            None: Returns None upon successful enqueue (204 No Content).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        self._call("POST", f"feeds/{feed_id}/fetch")
+        return None

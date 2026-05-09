@@ -2,6 +2,7 @@
 **/__pycache__
 .env*
 *.egg-info
+build/
 *author*
 **/*log
 **/*.temp

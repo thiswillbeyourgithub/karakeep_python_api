@@ -7,7 +7,7 @@ with open("README.md", "r") as readme:
 
 setup(
     name="karakeep_python_api",
-    version="1.4.1",
+    version="1.8.0",
     description="Community python client for the Karakeep API.",  # Simplified description
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -16,10 +16,8 @@ setup(
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    license="GPLv3",
     keywords=[
         "rss",
         "karakeep",

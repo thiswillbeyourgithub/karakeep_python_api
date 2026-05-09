@@ -1,6 +1,5 @@
 # Karakeep Python API Client
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/karakeep-python-api.svg)](https://badge.fury.io/py/karakeep-python-api)
 
 A community-developed Python client for the [Karakeep](https://karakeep.app/) API.
@@ -19,7 +18,6 @@ A community-developed Python client for the [Karakeep](https://karakeep.app/) AP
   - [Python Library](#python-library)
 - [Community Scripts](#community-scripts)
 - [Development](#development)
-- [License](#license)
 
 ## Overview
 
@@ -35,6 +33,7 @@ The development process involved:
 
 *   **Experimental Methods:** The included Pytest suite currently only covers a subset of the available API methods (primarily 'get all' endpoints and client initialization). Methods *not* explicitly tested should be considered **experimental**.
 *   **Ongoing Development:** The author intends to improve and validate methods as they are needed for personal use cases. Contributions and bug reports are welcome!
+* **Updating process**: I have local scripts that downloads the latest OpenAPI specs from karakeep's repo. I then visually inspect the diff, stage a few changes into git, then run `aider --read karakeep_python_api/openapi_reference.json karakeep_python_api/karakeep_api.py karakeep_python_api/datatypes.py --message "As you can see from the git diff output, there was a small update to the openapi reference json file. Please update the python code to match this new update. Here is the git output: $(git --no-pager diff --staged) "`.
 
 ## API Method Coverage
 
@@ -247,9 +246,6 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
     pytest
     ```
 
-## License
-
-This project is licensed under the **GNU General Public License v3 (GPLv3)**. See the [LICENSE](LICENSE) file for details.
 
 ---
 

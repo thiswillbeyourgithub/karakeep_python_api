@@ -46,6 +46,7 @@ class ContentTypeLink(BaseModel):
     imageUrl: Optional[str] = None
     imageAssetId: Optional[str] = None
     screenshotAssetId: Optional[str] = None
+    pdfAssetId: Optional[str] = None
     fullPageArchiveAssetId: Optional[str] = None
     precrawledArchiveAssetId: Optional[str] = None
     videoAssetId: Optional[str] = None
@@ -53,6 +54,7 @@ class ContentTypeLink(BaseModel):
     htmlContent: Optional[str] = None
     contentAssetId: Optional[str] = None
     crawledAt: Optional[str] = None
+    crawlStatus: Optional[Literal["success", "failure", "pending"]] = None
     author: Optional[str] = None
     publisher: Optional[str] = None
     datePublished: Optional[str] = None
@@ -84,6 +86,7 @@ class BookmarkAsset(BaseModel):
     assetType: Literal[
         "linkHtmlContent",
         "screenshot",
+        "pdf",
         "assetScreenshot",
         "bannerImage",
         "fullPageArchive",
@@ -91,16 +94,22 @@ class BookmarkAsset(BaseModel):
         "bookmarkAsset",
         "precrawledArchive",
         "userUploaded",
+        "avatar",
         "unknown",
     ]
     fileName: Optional[str] = None
 
 
-class Asset(BaseModel):
+class UploadedAsset(BaseModel):
     assetId: str
     contentType: str
     size: float
     fileName: str
+
+
+# Backwards-compatible alias: the upstream OpenAPI schema was renamed
+# from "Asset" to "UploadedAsset".
+Asset = UploadedAsset
 
 
 class Bookmark(BaseModel):
@@ -110,7 +119,7 @@ class Bookmark(BaseModel):
     title: Optional[str] = None
     archived: bool
     favourited: bool
-    taggingStatus: Literal["success", "failure", "pending"]
+    taggingStatus: Optional[Literal["success", "failure", "pending"]] = None
     summarizationStatus: Optional[Literal["success", "failure", "pending"]] = None
     note: Optional[str] = None
     summary: Optional[str] = None
@@ -130,6 +139,10 @@ class Bookmark(BaseModel):
 class PaginatedBookmarks(BaseModel):
     bookmarks: List[Bookmark]
     nextCursor: Optional[str] = ""
+
+
+class CheckUrlResponse(BaseModel):
+    bookmarkId: Optional[str]
 
 
 class ListModel(BaseModel):
@@ -176,3 +189,14 @@ class Backup(BaseModel):
     bookmarkCount: int
     status: Literal["pending", "success", "failure"]
     errorMessage: Optional[str] = None
+
+
+class Feed(BaseModel):
+    id: str
+    name: str
+    url: str
+    enabled: bool
+    importTags: bool
+    lastFetchedStatus: Optional[Literal["success", "failure", "pending"]]
+    lastFetchedAt: Optional[str]
+    lastSuccessfulFetchAt: Optional[str]
