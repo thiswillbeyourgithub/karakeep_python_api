@@ -1022,4 +1022,62 @@ def test_backup_lifecycle(karakeep_client: KarakeepAPI):
             logger.info("\nNo backup to clean up")
 
 
+def test_feed_lifecycle(karakeep_client: KarakeepAPI):
+    """Smoke-test feed CRUD + fetch trigger.
+
+    Skips gracefully when the server has reached its feed quota or otherwise
+    rejects the create call so this still works against shared instances.
+    """
+    suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    feed_name = f"karakeep-py-test-{suffix}"
+    feed_url = f"https://example.com/test-feed-{suffix}.xml"
+
+    created_id: str = ""
+    try:
+        try:
+            feed = karakeep_client.create_a_new_feed(
+                name=feed_name, url=feed_url, enabled=False
+            )
+        except APIError as e:
+            pytest.skip(f"Could not create feed (quota or server config): {e}")
+
+        assert isinstance(feed, datatypes.Feed)
+        assert feed.id, "Created feed must have an id"
+        assert feed.name == feed_name
+        assert feed.url == feed_url
+        assert feed.enabled is False
+        created_id = feed.id
+
+        # List feeds and ensure ours is present.
+        feeds = karakeep_client.get_all_feeds()
+        assert isinstance(feeds, list)
+        assert any(f.id == created_id for f in feeds), "Created feed not in list"
+
+        # Get single feed.
+        single = karakeep_client.get_a_single_feed(feed_id=created_id)
+        assert isinstance(single, datatypes.Feed)
+        assert single.id == created_id
+
+        # Update name.
+        new_name = feed_name + "-updated"
+        updated = karakeep_client.update_a_feed(feed_id=created_id, name=new_name)
+        assert isinstance(updated, datatypes.Feed)
+        assert updated.name == new_name
+
+        # Trigger a fetch (returns None / 204). Tolerate failure on offline test URLs.
+        try:
+            assert karakeep_client.fetch_a_feed(feed_id=created_id) is None
+        except APIError as e:
+            logger.info(
+                f"  fetch_a_feed returned an error (expected for fake URL): {e}"
+            )
+
+    finally:
+        if created_id:
+            try:
+                karakeep_client.delete_a_feed(feed_id=created_id)
+            except APIError as e:
+                logger.warning(f"  Cleanup: failed to delete feed {created_id}: {e}")
+
+
 # --- End of Tests ---

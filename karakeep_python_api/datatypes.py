@@ -189,3 +189,14 @@ class Backup(BaseModel):
     bookmarkCount: int
     status: Literal["pending", "success", "failure"]
     errorMessage: Optional[str] = None
+
+
+class Feed(BaseModel):
+    id: str
+    name: str
+    url: str
+    enabled: bool
+    importTags: bool
+    lastFetchedStatus: Optional[Literal["success", "failure", "pending"]]
+    lastFetchedAt: Optional[str]
+    lastSuccessfulFetchAt: Optional[str]

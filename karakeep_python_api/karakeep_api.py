@@ -2480,3 +2480,184 @@ class KarakeepAPI:
 
             logger.error(error_msg)
             raise APIError(error_msg)
+
+    # --- Feeds ---
+
+    @optional_typecheck
+    def get_all_feeds(
+        self,
+    ) -> Union[List[datatypes.Feed], Dict[str, Any], List[Any]]:
+        """
+        Get all RSS feed subscriptions for the current user. Corresponds to GET /feeds.
+
+        Returns:
+            List[datatypes.Feed]: A list of feed objects.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        response_data = self._call("GET", "feeds")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        if (
+            isinstance(response_data, dict)
+            and "feeds" in response_data
+            and isinstance(response_data["feeds"], list)
+        ):
+            return [
+                datatypes.Feed.model_validate(feed) for feed in response_data["feeds"]
+            ]
+        raise APIError(
+            f"Unexpected response format for get_all_feeds when validation is enabled: {response_data}"
+        )
+
+    @optional_typecheck
+    def create_a_new_feed(
+        self,
+        name: str,
+        url: str,
+        enabled: bool = True,
+        import_tags: bool = False,
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Create a new RSS feed subscription. Corresponds to POST /feeds.
+
+        Args:
+            name: Display name for the feed (1-100 characters).
+            url: The RSS feed URL.
+            enabled: Whether the feed is active and will be fetched (default: True).
+            import_tags: Whether to import tags from the feed items (default: False).
+
+        Returns:
+            datatypes.Feed: The created feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 400 quota exceeded).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        feed_data = {
+            "name": name,
+            "url": url,
+            "enabled": enabled,
+            "importTags": import_tags,
+        }
+        response_data = self._call("POST", "feeds", data=feed_data)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def get_a_single_feed(
+        self, feed_id: str
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Get a single RSS feed by its ID. Corresponds to GET /feeds/{feedId}.
+
+        Args:
+            feed_id: The ID (string) of the feed to retrieve.
+
+        Returns:
+            datatypes.Feed: The requested feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        response_data = self._call("GET", f"feeds/{feed_id}")
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def update_a_feed(
+        self,
+        feed_id: str,
+        name: Optional[str] = None,
+        url: Optional[str] = None,
+        enabled: Optional[bool] = None,
+        import_tags: Optional[bool] = None,
+    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+        """
+        Update an RSS feed subscription. Corresponds to PATCH /feeds/{feedId}.
+
+        Args:
+            feed_id: The ID (string) of the feed to update.
+            name: Optional new display name for the feed (1-100 characters).
+            url: Optional new feed URL.
+            enabled: Optional new enabled state.
+            import_tags: Optional new importTags flag.
+
+        Returns:
+            datatypes.Feed: The updated feed object.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            ValueError: If no fields are provided to update.
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        update_data: Dict[str, Any] = {}
+        if name is not None:
+            update_data["name"] = name
+        if url is not None:
+            update_data["url"] = url
+        if enabled is not None:
+            update_data["enabled"] = enabled
+        if import_tags is not None:
+            update_data["importTags"] = import_tags
+
+        if not update_data:
+            raise ValueError("At least one field must be provided to update.")
+
+        response_data = self._call("PATCH", f"feeds/{feed_id}", data=update_data)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        return datatypes.Feed.model_validate(response_data)
+
+    @optional_typecheck
+    def delete_a_feed(self, feed_id: str) -> None:
+        """
+        Delete an RSS feed subscription. Corresponds to DELETE /feeds/{feedId}.
+
+        Previously imported bookmarks are not affected.
+
+        Args:
+            feed_id: The ID (string) of the feed to delete.
+
+        Returns:
+            None: Returns None upon successful deletion (204 No Content).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        self._call("DELETE", f"feeds/{feed_id}")
+        return None
+
+    @optional_typecheck
+    def fetch_a_feed(self, feed_id: str) -> None:
+        """
+        Trigger an immediate fetch of an RSS feed. Corresponds to POST /feeds/{feedId}/fetch.
+
+        The fetch is enqueued and processed asynchronously by the server.
+
+        Args:
+            feed_id: The ID (string) of the feed to fetch.
+
+        Returns:
+            None: Returns None upon successful enqueue (204 No Content).
+
+        Raises:
+            APIError: If the API request fails (e.g., 404 feed not found).
+        """
+        self._call("POST", f"feeds/{feed_id}/fetch")
+        return None
