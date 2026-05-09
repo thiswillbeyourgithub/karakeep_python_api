@@ -100,11 +100,16 @@ class BookmarkAsset(BaseModel):
     fileName: Optional[str] = None
 
 
-class Asset(BaseModel):
+class UploadedAsset(BaseModel):
     assetId: str
     contentType: str
     size: float
     fileName: str
+
+
+# Backwards-compatible alias: the upstream OpenAPI schema was renamed
+# from "Asset" to "UploadedAsset".
+Asset = UploadedAsset
 
 
 class Bookmark(BaseModel):

@@ -2182,7 +2182,7 @@ class KarakeepAPI:
     @optional_typecheck
     def upload_a_new_asset(
         self, file: str
-    ) -> Union[datatypes.Asset, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.UploadedAsset, Dict[str, Any], List[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
@@ -2190,7 +2190,7 @@ class KarakeepAPI:
             file: Path to the file to upload.
 
         Returns:
-            datatypes.Asset: Details about the uploaded asset (assetId, contentType, size, fileName).
+            datatypes.UploadedAsset: Details about the uploaded asset (assetId, contentType, size, fileName).
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -2233,7 +2233,7 @@ class KarakeepAPI:
             return response_data
         else:
             # Response should match Asset schema
-            return datatypes.Asset.model_validate(response_data)
+            return datatypes.UploadedAsset.model_validate(response_data)
 
     @optional_typecheck
     def get_all_backups(

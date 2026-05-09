@@ -3,8 +3,42 @@
   "info": {
     "version": "1.0.0",
     "title": "Karakeep API",
-    "description": "The API for the Karakeep app"
+    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, feeds, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
   },
+  "tags": [
+    {
+      "name": "Bookmarks",
+      "description": "Manage bookmarks — create, retrieve, update, delete, search, and organize bookmarks with tags, lists, highlights, and assets."
+    },
+    {
+      "name": "Lists",
+      "description": "Manage bookmark lists. Lists can be manual (curated) or smart (query-based). Bookmarks can belong to multiple lists."
+    },
+    {
+      "name": "Tags",
+      "description": "Manage tags for categorizing bookmarks. Tags can be attached by users or automatically by AI."
+    },
+    {
+      "name": "Highlights",
+      "description": "Manage text highlights within bookmarks. Highlights support color coding and optional notes."
+    },
+    {
+      "name": "Assets",
+      "description": "Upload and retrieve binary assets (images, PDFs, screenshots) associated with bookmarks."
+    },
+    {
+      "name": "Users",
+      "description": "Retrieve information and statistics about the currently authenticated user."
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative endpoints for managing users. Requires admin role."
+    },
+    {
+      "name": "Backups",
+      "description": "Create and manage full account backups as downloadable zip archives."
+    }
+  ],
   "servers": [
     {
       "url": "{address}/api/v1",
@@ -27,27 +61,53 @@
     "schemas": {
       "BookmarkId": {
         "type": "string",
+        "description": "The unique identifier of the bookmark.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "ListId": {
         "type": "string",
+        "description": "The unique identifier of the list.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "TagId": {
         "type": "string",
+        "description": "The unique identifier of the tag.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "HighlightId": {
         "type": "string",
+        "description": "The unique identifier of the highlight.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "AssetId": {
         "type": "string",
+        "description": "The unique identifier of the asset.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "BackupId": {
         "type": "string",
+        "description": "The unique identifier of the backup.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "PaginatedBookmarks": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
       },
       "Bookmark": {
         "type": "object",
@@ -56,11 +116,13 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "modifiedAt": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "format": "date-time"
           },
           "title": {
             "type": "string",
@@ -78,7 +140,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "summarizationStatus": {
@@ -87,7 +150,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "note": {
@@ -109,7 +173,8 @@
               "extension",
               "singlefile",
               "rss",
-              "import"
+              "import",
+              null
             ]
           },
           "userId": {
@@ -205,7 +270,8 @@
                   },
                   "crawledAt": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "crawlStatus": {
                     "type": "string",
@@ -213,7 +279,8 @@
                     "enum": [
                       "success",
                       "failure",
-                      "pending"
+                      "pending",
+                      null
                     ]
                   },
                   "author": {
@@ -226,11 +293,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -369,27 +438,26 @@
           "assets"
         ]
       },
-      "PaginatedBookmarks": {
+      "Cursor": {
+        "type": "string",
+        "description": "Cursor from a previous response to fetch the next page."
+      },
+      "Error": {
         "type": "object",
         "properties": {
-          "bookmarks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Bookmark"
-            }
-          },
-          "nextCursor": {
+          "code": {
             "type": "string",
-            "nullable": true
+            "description": "A machine-readable error code."
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable error message."
           }
         },
         "required": [
-          "bookmarks",
-          "nextCursor"
+          "code",
+          "message"
         ]
-      },
-      "Cursor": {
-        "type": "string"
       },
       "List": {
         "type": "object",
@@ -486,7 +554,8 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -542,7 +611,8 @@
           },
           "nextCursor": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
           }
         },
         "required": [
@@ -550,20 +620,24 @@
           "nextCursor"
         ]
       },
-      "Asset": {
+      "UploadedAsset": {
         "type": "object",
         "properties": {
           "assetId": {
-            "type": "string"
+            "type": "string",
+            "description": "The unique identifier assigned to the uploaded asset."
           },
           "contentType": {
-            "type": "string"
+            "type": "string",
+            "description": "The MIME type of the uploaded file."
           },
           "size": {
-            "type": "number"
+            "type": "number",
+            "description": "The size of the uploaded file in bytes."
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "The original file name of the uploaded file."
           }
         },
         "required": [
@@ -572,8 +646,7 @@
           "size",
           "fileName"
         ]
-      },
-      "File to be uploaded": {}
+      }
     },
     "parameters": {
       "BookmarkId": {
@@ -581,6 +654,7 @@
           "$ref": "#/components/schemas/BookmarkId"
         },
         "required": true,
+        "description": "The unique identifier of the bookmark.",
         "name": "bookmarkId",
         "in": "path"
       },
@@ -589,6 +663,7 @@
           "$ref": "#/components/schemas/ListId"
         },
         "required": true,
+        "description": "The unique identifier of the list.",
         "name": "listId",
         "in": "path"
       },
@@ -597,6 +672,7 @@
           "$ref": "#/components/schemas/TagId"
         },
         "required": true,
+        "description": "The unique identifier of the tag.",
         "name": "tagId",
         "in": "path"
       },
@@ -605,6 +681,7 @@
           "$ref": "#/components/schemas/HighlightId"
         },
         "required": true,
+        "description": "The unique identifier of the highlight.",
         "name": "highlightId",
         "in": "path"
       },
@@ -613,6 +690,7 @@
           "$ref": "#/components/schemas/AssetId"
         },
         "required": true,
+        "description": "The unique identifier of the asset.",
         "name": "assetId",
         "in": "path"
       },
@@ -621,6 +699,7 @@
           "$ref": "#/components/schemas/BackupId"
         },
         "required": true,
+        "description": "The unique identifier of the backup.",
         "name": "backupId",
         "in": "path"
       }
@@ -629,7 +708,8 @@
   "paths": {
     "/bookmarks": {
       "get": {
-        "description": "Get all bookmarks",
+        "operationId": "listBookmarks",
+        "description": "Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by date.",
         "summary": "Get all bookmarks",
         "tags": [
           "Bookmarks"
@@ -642,17 +722,21 @@
         "parameters": [
           {
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "Filter by archived status."
             },
             "required": false,
+            "description": "Filter by archived status.",
             "name": "archived",
             "in": "query"
           },
           {
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "Filter by favourited status."
             },
             "required": false,
+            "description": "Filter by favourited status.",
             "name": "favourited",
             "in": "query"
           },
@@ -663,17 +747,21 @@
                 "asc",
                 "desc"
               ],
-              "default": "desc"
+              "default": "desc",
+              "description": "Sort order by creation date. Defaults to 'desc'."
             },
             "required": false,
+            "description": "Sort order by creation date. Defaults to 'desc'.",
             "name": "sortOrder",
             "in": "query"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Maximum number of items to return per page."
             },
             "required": false,
+            "description": "Maximum number of items to return per page.",
             "name": "limit",
             "in": "query"
           },
@@ -682,24 +770,25 @@
               "$ref": "#/components/schemas/Cursor"
             },
             "required": false,
+            "description": "Cursor from a previous response to fetch the next page.",
             "name": "cursor",
             "in": "query"
           },
           {
             "schema": {
               "type": "boolean",
-              "default": true,
-              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+              "default": false,
+              "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed."
             },
             "required": false,
-            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed.",
             "name": "includeContent",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with all bookmarks data.",
+            "description": "A paginated list of bookmarks.",
             "content": {
               "application/json": {
                 "schema": {
@@ -707,11 +796,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "description": "Create a new bookmark",
+        "operationId": "createBookmark",
+        "description": "Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.",
         "summary": "Create a new bookmark",
         "tags": [
           "Bookmarks"
@@ -722,7 +823,7 @@
           }
         ],
         "requestBody": {
-          "description": "The bookmark to create",
+          "description": "The bookmark to create.",
           "content": {
             "application/json": {
               "schema": {
@@ -749,7 +850,7 @@
                       },
                       "createdAt": {
                         "type": "string",
-                        "nullable": true
+                        "format": "date-time"
                       },
                       "crawlPriority": {
                         "type": "string",
@@ -862,7 +963,7 @@
         },
         "responses": {
           "200": {
-            "description": "The bookmark already exists",
+            "description": "A bookmark with this URL already exists. The existing bookmark is returned.",
             "content": {
               "application/json": {
                 "schema": {
@@ -872,7 +973,7 @@
             }
           },
           "201": {
-            "description": "The bookmark got created",
+            "description": "The bookmark was created successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -882,23 +983,22 @@
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Bad request — invalid input data.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
@@ -908,7 +1008,8 @@
     },
     "/bookmarks/search": {
       "get": {
-        "description": "Search bookmarks",
+        "operationId": "searchBookmarks",
+        "description": "Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. Results default to relevance sorting.",
         "summary": "Search bookmarks",
         "tags": [
           "Bookmarks"
@@ -921,9 +1022,11 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "The search query string."
             },
             "required": true,
+            "description": "The search query string.",
             "name": "q",
             "in": "query"
           },
@@ -935,17 +1038,21 @@
                 "desc",
                 "relevance"
               ],
-              "default": "relevance"
+              "default": "relevance",
+              "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting."
             },
             "required": false,
+            "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting.",
             "name": "sortOrder",
             "in": "query"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Maximum number of items to return per page."
             },
             "required": false,
+            "description": "Maximum number of items to return per page.",
             "name": "limit",
             "in": "query"
           },
@@ -954,28 +1061,40 @@
               "$ref": "#/components/schemas/Cursor"
             },
             "required": false,
+            "description": "Cursor from a previous response to fetch the next page.",
             "name": "cursor",
             "in": "query"
           },
           {
             "schema": {
               "type": "boolean",
-              "default": true,
-              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+              "default": false,
+              "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed."
             },
             "required": false,
-            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed.",
             "name": "includeContent",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with the search results.",
+            "description": "A paginated list of bookmarks matching the search query.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PaginatedBookmarks"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
@@ -985,6 +1104,7 @@
     },
     "/bookmarks/check-url": {
       "get": {
+        "operationId": "checkBookmarkUrl",
         "description": "Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.",
         "summary": "Check if a URL exists in bookmarks",
         "tags": [
@@ -998,16 +1118,18 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "The URL to check against existing bookmarks."
             },
             "required": true,
+            "description": "The URL to check against existing bookmarks.",
             "name": "url",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object indicating whether the URL is bookmarked. bookmarkId is null if not found.",
+            "description": "Object indicating whether the URL is bookmarked. `bookmarkId` is `null` if not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1015,12 +1137,24 @@
                   "properties": {
                     "bookmarkId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "The ID of the existing bookmark, or null if the URL is not bookmarked."
                     }
                   },
                   "required": [
                     "bookmarkId"
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
@@ -1030,7 +1164,8 @@
     },
     "/bookmarks/{bookmarkId}": {
       "get": {
-        "description": "Get bookmark by its id",
+        "operationId": "getBookmark",
+        "description": "Retrieve a single bookmark by its ID, including its tags, content, and assets.",
         "summary": "Get a single bookmark",
         "tags": [
           "Bookmarks"
@@ -1047,18 +1182,18 @@
           {
             "schema": {
               "type": "boolean",
-              "default": true,
-              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+              "default": false,
+              "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed."
             },
             "required": false,
-            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed.",
             "name": "includeContent",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with bookmark data.",
+            "description": "The requested bookmark.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1067,24 +1202,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1092,7 +1226,8 @@
         }
       },
       "delete": {
-        "description": "Delete bookmark by its id",
+        "operationId": "deleteBookmark",
+        "description": "Permanently delete a bookmark and all its associated data (tags, highlights, assets).",
         "summary": "Delete a bookmark",
         "tags": [
           "Bookmarks"
@@ -1109,26 +1244,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the bookmark was deleted"
+            "description": "No content — the bookmark was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1136,7 +1270,8 @@
         }
       },
       "patch": {
-        "description": "Update bookmark by its id",
+        "operationId": "updateBookmark",
+        "description": "Partially update a bookmark. Only the fields provided in the request body will be updated. Supports updating common fields (title, note, archived, favourited) as well as type-specific fields.",
         "summary": "Update a bookmark",
         "tags": [
           "Bookmarks"
@@ -1152,7 +1287,7 @@
           }
         ],
         "requestBody": {
-          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "description": "The fields to update. Only the fields you want to change need to be provided.",
           "content": {
             "application/json": {
               "schema": {
@@ -1178,7 +1313,7 @@
                   },
                   "createdAt": {
                     "type": "string",
-                    "nullable": true
+                    "format": "date-time"
                   },
                   "url": {
                     "type": "string",
@@ -1198,11 +1333,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "text": {
                     "type": "string",
@@ -1219,7 +1356,7 @@
         },
         "responses": {
           "200": {
-            "description": "The updated bookmark",
+            "description": "The updated bookmark.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1229,11 +1366,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1251,7 +1390,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1260,7 +1400,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1282,7 +1423,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1303,24 +1445,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1330,7 +1471,8 @@
     },
     "/bookmarks/{bookmarkId}/summarize": {
       "post": {
-        "description": "Attaches a summary to the bookmark and returns the updated record.",
+        "operationId": "summarizeBookmark",
+        "description": "Trigger AI summarization for a bookmark. The summary is generated asynchronously and attached to the bookmark. Returns the updated bookmark record.",
         "summary": "Summarize a bookmark",
         "tags": [
           "Bookmarks"
@@ -1347,7 +1489,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The updated bookmark with summary",
+            "description": "The bookmark with the updated summary.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1357,11 +1499,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1379,7 +1523,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1388,7 +1533,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1410,7 +1556,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1431,24 +1578,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1458,7 +1604,8 @@
     },
     "/bookmarks/{bookmarkId}/tags": {
       "post": {
-        "description": "Attach tags to a bookmark",
+        "operationId": "attachTagsToBookmark",
+        "description": "Attach one or more tags to a bookmark. Tags can be identified by ID or name. If a tag name is provided and the tag doesn't exist, it will be created automatically.",
         "summary": "Attach tags to a bookmark",
         "tags": [
           "Bookmarks"
@@ -1474,7 +1621,7 @@
           }
         ],
         "requestBody": {
-          "description": "The tags to attach.",
+          "description": "The tags to attach. Each tag must have either a `tagId` or a `tagName`.",
           "content": {
             "application/json": {
               "schema": {
@@ -1512,7 +1659,7 @@
         },
         "responses": {
           "200": {
-            "description": "The list of attached tag ids",
+            "description": "The IDs of the tags that were attached.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1532,24 +1679,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1557,7 +1703,8 @@
         }
       },
       "delete": {
-        "description": "Detach tags from a bookmark",
+        "operationId": "detachTagsFromBookmark",
+        "description": "Detach one or more tags from a bookmark. Tags can be identified by ID or name.",
         "summary": "Detach tags from a bookmark",
         "tags": [
           "Bookmarks"
@@ -1573,7 +1720,7 @@
           }
         ],
         "requestBody": {
-          "description": "The tags to detach.",
+          "description": "The tags to detach. Each tag must have either a `tagId` or a `tagName`.",
           "content": {
             "application/json": {
               "schema": {
@@ -1611,7 +1758,7 @@
         },
         "responses": {
           "200": {
-            "description": "The list of detached tag ids",
+            "description": "The IDs of the tags that were detached.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1631,24 +1778,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1658,7 +1804,8 @@
     },
     "/bookmarks/{bookmarkId}/lists": {
       "get": {
-        "description": "Get lists of a bookmark",
+        "operationId": "getBookmarkLists",
+        "description": "Retrieve all lists that contain the specified bookmark.",
         "summary": "Get lists of a bookmark",
         "tags": [
           "Bookmarks"
@@ -1675,7 +1822,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The list of highlights",
+            "description": "The lists that contain this bookmark.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1695,24 +1842,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1722,7 +1868,8 @@
     },
     "/bookmarks/{bookmarkId}/highlights": {
       "get": {
-        "description": "Get highlights of a bookmark",
+        "operationId": "getBookmarkHighlights",
+        "description": "Retrieve all text highlights within the specified bookmark.",
         "summary": "Get highlights of a bookmark",
         "tags": [
           "Bookmarks"
@@ -1739,7 +1886,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The list of highlights",
+            "description": "The highlights within this bookmark.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1759,24 +1906,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1786,8 +1932,9 @@
     },
     "/bookmarks/{bookmarkId}/assets": {
       "post": {
-        "description": "Attach a new asset to a bookmark",
-        "summary": "Attach asset",
+        "operationId": "attachAssetToBookmark",
+        "description": "Attach a previously uploaded asset to a bookmark. The asset must be uploaded first via the POST /assets endpoint.",
+        "summary": "Attach asset to a bookmark",
         "tags": [
           "Bookmarks"
         ],
@@ -1802,14 +1949,15 @@
           }
         ],
         "requestBody": {
-          "description": "The asset to attach",
+          "description": "The asset ID and type to attach.",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The ID of the previously uploaded asset."
                   },
                   "assetType": {
                     "type": "string",
@@ -1826,7 +1974,8 @@
                       "userUploaded",
                       "avatar",
                       "unknown"
-                    ]
+                    ],
+                    "description": "The type classification for this asset."
                   }
                 },
                 "required": [
@@ -1839,7 +1988,7 @@
         },
         "responses": {
           "201": {
-            "description": "The attached asset",
+            "description": "The asset was attached successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1878,24 +2027,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1905,8 +2053,9 @@
     },
     "/bookmarks/{bookmarkId}/assets/{assetId}": {
       "put": {
-        "description": "Replace an existing asset with a new one",
-        "summary": "Replace asset",
+        "operationId": "replaceAssetOnBookmark",
+        "description": "Replace an existing asset on a bookmark with a different previously uploaded asset.",
+        "summary": "Replace asset on a bookmark",
         "tags": [
           "Bookmarks"
         ],
@@ -1924,14 +2073,15 @@
           }
         ],
         "requestBody": {
-          "description": "The new asset to replace with",
+          "description": "The ID of the new asset to replace the existing one.",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "assetId": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The ID of the new asset to use as a replacement."
                   }
                 },
                 "required": [
@@ -1943,26 +2093,25 @@
         },
         "responses": {
           "204": {
-            "description": "No content - asset was replaced successfully"
+            "description": "No content — asset was replaced successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark or asset not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1970,8 +2119,9 @@
         }
       },
       "delete": {
-        "description": "Detach an asset from a bookmark",
-        "summary": "Detach asset",
+        "operationId": "detachAssetFromBookmark",
+        "description": "Detach an asset from a bookmark.",
+        "summary": "Detach asset from a bookmark",
         "tags": [
           "Bookmarks"
         ],
@@ -1990,26 +2140,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - asset was detached successfully"
+            "description": "No content — asset was detached successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark or asset not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2019,7 +2168,8 @@
     },
     "/lists": {
       "get": {
-        "description": "Get all lists",
+        "operationId": "listLists",
+        "description": "Retrieve all bookmark lists for the authenticated user, including both manual and smart lists.",
         "summary": "Get all lists",
         "tags": [
           "Lists"
@@ -2031,7 +2181,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with all lists data.",
+            "description": "All lists owned by or shared with the current user.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2050,11 +2200,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "description": "Create a new list",
+        "operationId": "createList",
+        "description": "Create a new bookmark list. Lists can be manual (bookmarks are added explicitly) or smart (bookmarks are matched automatically by a search query).",
         "summary": "Create a new list",
         "tags": [
           "Lists"
@@ -2065,7 +2227,7 @@
           }
         ],
         "requestBody": {
-          "description": "The list to create",
+          "description": "The list to create. For smart lists, a `query` field is required. For manual lists, `query` must not be set.",
           "content": {
             "application/json": {
               "schema": {
@@ -2111,7 +2273,7 @@
         },
         "responses": {
           "201": {
-            "description": "The created list",
+            "description": "The created list.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2121,23 +2283,22 @@
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Bad request — invalid input data (e.g., smart list missing query, or manual list with a query).",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
@@ -2147,7 +2308,8 @@
     },
     "/lists/{listId}": {
       "get": {
-        "description": "Get list by its id",
+        "operationId": "getList",
+        "description": "Retrieve a single list by its ID.",
         "summary": "Get a single list",
         "tags": [
           "Lists"
@@ -2164,7 +2326,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with list data.",
+            "description": "The requested list.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2173,24 +2335,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "List not found",
+            "description": "List not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2198,7 +2359,8 @@
         }
       },
       "delete": {
-        "description": "Delete list by its id",
+        "operationId": "deleteList",
+        "description": "Delete a list. This removes the list only — bookmarks within it are not deleted.",
         "summary": "Delete a list",
         "tags": [
           "Lists"
@@ -2215,26 +2377,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the bookmark was deleted"
+            "description": "No content — the list was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "List not found",
+            "description": "List not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2242,7 +2403,8 @@
         }
       },
       "patch": {
-        "description": "Update list by its id",
+        "operationId": "updateList",
+        "description": "Partially update a list. Only the fields provided in the request body will be updated.",
         "summary": "Update a list",
         "tags": [
           "Lists"
@@ -2258,7 +2420,7 @@
           }
         ],
         "requestBody": {
-          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "description": "The fields to update. Only the fields you want to change need to be provided.",
           "content": {
             "application/json": {
               "schema": {
@@ -2296,7 +2458,7 @@
         },
         "responses": {
           "200": {
-            "description": "The updated list",
+            "description": "The updated list.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2305,24 +2467,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "List not found",
+            "description": "List not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2332,8 +2493,9 @@
     },
     "/lists/{listId}/bookmarks": {
       "get": {
-        "description": "Get bookmarks in the list",
-        "summary": "Get bookmarks in the list",
+        "operationId": "getListBookmarks",
+        "description": "Retrieve a paginated list of bookmarks within the specified list. For smart lists, bookmarks are computed from the list's query.",
+        "summary": "Get bookmarks in a list",
         "tags": [
           "Lists"
         ],
@@ -2353,17 +2515,21 @@
                 "asc",
                 "desc"
               ],
-              "default": "desc"
+              "default": "desc",
+              "description": "Sort order by creation date. Defaults to 'desc'."
             },
             "required": false,
+            "description": "Sort order by creation date. Defaults to 'desc'.",
             "name": "sortOrder",
             "in": "query"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Maximum number of items to return per page."
             },
             "required": false,
+            "description": "Maximum number of items to return per page.",
             "name": "limit",
             "in": "query"
           },
@@ -2372,24 +2538,25 @@
               "$ref": "#/components/schemas/Cursor"
             },
             "required": false,
+            "description": "Cursor from a previous response to fetch the next page.",
             "name": "cursor",
             "in": "query"
           },
           {
             "schema": {
               "type": "boolean",
-              "default": true,
-              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+              "default": false,
+              "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed."
             },
             "required": false,
-            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed.",
             "name": "includeContent",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with list data.",
+            "description": "A paginated list of bookmarks in the specified list.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2398,24 +2565,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "List not found",
+            "description": "List not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2425,7 +2591,8 @@
     },
     "/lists/{listId}/bookmarks/{bookmarkId}": {
       "put": {
-        "description": "Add the bookmarks to a list",
+        "operationId": "addBookmarkToList",
+        "description": "Add a bookmark to a manual list. This operation is idempotent — adding an already-present bookmark has no effect.",
         "summary": "Add a bookmark to a list",
         "tags": [
           "Lists"
@@ -2445,26 +2612,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the bookmark was added"
+            "description": "No content — the bookmark was added to the list successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "List or bookmark not found",
+            "description": "List or bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2472,7 +2638,8 @@
         }
       },
       "delete": {
-        "description": "Remove the bookmarks from a list",
+        "operationId": "removeBookmarkFromList",
+        "description": "Remove a bookmark from a manual list.",
         "summary": "Remove a bookmark from a list",
         "tags": [
           "Lists"
@@ -2492,48 +2659,35 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the bookmark was added"
+            "description": "No content — the bookmark was removed from the list successfully."
           },
           "400": {
-            "description": "Bookmark already not in list",
+            "description": "Bookmark is not in the list.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
           },
           "404": {
-            "description": "List or bookmark not found",
+            "description": "List or bookmark not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2543,7 +2697,8 @@
     },
     "/tags": {
       "get": {
-        "description": "Get all tags",
+        "operationId": "listTags",
+        "description": "Retrieve a paginated list of all tags. Supports filtering by name, attached-by source, and sorting by name, usage count, or relevance.",
         "summary": "Get all tags",
         "tags": [
           "Tags"
@@ -2609,7 +2764,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with all tags data.",
+            "description": "A paginated list of tags with usage counts.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2623,7 +2778,8 @@
                     },
                     "nextCursor": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "Cursor for the next page, or null if no more results."
                     }
                   },
                   "required": [
@@ -2633,11 +2789,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "description": "Create a new tag",
+        "operationId": "createTag",
+        "description": "Create a new tag. Tag names are normalized (trimmed and converted to the user's preferred tag style).",
         "summary": "Create a new tag",
         "tags": [
           "Tags"
@@ -2648,7 +2816,7 @@
           }
         ],
         "requestBody": {
-          "description": "The data to create the tag with.",
+          "description": "The tag name to create.",
           "content": {
             "application/json": {
               "schema": {
@@ -2667,7 +2835,7 @@
         },
         "responses": {
           "201": {
-            "description": "The created tag",
+            "description": "The created tag.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2687,13 +2855,25 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       }
     },
     "/tags/{tagId}": {
       "get": {
-        "description": "Get tag by its id",
+        "operationId": "getTag",
+        "description": "Retrieve a single tag by its ID, including the number of bookmarks using it.",
         "summary": "Get a single tag",
         "tags": [
           "Tags"
@@ -2710,7 +2890,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with list data.",
+            "description": "The requested tag with usage statistics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2719,24 +2899,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Tag not found",
+            "description": "Tag not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2744,7 +2923,8 @@
         }
       },
       "delete": {
-        "description": "Delete tag by its id",
+        "operationId": "deleteTag",
+        "description": "Delete a tag. This removes the tag from all bookmarks it was attached to.",
         "summary": "Delete a tag",
         "tags": [
           "Tags"
@@ -2761,26 +2941,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the bookmark was deleted"
+            "description": "No content — the tag was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Tag not found",
+            "description": "Tag not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2788,7 +2967,8 @@
         }
       },
       "patch": {
-        "description": "Update tag by its id",
+        "operationId": "updateTag",
+        "description": "Rename a tag. The new name will be normalized and trimmed.",
         "summary": "Update a tag",
         "tags": [
           "Tags"
@@ -2804,7 +2984,7 @@
           }
         ],
         "requestBody": {
-          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "description": "The new tag name.",
           "content": {
             "application/json": {
               "schema": {
@@ -2820,7 +3000,7 @@
         },
         "responses": {
           "200": {
-            "description": "The updated tag",
+            "description": "The updated tag.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2841,24 +3021,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Tag not found",
+            "description": "Tag not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2868,8 +3047,9 @@
     },
     "/tags/{tagId}/bookmarks": {
       "get": {
-        "description": "Get bookmarks with the tag",
-        "summary": "Get bookmarks with the tag",
+        "operationId": "getTagBookmarks",
+        "description": "Retrieve a paginated list of all bookmarks that have the specified tag attached.",
+        "summary": "Get bookmarks with a tag",
         "tags": [
           "Tags"
         ],
@@ -2889,17 +3069,21 @@
                 "asc",
                 "desc"
               ],
-              "default": "desc"
+              "default": "desc",
+              "description": "Sort order by creation date. Defaults to 'desc'."
             },
             "required": false,
+            "description": "Sort order by creation date. Defaults to 'desc'.",
             "name": "sortOrder",
             "in": "query"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Maximum number of items to return per page."
             },
             "required": false,
+            "description": "Maximum number of items to return per page.",
             "name": "limit",
             "in": "query"
           },
@@ -2908,24 +3092,25 @@
               "$ref": "#/components/schemas/Cursor"
             },
             "required": false,
+            "description": "Cursor from a previous response to fetch the next page.",
             "name": "cursor",
             "in": "query"
           },
           {
             "schema": {
               "type": "boolean",
-              "default": true,
-              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+              "default": false,
+              "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed."
             },
             "required": false,
-            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "description": "If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed.",
             "name": "includeContent",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with list data.",
+            "description": "A paginated list of bookmarks that have the specified tag.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2934,24 +3119,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Tag not found",
+            "description": "Tag not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -2961,7 +3145,8 @@
     },
     "/highlights": {
       "get": {
-        "description": "Get all highlights",
+        "operationId": "listHighlights",
+        "description": "Retrieve a paginated list of all highlights across all bookmarks for the authenticated user.",
         "summary": "Get all highlights",
         "tags": [
           "Highlights"
@@ -2974,9 +3159,11 @@
         "parameters": [
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Maximum number of items to return per page."
             },
             "required": false,
+            "description": "Maximum number of items to return per page.",
             "name": "limit",
             "in": "query"
           },
@@ -2985,13 +3172,14 @@
               "$ref": "#/components/schemas/Cursor"
             },
             "required": false,
+            "description": "Cursor from a previous response to fetch the next page.",
             "name": "cursor",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Object with all highlights data.",
+            "description": "A paginated list of highlights.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2999,11 +3187,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "description": "Create a new highlight",
+        "operationId": "createHighlight",
+        "description": "Create a new text highlight on a bookmark. Highlights are defined by character offsets within the bookmark's content and support color coding.",
         "summary": "Create a new highlight",
         "tags": [
           "Highlights"
@@ -3014,7 +3214,7 @@
           }
         ],
         "requestBody": {
-          "description": "The highlight to create",
+          "description": "The highlight to create, including the bookmark ID, text offsets, and optional color/note.",
           "content": {
             "application/json": {
               "schema": {
@@ -3061,7 +3261,7 @@
         },
         "responses": {
           "201": {
-            "description": "The created highlight",
+            "description": "The created highlight.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3071,45 +3271,32 @@
             }
           },
           "400": {
-            "description": "Bad highlight request",
+            "description": "Bad request — invalid offsets or missing required fields.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
           },
           "404": {
-            "description": "Bookmark not found",
+            "description": "Bookmark not found — the specified bookmarkId does not exist.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3119,7 +3306,8 @@
     },
     "/highlights/{highlightId}": {
       "get": {
-        "description": "Get highlight by its id",
+        "operationId": "getHighlight",
+        "description": "Retrieve a single highlight by its ID.",
         "summary": "Get a single highlight",
         "tags": [
           "Highlights"
@@ -3136,7 +3324,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with highlight data.",
+            "description": "The requested highlight.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3145,24 +3333,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Highlight not found",
+            "description": "Highlight not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3170,7 +3357,8 @@
         }
       },
       "delete": {
-        "description": "Delete highlight by its id",
+        "operationId": "deleteHighlight",
+        "description": "Delete a highlight by its ID.",
         "summary": "Delete a highlight",
         "tags": [
           "Highlights"
@@ -3187,7 +3375,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The deleted highlight",
+            "description": "The deleted highlight is returned.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3196,24 +3384,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Highlight not found",
+            "description": "Highlight not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3221,7 +3408,8 @@
         }
       },
       "patch": {
-        "description": "Update highlight by its id",
+        "operationId": "updateHighlight",
+        "description": "Partially update a highlight. Supports changing the color or note.",
         "summary": "Update a highlight",
         "tags": [
           "Highlights"
@@ -3237,7 +3425,7 @@
           }
         ],
         "requestBody": {
-          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "description": "The fields to update. Only the fields you want to change need to be provided.",
           "content": {
             "application/json": {
               "schema": {
@@ -3263,7 +3451,7 @@
         },
         "responses": {
           "200": {
-            "description": "The updated highlight",
+            "description": "The updated highlight.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3272,24 +3460,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Highlight not found",
+            "description": "Highlight not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3299,7 +3486,8 @@
     },
     "/users/me": {
       "get": {
-        "description": "Returns info about the current user",
+        "operationId": "getCurrentUser",
+        "description": "Retrieve profile information for the currently authenticated user, including their name, email, and avatar.",
         "summary": "Get current user info",
         "tags": [
           "Users"
@@ -3311,7 +3499,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with user data.",
+            "description": "The current user's profile information.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3343,13 +3531,25 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       }
     },
     "/users/me/stats": {
       "get": {
-        "description": "Returns stats about the current user",
+        "operationId": "getCurrentUserStats",
+        "description": "Retrieve usage statistics for the currently authenticated user, including bookmark counts by type, top domains, tag usage, bookmarking activity patterns, and storage usage.",
         "summary": "Get current user stats",
         "tags": [
           "Users"
@@ -3361,7 +3561,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with user stats.",
+            "description": "Detailed usage statistics for the current user.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3540,7 +3740,8 @@
                               "extension",
                               "singlefile",
                               "rss",
-                              "import"
+                              "import",
+                              null
                             ]
                           },
                           "count": {
@@ -3572,13 +3773,25 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       }
     },
     "/assets": {
       "post": {
-        "description": "Upload a new asset",
+        "operationId": "uploadAsset",
+        "description": "Upload a binary file as a new asset. The uploaded asset can then be attached to a bookmark via the POST /bookmarks/{bookmarkId}/assets endpoint.",
         "summary": "Upload a new asset",
         "tags": [
           "Assets"
@@ -3589,14 +3802,16 @@
           }
         ],
         "requestBody": {
-          "description": "The data to create the asset with.",
+          "description": "The file to upload as multipart/form-data.",
           "content": {
             "multipart/form-data": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "file": {
-                    "$ref": "#/components/schemas/File to be uploaded"
+                    "type": "string",
+                    "description": "File to be uploaded",
+                    "format": "binary"
                   }
                 },
                 "required": [
@@ -3608,11 +3823,22 @@
         },
         "responses": {
           "200": {
-            "description": "Details about the created asset",
+            "description": "The asset was uploaded successfully. Returns metadata about the uploaded asset.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Asset"
+                  "$ref": "#/components/schemas/UploadedAsset"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
@@ -3622,7 +3848,8 @@
     },
     "/assets/{assetId}": {
       "get": {
-        "description": "Get asset by its id",
+        "operationId": "getAsset",
+        "description": "Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type.",
         "summary": "Get a single asset",
         "tags": [
           "Assets"
@@ -3639,15 +3866,27 @@
         ],
         "responses": {
           "200": {
-            "description": "Asset content. Content type is determined by the asset type."
+            "description": "The asset's binary content. The Content-Type header reflects the asset's MIME type (e.g., image/png, application/pdf)."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       }
     },
     "/admin/users/{userId}": {
       "put": {
-        "description": "Update a user's role, bookmark quota, or storage quota. Admin access required.",
-        "summary": "Update user",
+        "operationId": "adminUpdateUser",
+        "description": "Update a user's role, bookmark quota, storage quota, or browser crawling setting. Requires admin role. You cannot update your own user account via this endpoint.",
+        "summary": "Update a user (admin)",
         "tags": [
           "Admin"
         ],
@@ -3660,15 +3899,17 @@
           {
             "schema": {
               "type": "string",
-              "description": "The ID of the user to update",
+              "description": "The ID of the user to update.",
               "example": "user_123"
             },
             "required": true,
+            "description": "The ID of the user to update.",
             "name": "userId",
             "in": "path"
           }
         ],
         "requestBody": {
+          "description": "The fields to update. All fields are optional — only provided fields will be changed.",
           "content": {
             "application/json": {
               "schema": {
@@ -3708,14 +3949,15 @@
         },
         "responses": {
           "200": {
-            "description": "User updated successfully",
+            "description": "User updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "Whether the update was successful."
                     }
                   },
                   "required": [
@@ -3726,73 +3968,42 @@
             }
           },
           "400": {
-            "description": "Bad request - Invalid input data or cannot update own user",
+            "description": "Bad request — invalid input data or attempted to update own user.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - Authentication required",
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  "type": "string",
+                  "example": "Unauthorized"
                 }
               }
             }
           },
           "403": {
-            "description": "Forbidden - Admin access required",
+            "description": "Forbidden — admin access required.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
           "404": {
-            "description": "User not found",
+            "description": "User not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3802,7 +4013,8 @@
     },
     "/backups": {
       "get": {
-        "description": "Get all backups",
+        "operationId": "listBackups",
+        "description": "Retrieve a list of all backups for the authenticated user, including their status and metadata.",
         "summary": "Get all backups",
         "tags": [
           "Backups"
@@ -3814,7 +4026,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with all backups data.",
+            "description": "A list of all backups.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3836,7 +4048,8 @@
                             "nullable": true
                           },
                           "createdAt": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "date-time"
                           },
                           "size": {
                             "type": "number"
@@ -3875,11 +4088,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "description": "Trigger a new backup",
+        "operationId": "createBackup",
+        "description": "Trigger a new full account backup. The backup is created asynchronously — use GET /backups/{backupId} to check its status.",
         "summary": "Trigger a new backup",
         "tags": [
           "Backups"
@@ -3891,7 +4116,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Backup created successfully",
+            "description": "Backup creation was triggered. The backup object is returned with a 'pending' status.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3908,7 +4133,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -3941,13 +4167,25 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           }
         }
       }
     },
     "/backups/{backupId}": {
       "get": {
-        "description": "Get backup by its id",
+        "operationId": "getBackup",
+        "description": "Retrieve metadata for a single backup, including its current status (pending, success, or failure).",
         "summary": "Get a single backup",
         "tags": [
           "Backups"
@@ -3964,7 +4202,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Object with backup data.",
+            "description": "The requested backup.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3981,7 +4219,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4015,24 +4254,23 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Backup not found",
+            "description": "Backup not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -4040,7 +4278,8 @@
         }
       },
       "delete": {
-        "description": "Delete backup by its id",
+        "operationId": "deleteBackup",
+        "description": "Permanently delete a backup and its associated archive file.",
         "summary": "Delete a backup",
         "tags": [
           "Backups"
@@ -4057,26 +4296,25 @@
         ],
         "responses": {
           "204": {
-            "description": "No content - the backup was deleted"
+            "description": "No content — the backup was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Backup not found",
+            "description": "Backup not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -4086,7 +4324,8 @@
     },
     "/backups/{backupId}/download": {
       "get": {
-        "description": "Download backup file",
+        "operationId": "downloadBackup",
+        "description": "Download a completed backup as a zip archive. The backup must have a 'success' status.",
         "summary": "Download a backup",
         "tags": [
           "Backups"
@@ -4103,31 +4342,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Backup file (zip archive)",
+            "description": "The backup file as a zip archive.",
             "content": {
               "application/zip": {
-                "schema": {}
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
               }
             }
           },
           "404": {
-            "description": "Backup not found",
+            "description": "Backup not found.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
