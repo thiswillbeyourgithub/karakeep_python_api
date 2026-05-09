@@ -2481,6 +2481,73 @@ class KarakeepAPI:
             logger.error(error_msg)
             raise APIError(error_msg)
 
+    # --- Admin: Job Triggers ---
+
+    @optional_typecheck
+    def admin_trigger_recrawl(
+        self,
+        crawl_status: Literal["success", "failure", "pending", "all"] = "all",
+        run_inference: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Trigger a recrawl of link bookmarks. Admin only.
+        Corresponds to POST /admin/jobs/trigger/recrawl.
+
+        Args:
+            crawl_status: Filter bookmarks by their current crawl status.
+                          Use "failure" to retry only failed crawls. Default: "all".
+            run_inference: Whether to run AI inference after crawling. Default: False.
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        body = {"crawlStatus": crawl_status, "runInference": run_inference}
+        return self._call("POST", "admin/jobs/trigger/recrawl", data=body)
+
+    @optional_typecheck
+    def admin_trigger_reindex(self) -> Dict[str, Any]:
+        """
+        Trigger a reindex of all bookmarks in the search engine. Admin only.
+        Corresponds to POST /admin/jobs/trigger/reindex.
+
+        Clears the existing index and re-queues all bookmarks for indexing.
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        return self._call("POST", "admin/jobs/trigger/reindex")
+
+    @optional_typecheck
+    def admin_trigger_inference(
+        self,
+        type: Literal["tag", "summarize"],
+        status: Literal["success", "failure", "pending", "all"] = "all",
+    ) -> Dict[str, Any]:
+        """
+        Trigger AI inference (tagging or summarization) on bookmarks. Admin only.
+        Corresponds to POST /admin/jobs/trigger/inference.
+
+        Args:
+            type: The type of inference to run: "tag" for AI tagging,
+                  "summarize" for AI summarization.
+            status: Filter bookmarks by their current inference status.
+                    Use "failure" to retry only failed ones. Default: "all".
+
+        Returns:
+            dict: A dictionary with a "success" boolean field.
+
+        Raises:
+            APIError: If the API request fails (e.g., 403 admin access required).
+        """
+        body = {"type": type, "status": status}
+        return self._call("POST", "admin/jobs/trigger/inference", data=body)
+
     # --- Feeds ---
 
     @optional_typecheck

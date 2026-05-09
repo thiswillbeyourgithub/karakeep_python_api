@@ -1022,6 +1022,47 @@ def test_backup_lifecycle(karakeep_client: KarakeepAPI):
             logger.info("\nNo backup to clean up")
 
 
+def _skip_if_not_admin(error: APIError):
+    """Skip a test if the API replied with a 403 (admin role required)."""
+    if error.status_code == 403:
+        pytest.skip(f"Test requires admin role: {error}")
+
+
+def test_admin_trigger_reindex(karakeep_client: KarakeepAPI):
+    """Smoke-test triggering a reindex job (admin only)."""
+    try:
+        result = karakeep_client.admin_trigger_reindex()
+    except APIError as e:
+        _skip_if_not_admin(e)
+        raise
+    assert isinstance(result, dict)
+    assert result.get("success") is True
+
+
+def test_admin_trigger_recrawl_failures(karakeep_client: KarakeepAPI):
+    """Trigger a recrawl scoped to failed bookmarks only (admin only)."""
+    try:
+        result = karakeep_client.admin_trigger_recrawl(
+            crawl_status="failure", run_inference=False
+        )
+    except APIError as e:
+        _skip_if_not_admin(e)
+        raise
+    assert isinstance(result, dict)
+    assert result.get("success") is True
+
+
+def test_admin_trigger_inference_tag(karakeep_client: KarakeepAPI):
+    """Trigger AI tagging inference on failed bookmarks (admin only)."""
+    try:
+        result = karakeep_client.admin_trigger_inference(type="tag", status="failure")
+    except APIError as e:
+        _skip_if_not_admin(e)
+        raise
+    assert isinstance(result, dict)
+    assert result.get("success") is True
+
+
 def test_feed_lifecycle(karakeep_client: KarakeepAPI):
     """Smoke-test feed CRUD + fetch trigger.
 
