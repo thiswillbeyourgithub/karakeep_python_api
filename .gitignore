@@ -6,3 +6,5 @@ build/
 *author*
 **/*log
 **/*.temp
+.serena
+.tokensave
