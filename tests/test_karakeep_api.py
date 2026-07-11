@@ -13,6 +13,41 @@ from karakeep_python_api import KarakeepAPI, APIError, AuthenticationError, data
 
 # Note: The karakeep_client fixture is defined in conftest.py and provides a valid client instance.
 
+# --- Offline datatype regression tests (no live server required) ---
+
+
+def test_bookmark_accepts_null_tagging_status():
+    """Regression: ``Bookmark.taggingStatus`` must accept ``null``.
+
+    The Karakeep server can legitimately return ``taggingStatus: null`` (observed
+    on a ``POST /api/v1/bookmarks`` response for an already-existing bookmark).
+    Before the fix, ``taggingStatus`` was a required non-nullable ``Literal`` and
+    ``Bookmark.model_validate`` raised a ``ValidationError`` on ``None``. This test
+    fails before the fix and passes after it. It runs offline (no fixture needed)
+    so the regression is guarded even without integration credentials.
+    """
+    bookmark = datatypes.Bookmark.model_validate(
+        {
+            "id": "wfoq4z9wu05to35tcnv8hbsr",
+            "createdAt": "2026-07-05T08:00:02.000Z",
+            "modifiedAt": "2026-07-05T08:00:02.000Z",
+            "title": None,
+            "archived": False,
+            "favourited": True,
+            "taggingStatus": None,
+            "summarizationStatus": None,
+            "note": None,
+            "summary": None,
+            "userId": "user123",
+            "tags": [],
+            "content": {"type": "link", "url": "https://example.com"},
+            "assets": [],
+        }
+    )
+    assert bookmark.taggingStatus is None
+    assert bookmark.summarizationStatus is None
+
+
 # --- Test 'Get All' Endpoints ---
 
 
