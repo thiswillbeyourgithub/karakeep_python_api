@@ -80,6 +80,40 @@ def test_bookmark_parses_first_created_at_and_embedding_status():
     assert bookmark.embeddingStatus == "pending"
 
 
+def test_link_content_parses_reader_view_fields():
+    """``ContentTypeLink`` must accept the reader-view fields added by the new spec.
+
+    The crawler now reports whether a distraction-free reader view could be
+    extracted (``readerViewStatus``), how confident it is (``readerViewScore``,
+    0-100) and which rendering the UI should prefer (``preferredPreview``).
+    """
+    bookmark = datatypes.Bookmark.model_validate(
+        {
+            "id": "wfoq4z9wu05to35tcnv8hbsr",
+            "createdAt": "2026-07-05T08:00:02.000Z",
+            "modifiedAt": None,
+            "archived": False,
+            "favourited": False,
+            "taggingStatus": None,
+            "summarizationStatus": None,
+            "embeddingStatus": None,
+            "userId": "user123",
+            "tags": [],
+            "content": {
+                "type": "link",
+                "url": "https://example.com",
+                "readerViewStatus": "readable",
+                "readerViewScore": 87,
+                "preferredPreview": "reader_view",
+            },
+            "assets": [],
+        }
+    )
+    assert bookmark.content.readerViewStatus == "readable"
+    assert bookmark.content.readerViewScore == 87
+    assert bookmark.content.preferredPreview == "reader_view"
+
+
 def test_bookmark_requires_embedding_status():
     """``embeddingStatus`` is required (though nullable) in the upstream schema.
 

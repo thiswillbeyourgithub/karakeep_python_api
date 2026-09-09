@@ -53,6 +53,15 @@ class ContentTypeLink(BaseModel):
     favicon: Optional[str] = None
     htmlContent: Optional[str] = None
     contentAssetId: Optional[str] = None
+    # Reader-view triage produced by the crawler: readerViewStatus says whether a
+    # distraction-free rendering could be extracted, readerViewScore (0-100) how
+    # confident that extraction is, and preferredPreview which of the available
+    # renderings the UI should show by default.
+    readerViewStatus: Optional[
+        Literal["readable", "not_readable", "uncertain", "unavailable"]
+    ] = None
+    readerViewScore: Optional[int] = None
+    preferredPreview: Optional[Literal["reader_view", "screenshot", "overview"]] = None
     crawledAt: Optional[str] = None
     crawlStatus: Optional[Literal["success", "failure", "pending"]] = None
     author: Optional[str] = None
