@@ -114,6 +114,10 @@ Asset = UploadedAsset
 
 class Bookmark(BaseModel):
     id: str
+    # firstCreatedAt records the original creation time when a bookmark is
+    # recreated/re-imported, so it can predate createdAt. Optional in the spec
+    # and absent on Karakeep servers older than the one that introduced it.
+    firstCreatedAt: Optional[str] = None
     createdAt: str
     modifiedAt: Optional[str]
     title: Optional[str] = None
@@ -121,6 +125,10 @@ class Bookmark(BaseModel):
     favourited: bool
     taggingStatus: Optional[Literal["success", "failure", "pending"]] = None
     summarizationStatus: Optional[Literal["success", "failure", "pending"]] = None
+    # Status of the vector-embedding job used by semantic/hybrid search. The
+    # spec marks it required-but-nullable, so no default is given here: a
+    # missing key is a genuine mismatch with the documented server response.
+    embeddingStatus: Optional[Literal["success", "failure", "pending"]]
     note: Optional[str] = None
     summary: Optional[str] = None
     source: Optional[

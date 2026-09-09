@@ -36,6 +36,7 @@ def test_bookmark_accepts_null_tagging_status():
             "favourited": True,
             "taggingStatus": None,
             "summarizationStatus": None,
+            "embeddingStatus": None,
             "note": None,
             "summary": None,
             "userId": "user123",
@@ -46,6 +47,62 @@ def test_bookmark_accepts_null_tagging_status():
     )
     assert bookmark.taggingStatus is None
     assert bookmark.summarizationStatus is None
+    assert bookmark.embeddingStatus is None
+
+
+def test_bookmark_parses_first_created_at_and_embedding_status():
+    """``Bookmark`` must accept the fields added by the newer Karakeep spec.
+
+    ``firstCreatedAt`` (optional) preserves the original creation timestamp when a
+    bookmark is recreated, and ``embeddingStatus`` (required, nullable) reports the
+    vector-embedding job used by semantic/hybrid search. Both were absent from the
+    model before, and pydantic silently dropped them on validation.
+    """
+    bookmark = datatypes.Bookmark.model_validate(
+        {
+            "id": "wfoq4z9wu05to35tcnv8hbsr",
+            "firstCreatedAt": "2026-01-02T03:04:05.000Z",
+            "createdAt": "2026-07-05T08:00:02.000Z",
+            "modifiedAt": "2026-07-05T08:00:02.000Z",
+            "title": None,
+            "archived": False,
+            "favourited": True,
+            "taggingStatus": "success",
+            "summarizationStatus": "success",
+            "embeddingStatus": "pending",
+            "userId": "user123",
+            "tags": [],
+            "content": {"type": "link", "url": "https://example.com"},
+            "assets": [],
+        }
+    )
+    assert bookmark.firstCreatedAt == "2026-01-02T03:04:05.000Z"
+    assert bookmark.embeddingStatus == "pending"
+
+
+def test_bookmark_requires_embedding_status():
+    """``embeddingStatus`` is required (though nullable) in the upstream schema.
+
+    Keeping it required means a server response that omits it is reported as a
+    schema mismatch instead of silently defaulting to ``None``, which would hide
+    the fact that the client is talking to an older Karakeep than it expects.
+    """
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError):
+        datatypes.Bookmark.model_validate(
+            {
+                "id": "wfoq4z9wu05to35tcnv8hbsr",
+                "createdAt": "2026-07-05T08:00:02.000Z",
+                "modifiedAt": None,
+                "archived": False,
+                "favourited": False,
+                "userId": "user123",
+                "tags": [],
+                "content": {"type": "unknown"},
+                "assets": [],
+            }
+        )
 
 
 @pytest.mark.parametrize(
