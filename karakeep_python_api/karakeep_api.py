@@ -2586,6 +2586,44 @@ class KarakeepAPI:
             logger.error(error_msg)
             raise APIError(error_msg)
 
+    @optional_typecheck
+    def get_asset_signed_url(
+        self, asset_id: str
+    ) -> Union[datatypes.SignedAssetUrl, Dict[str, Any], List[Any]]:
+        """
+        Get a temporary signed URL for downloading an asset.
+        Corresponds to GET /assets/{assetId}/signed-url.
+
+        The returned URL embeds its own signature and expiry, so it can be fetched
+        without an API key. This is the way to hand an asset to something that cannot
+        send the Authorization header (a browser tab, a media player, an <img> tag)
+        without proxying the bytes through get_a_single_asset.
+
+        Args:
+            asset_id: The ID (string) of the asset to sign.
+
+        Returns:
+            datatypes.SignedAssetUrl: The asset id, the temporary URL and its expiry.
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails.
+            ValueError: If asset_id is empty.
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        if not asset_id or not asset_id.strip():
+            raise ValueError("asset_id cannot be empty")
+
+        endpoint = f"assets/{asset_id.strip()}/signed-url"
+        response_data = self._call("GET", endpoint)
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match SignedAssetUrl schema
+            return datatypes.SignedAssetUrl.model_validate(response_data)
+
     # --- Admin: Job Triggers ---
 
     @optional_typecheck

@@ -1132,6 +1132,30 @@ def test_asset_lifecycle_with_pdf(karakeep_client: KarakeepAPI):
         assert asset_content.startswith(b"%PDF"), "PDF should start with PDF header"
         logger.info(f"✓ Retrieved PDF asset content ({len(asset_content)} bytes)")
 
+        # 5. Get a signed URL for the same asset and download it without an API key.
+        #    The whole point of the signed URL is that it authenticates itself, so
+        #    the download is deliberately made with a bare requests.get.
+        logger.info(f"\nRequesting signed URL for asset ID: {uploaded_asset_id}")
+        signed = karakeep_client.get_asset_signed_url(asset_id=uploaded_asset_id)
+        assert isinstance(signed, datatypes.SignedAssetUrl), (
+            "Response should be a SignedAssetUrl model"
+        )
+        assert signed.assetId == uploaded_asset_id
+        assert signed.signedUrl.startswith("http"), "Signed URL should be absolute"
+        assert signed.expiresAt, "Signed URL must carry an expiry"
+        logger.info(f"✓ Got signed URL expiring at {signed.expiresAt}")
+
+        import requests
+
+        signed_response = requests.get(
+            signed.signedUrl, verify=karakeep_client.verify_ssl, timeout=30
+        )
+        signed_response.raise_for_status()
+        assert signed_response.content == asset_content, (
+            "Signed URL download should return the same bytes as get_a_single_asset"
+        )
+        logger.info("✓ Downloaded the asset through the signed URL without an API key")
+
     except FileNotFoundError:
         pytest.skip(f"PDF test file not found: {pdf_file_path}")
     except (APIError, AuthenticationError) as e:

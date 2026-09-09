@@ -121,6 +121,14 @@ class UploadedAsset(BaseModel):
 Asset = UploadedAsset
 
 
+class SignedAssetUrl(BaseModel):
+    assetId: str
+    # Temporary download URL that carries its own signature, so it works without
+    # the Authorization header and can be handed to a browser or media player.
+    signedUrl: str
+    expiresAt: str
+
+
 class Bookmark(BaseModel):
     id: str
     # firstCreatedAt records the original creation time when a bookmark is
