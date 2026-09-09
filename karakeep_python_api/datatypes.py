@@ -153,6 +153,28 @@ class Bookmark(BaseModel):
     assets: List[BookmarkAsset]
 
 
+class ReadableContentRange(BaseModel):
+    # Offsets are in Unicode characters over the *rendered* content, not bytes:
+    # start is inclusive, end is exclusive, and total is the full rendered length.
+    start: int
+    end: int
+    total: int
+
+
+class BookmarkReadableContent(BaseModel):
+    bookmarkId: str
+    bookmarkType: Literal["link", "text", "asset"]
+    format: Literal["markdown", "text"]
+    content: str
+    # Hash of the rendered content the cursor was issued against. The server
+    # answers 409 if the bookmark changed between two chunks, so this value must
+    # not be mixed across a paginated read.
+    contentVersion: str
+    range: ReadableContentRange
+    nextCursor: Optional[str]
+    truncated: bool
+
+
 class PaginatedBookmarks(BaseModel):
     bookmarks: List[Bookmark]
     nextCursor: Optional[str] = ""

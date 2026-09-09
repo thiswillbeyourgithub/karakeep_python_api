@@ -1062,6 +1062,101 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
+    def get_bookmark_readable_content(
+        self,
+        bookmark_id: str,
+        format: Optional[Literal["markdown", "text"]] = None,
+        max_chars: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fetch_all: bool = False,
+    ) -> Union[datatypes.BookmarkReadableContent, Dict[str, Any], List[Any]]:
+        """
+        Get an agent-readable rendering of a bookmark's content.
+        Corresponds to GET /bookmarks/{bookmarkId}/content.
+
+        Link content is rendered from the extracted HTML; text and asset bookmarks use
+        their stored or extracted text. The endpoint returns a bounded chunk plus an
+        opaque `nextCursor`; pass that cursor back to continue reading, or set
+        `fetch_all=True` to let this method walk the cursors and return the whole
+        document as a single object.
+
+        Args:
+            bookmark_id: The ID (string) of the bookmark to read.
+            format: Readable representation, "markdown" or "text" (optional). If omitted
+                    together with a cursor, the cursor's own format is reused; otherwise
+                    the API defaults to "markdown".
+            max_chars: Maximum number of Unicode characters per chunk, 1 to 50000
+                       (optional, API default 12000). A chunk may end earlier, at a
+                       paragraph or line boundary.
+            cursor: Opaque continuation cursor returned as `nextCursor` by a previous
+                    response (optional).
+            fetch_all: If True, keep following `nextCursor` until the document is
+                       exhausted and return one merged object whose `content` is the
+                       concatenation of every chunk, with `nextCursor=None` and
+                       `truncated=False` (default: False).
+
+        Returns:
+            datatypes.BookmarkReadableContent: A chunk of readable content (or the whole
+            document when fetch_all is True).
+            If response validation is disabled, returns the raw API response (dict/list).
+
+        Raises:
+            APIError: If the API request fails (e.g. 404 bookmark not found, or 409 if
+                      the bookmark content changed after the supplied cursor was issued).
+            pydantic.ValidationError: If response validation fails (and is not disabled).
+        """
+        endpoint = f"bookmarks/{bookmark_id}/content"
+        params = {
+            "format": format,
+            "maxChars": max_chars,
+            "cursor": cursor,
+        }
+        response_data = self._call("GET", endpoint, params=params)
+
+        if fetch_all:
+            # Walk the cursor chain and merge the chunks. The raw dicts are merged
+            # rather than the validated models so that the loop behaves identically
+            # whether or not response validation is enabled.
+            if not isinstance(response_data, dict):
+                raise APIError(
+                    f"Unexpected response format for get_bookmark_readable_content: {response_data}"
+                )
+            merged = dict(response_data)
+            chunks = [merged.get("content", "")]
+            next_cursor = merged.get("nextCursor")
+            while next_cursor:
+                params["cursor"] = next_cursor
+                # The format is carried by the cursor itself, so it is left as passed.
+                page = self._call("GET", endpoint, params=params)
+                if not isinstance(page, dict):
+                    raise APIError(
+                        f"Unexpected response format for get_bookmark_readable_content: {page}"
+                    )
+                chunks.append(page.get("content", ""))
+                # Keep the latest range end/total: the server may only know the true
+                # total once it has rendered further into the document.
+                if "range" in page and "range" in merged:
+                    merged["range"] = {
+                        **page["range"],
+                        "start": merged["range"].get("start", 0),
+                    }
+                merged["contentVersion"] = page.get(
+                    "contentVersion", merged.get("contentVersion")
+                )
+                next_cursor = page.get("nextCursor")
+            merged["content"] = "".join(chunks)
+            merged["nextCursor"] = None
+            merged["truncated"] = False
+            response_data = merged
+
+        if self.disable_response_validation:
+            logger.debug("Skipping response validation as requested.")
+            return response_data
+        else:
+            # Response should match BookmarkReadableContent schema
+            return datatypes.BookmarkReadableContent.model_validate(response_data)
+
+    @optional_typecheck
     def summarize_a_bookmark(self, bookmark_id: str) -> Dict[str, Any]:
         """
         Summarize a bookmark by its ID. Corresponds to POST /bookmarks/{bookmarkId}/summarize.

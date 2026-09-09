@@ -139,6 +139,85 @@ def test_bookmark_requires_embedding_status():
         )
 
 
+def _readable_chunk(*, content, start, end, total, next_cursor, version="v1"):
+    """Build a GET /bookmarks/{id}/content payload for the offline chunking tests."""
+    return {
+        "bookmarkId": "bm123",
+        "bookmarkType": "link",
+        "format": "markdown",
+        "content": content,
+        "contentVersion": version,
+        "range": {"start": start, "end": end, "total": total},
+        "nextCursor": next_cursor,
+        "truncated": next_cursor is not None,
+    }
+
+
+def test_get_bookmark_readable_content_single_chunk(monkeypatch):
+    """Without ``fetch_all`` the method returns exactly one chunk and one request.
+
+    The cursor is left untouched so callers can drive the pagination themselves.
+    """
+    calls = []
+
+    def fake_call(self, method, endpoint, **kwargs):
+        calls.append((method, endpoint, kwargs.get("params")))
+        return _readable_chunk(
+            content="first", start=0, end=5, total=10, next_cursor="cursor-2"
+        )
+
+    monkeypatch.setattr(KarakeepAPI, "_call", fake_call, raising=True)
+    client = KarakeepAPI.__new__(KarakeepAPI)
+    client.disable_response_validation = False
+
+    result = client.get_bookmark_readable_content(bookmark_id="bm123", max_chars=5)
+
+    assert len(calls) == 1
+    assert calls[0][1] == "bookmarks/bm123/content"
+    assert calls[0][2]["maxChars"] == 5
+    assert result.content == "first"
+    assert result.nextCursor == "cursor-2"
+    assert result.truncated is True
+
+
+def test_get_bookmark_readable_content_fetch_all_merges_chunks(monkeypatch):
+    """``fetch_all=True`` walks ``nextCursor`` and merges every chunk into one object.
+
+    The merged result must span the whole document: content concatenated in order,
+    range from the first chunk's start to the last chunk's end, and no leftover
+    cursor so callers can tell the read is complete.
+    """
+    pages = [
+        _readable_chunk(
+            content="alpha ", start=0, end=6, total=16, next_cursor="cursor-2"
+        ),
+        _readable_chunk(
+            content="beta ", start=6, end=11, total=16, next_cursor="cursor-3"
+        ),
+        _readable_chunk(content="gamma", start=11, end=16, total=16, next_cursor=None),
+    ]
+    seen_cursors = []
+
+    def fake_call(self, method, endpoint, **kwargs):
+        params = kwargs.get("params") or {}
+        seen_cursors.append(params.get("cursor"))
+        return pages[len(seen_cursors) - 1]
+
+    monkeypatch.setattr(KarakeepAPI, "_call", fake_call, raising=True)
+    client = KarakeepAPI.__new__(KarakeepAPI)
+    client.disable_response_validation = False
+
+    result = client.get_bookmark_readable_content(bookmark_id="bm123", fetch_all=True)
+
+    assert seen_cursors == [None, "cursor-2", "cursor-3"]
+    assert result.content == "alpha beta gamma"
+    assert result.range.start == 0
+    assert result.range.end == 16
+    assert result.range.total == 16
+    assert result.nextCursor is None
+    assert result.truncated is False
+
+
 @pytest.mark.parametrize(
     "command, option, method_name",
     [
@@ -1301,6 +1380,78 @@ def test_feed_lifecycle(karakeep_client: KarakeepAPI):
                 karakeep_client.delete_a_feed(feed_id=created_id)
             except APIError as e:
                 logger.warning(f"  Cleanup: failed to delete feed {created_id}: {e}")
+
+
+def test_readable_content_of_a_text_bookmark(karakeep_client: KarakeepAPI):
+    """Live test of GET /bookmarks/{id}/content against a freshly created text bookmark.
+
+    A text bookmark is used rather than a link so the readable content is available
+    immediately: link bookmarks only expose content once the crawler has run, which
+    would make this test racy. The body is long enough that a small ``max_chars``
+    forces the server to hand out a ``nextCursor``, which exercises both the
+    single-chunk path and the ``fetch_all`` merge against a real server.
+    """
+    # Distinct repeated paragraphs so a partial read is obviously partial.
+    paragraphs = [
+        f"Paragraph number {i} of the readable content test." for i in range(20)
+    ]
+    body = "\n\n".join(paragraphs)
+    created_id = None
+
+    try:
+        bookmark = karakeep_client.create_a_new_bookmark(
+            type="text",
+            title="karakeep-python-api readable content test",
+            text=body,
+        )
+        assert isinstance(bookmark, datatypes.Bookmark)
+        created_id = bookmark.id
+
+        # Full read in one go.
+        full = karakeep_client.get_bookmark_readable_content(bookmark_id=created_id)
+        assert isinstance(full, datatypes.BookmarkReadableContent)
+        assert full.bookmarkId == created_id
+        assert full.bookmarkType == "text"
+        assert full.format == "markdown"
+        assert "Paragraph number 0" in full.content
+        assert full.range.total >= len(full.content)
+        logger.info(f"✓ Read {full.range.total} characters of readable content.")
+
+        # Chunked read: a small max_chars must truncate and hand back a cursor.
+        first = karakeep_client.get_bookmark_readable_content(
+            bookmark_id=created_id, max_chars=50
+        )
+        assert isinstance(first, datatypes.BookmarkReadableContent)
+        assert len(first.content) <= 50
+        if not first.truncated:
+            pytest.skip("Server returned the whole document despite max_chars=50")
+        assert first.nextCursor, "A truncated chunk must carry a nextCursor"
+
+        # Following the cursor manually must move forward in the document.
+        second = karakeep_client.get_bookmark_readable_content(
+            bookmark_id=created_id, cursor=first.nextCursor
+        )
+        assert second.range.start >= first.range.end
+
+        # fetch_all must reassemble the same document as the single unbounded read.
+        merged = karakeep_client.get_bookmark_readable_content(
+            bookmark_id=created_id, max_chars=50, fetch_all=True
+        )
+        assert merged.nextCursor is None
+        assert merged.truncated is False
+        assert merged.content == full.content
+        logger.info("✓ fetch_all reassembled the document identically.")
+
+    except (APIError, AuthenticationError) as e:
+        pytest.fail(f"API error during readable content test: {e}")
+    finally:
+        if created_id:
+            try:
+                karakeep_client.delete_a_bookmark(bookmark_id=created_id)
+            except APIError as e:
+                logger.warning(
+                    f"  Cleanup: failed to delete bookmark {created_id}: {e}"
+                )
 
 
 # --- End of Tests ---
