@@ -50,6 +50,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_bookmark`          |   ✅   |  ❌  |  |
 | `delete_a_bookmark`              |   ✅   |  ❌  |  |
 | `update_a_bookmark`              |   ✅   |  ✅  | Tested for title updates.                    |
+| `get_bookmark_readable_content`  |   ✅   |  ❌  | Chunk merging tested offline; live test reads a text bookmark. |
 | `summarize_a_bookmark`           |   ❌   |  ❌  |                                              |
 | `attach_tags_to_a_bookmark`      |   ✅   |  ❌  |  |
 | `detach_tags_from_a_bookmark`    |   ✅   |  ❌  |  |
@@ -78,6 +79,7 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `update_a_highlight`             |   ❌   |  ❌  |                                              |
 | `upload_a_new_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
 | `get_a_single_asset`             |   ✅   |  ❌  | Tested in PDF asset lifecycle test.         |
+| `get_asset_signed_url`           |   ✅   |  ❌  | Tested in PDF asset lifecycle test (downloads without an API key). |
 | `get_current_user_info`          |   ✅   |  ❌  | Pytest: Tested indirectly during client init. CLI not directly tested. |
 | `get_current_user_stats`         |   ✅   |  ✅  |                                              |
 | `update_user`                    |   ❌   |  ❌  |                                              |
@@ -86,6 +88,9 @@ Methods or CLI commands marked with ❌ should be used with caution as their beh
 | `get_a_single_backup`            |   ✅   |  ❌  | Tested in backup lifecycle test.            |
 | `delete_a_backup`                |   ✅   |  ❌  | Tested in backup lifecycle test.            |
 | `download_a_backup`              |   ✅   |  ❌  | Tested in backup lifecycle test.            |
+| `admin_trigger_recrawl`          |   ❌   |  ❌  | Request body construction tested offline only. |
+| `admin_trigger_reindex`          |   ❌   |  ❌  | Request body construction tested offline only. |
+| `admin_trigger_inference`        |   ❌   |  ❌  | Request body construction tested offline only. |
 
 ## Installation
 
@@ -249,4 +254,4 @@ They can be found in the [./community_scripts](https://github.com/thiswillbeyour
 
 ---
 
-*This README was generated with assistance from [aider.chat](https://aider.chat).*
+*This README was generated with assistance from [aider.chat](https://aider.chat), and later kept up to date with [Claude Code](https://claude.com/claude-code).*
