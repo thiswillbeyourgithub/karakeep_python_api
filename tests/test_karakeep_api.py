@@ -48,6 +48,62 @@ def test_bookmark_accepts_null_tagging_status():
     assert bookmark.summarizationStatus is None
 
 
+@pytest.mark.parametrize(
+    "command, option, method_name",
+    [
+        ("download-a-backup", "--backup-id", "download_a_backup"),
+        ("get-a-single-asset", "--asset-id", "get_a_single_asset"),
+    ],
+)
+@pytest.mark.parametrize(
+    "payload",
+    [b"PK\x03\x04\x00\x01\xff\xfe binary \x00 data", b""],
+    ids=["binary", "empty"],
+)
+def test_cli_binary_result_written_raw(
+    monkeypatch, command, option, method_name, payload
+):
+    """Regression: CLI commands returning bytes must not go through ``json.dumps``.
+
+    ``download_a_backup`` and ``get_a_single_asset`` return raw bytes. The shared
+    CLI result handler used to feed every result to ``json.dumps``, which raised
+    ``TypeError: Object of type bytes is not JSON serializable`` after the download
+    had already succeeded. The bytes are now written verbatim to stdout (no
+    encoding, no trailing newline) so the output can be redirected into a file.
+    This test fails before the fix and passes after it, and runs offline.
+    """
+    from click.testing import CliRunner
+    from karakeep_python_api import __main__ as cli_main
+
+    # Keep everything offline: the real __init__ validates credentials over HTTP.
+    monkeypatch.setattr(
+        cli_main.KarakeepAPI, "__init__", lambda self, **kwargs: None, raising=True
+    )
+    monkeypatch.setattr(
+        cli_main.KarakeepAPI, method_name, lambda self, **kwargs: payload, raising=True
+    )
+
+    runner = CliRunner(mix_stderr=False)
+    result = runner.invoke(
+        cli_main.cli,
+        [
+            "--api-endpoint",
+            "https://example.invalid/api/v1/",
+            "--api-key",
+            "dummy-key",
+            command,
+            option,
+            "someid123",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, f"CLI failed: {result.stderr}"
+    assert result.stdout_bytes == payload, (
+        f"Expected the raw bytes on stdout, got {result.stdout_bytes!r}"
+    )
+
+
 # --- Test 'Get All' Endpoints ---
 
 

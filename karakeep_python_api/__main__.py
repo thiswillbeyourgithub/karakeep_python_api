@@ -538,7 +538,23 @@ def create_click_command(
                     ctx.exit(1)
 
                 # Serialize and print the result
-                if result is not None:
+                if isinstance(result, (bytes, bytearray)):
+                    # Binary payloads (e.g. download_a_backup, get_a_single_asset)
+                    # cannot be JSON encoded: write them raw to stdout so the
+                    # output can be redirected straight into a file.
+                    logger.debug(f"Writing {len(result)} raw bytes to stdout.")
+                    stdout_buffer = getattr(sys.stdout, "buffer", None)
+                    if stdout_buffer is not None:
+                        stdout_buffer.write(result)
+                        stdout_buffer.flush()
+                    else:
+                        # Some test/capture harnesses replace sys.stdout with a
+                        # text-only stream that has no .buffer attribute.
+                        sys.stdout.write(
+                            bytes(result).decode("utf-8", errors="surrogateescape")
+                        )
+                        sys.stdout.flush()
+                elif result is not None:
                     output_data = serialize_output(result)
                     # Use ensure_ascii_output flag to control JSON encoding
                     click.echo(
