@@ -891,16 +891,25 @@ class KarakeepAPI:
     def search_bookmarks(
         self,
         q: str,  # Search query is required
+        search_mode: Optional[Literal["fts", "semantic", "hybrid"]] = None,
         sort_order: Optional[Literal["asc", "desc", "relevance"]] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
     ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
         """
-        Search bookmarks. Corresponds to GET /bookmarks/search.
+        Search bookmarks using full-text, semantic or hybrid ranking.
+        Corresponds to GET /bookmarks/search.
 
         Args:
             q: The search query string.
+            search_mode: Search strategy (optional). "fts" is full-text search (API default),
+                         "semantic" ranks with bookmark embeddings, and "hybrid" fuses both.
+                         Hybrid falls back to full-text search when the query has no free-text
+                         terms or when embedding infrastructure is unavailable. Semantic hits
+                         below a minimum similarity are dropped, so "semantic" and "hybrid" may
+                         return fewer results than `limit`. Note that the semantic modes only
+                         support sort_order="relevance".
             sort_order: Sort order for results ("asc", "desc", "relevance"). Default from API is "relevance" (optional).
             limit: Maximum number of bookmarks to return (optional).
             cursor: Pagination cursor for the next page (optional).
@@ -916,6 +925,7 @@ class KarakeepAPI:
         """
         params = {
             "q": q,
+            "searchMode": search_mode,
             "sortOrder": sort_order,
             "limit": limit,
             "cursor": cursor,
