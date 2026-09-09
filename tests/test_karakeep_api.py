@@ -218,6 +218,59 @@ def test_get_bookmark_readable_content_fetch_all_merges_chunks(monkeypatch):
     assert result.truncated is False
 
 
+def _capture_call(monkeypatch):
+    """Replace ``KarakeepAPI._call`` with a recorder and return the recorded calls list.
+
+    Used by the admin job-trigger tests, which only care about the request body that
+    would be sent and must not touch a live server.
+    """
+    calls = []
+
+    def fake_call(self, method, endpoint, **kwargs):
+        calls.append({"method": method, "endpoint": endpoint, **kwargs})
+        return {"success": True}
+
+    monkeypatch.setattr(KarakeepAPI, "_call", fake_call, raising=True)
+    return calls
+
+
+def test_admin_triggers_omit_modified_within_seconds_by_default(monkeypatch):
+    """The modifiedWithinSeconds key must be absent, not null, when unset.
+
+    The upstream schema has no null case for it, and for reindex the absence of the
+    whole body is what preserves the original "clear the index and rebuild" behaviour
+    on servers that predate the parameter.
+    """
+    calls = _capture_call(monkeypatch)
+    client = KarakeepAPI.__new__(KarakeepAPI)
+
+    client.admin_trigger_recrawl()
+    client.admin_trigger_reindex()
+    client.admin_trigger_inference(type="tag")
+
+    assert "modifiedWithinSeconds" not in calls[0]["data"]
+    assert calls[1].get("data") is None
+    assert "modifiedWithinSeconds" not in calls[2]["data"]
+
+
+def test_admin_triggers_send_modified_within_seconds(monkeypatch):
+    """All three admin job triggers must forward the new time-window filter."""
+    calls = _capture_call(monkeypatch)
+    client = KarakeepAPI.__new__(KarakeepAPI)
+
+    client.admin_trigger_recrawl(modified_within_seconds=3600)
+    client.admin_trigger_reindex(modified_within_seconds=3600)
+    client.admin_trigger_inference(type="summarize", modified_within_seconds=3600)
+
+    assert [c["endpoint"] for c in calls] == [
+        "admin/jobs/trigger/recrawl",
+        "admin/jobs/trigger/reindex",
+        "admin/jobs/trigger/inference",
+    ]
+    for call in calls:
+        assert call["data"]["modifiedWithinSeconds"] == 3600
+
+
 @pytest.mark.parametrize(
     "command, option, method_name",
     [

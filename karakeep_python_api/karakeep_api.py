@@ -2631,6 +2631,7 @@ class KarakeepAPI:
         self,
         crawl_status: Literal["success", "failure", "pending", "all"] = "all",
         run_inference: bool = False,
+        modified_within_seconds: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Trigger a recrawl of link bookmarks. Admin only.
@@ -2640,6 +2641,9 @@ class KarakeepAPI:
             crawl_status: Filter bookmarks by their current crawl status.
                           Use "failure" to retry only failed crawls. Default: "all".
             run_inference: Whether to run AI inference after crawling. Default: False.
+            modified_within_seconds: Only process bookmarks modified within this many
+                                     seconds. Must be > 0. Omit to process all matching
+                                     bookmarks (optional).
 
         Returns:
             dict: A dictionary with a "success" boolean field.
@@ -2647,16 +2651,34 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 403 admin access required).
         """
-        body = {"crawlStatus": crawl_status, "runInference": run_inference}
+        body: Dict[str, Any] = {
+            "crawlStatus": crawl_status,
+            "runInference": run_inference,
+        }
+        # Omitted rather than sent as null: the spec has no null case and the
+        # absence of the key is what means "no time window".
+        if modified_within_seconds is not None:
+            body["modifiedWithinSeconds"] = modified_within_seconds
         return self._call("POST", "admin/jobs/trigger/recrawl", data=body)
 
     @optional_typecheck
-    def admin_trigger_reindex(self) -> Dict[str, Any]:
+    def admin_trigger_reindex(
+        self,
+        modified_within_seconds: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
-        Trigger a reindex of all bookmarks in the search engine. Admin only.
+        Trigger a reindex of bookmarks in the search engine. Admin only.
         Corresponds to POST /admin/jobs/trigger/reindex.
 
-        Clears the existing index and re-queues all bookmarks for indexing.
+        Without modified_within_seconds this clears the existing index and re-queues
+        every bookmark. With it, only bookmarks modified within that window are
+        re-queued and the existing index is left in place, which makes it usable as a
+        cheap catch-up job rather than a full rebuild.
+
+        Args:
+            modified_within_seconds: Only process bookmarks modified within this many
+                                     seconds. Must be > 0. Omit to reindex everything
+                                     from scratch (optional).
 
         Returns:
             dict: A dictionary with a "success" boolean field.
@@ -2664,13 +2686,22 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 403 admin access required).
         """
-        return self._call("POST", "admin/jobs/trigger/reindex")
+        # The request body is optional in the spec, so nothing is sent when no window
+        # is given; that keeps the "clear and rebuild" behaviour byte-identical to
+        # what older servers expect.
+        body = (
+            None
+            if modified_within_seconds is None
+            else {"modifiedWithinSeconds": modified_within_seconds}
+        )
+        return self._call("POST", "admin/jobs/trigger/reindex", data=body)
 
     @optional_typecheck
     def admin_trigger_inference(
         self,
         type: Literal["tag", "summarize"],
         status: Literal["success", "failure", "pending", "all"] = "all",
+        modified_within_seconds: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Trigger AI inference (tagging or summarization) on bookmarks. Admin only.
@@ -2681,6 +2712,9 @@ class KarakeepAPI:
                   "summarize" for AI summarization.
             status: Filter bookmarks by their current inference status.
                     Use "failure" to retry only failed ones. Default: "all".
+            modified_within_seconds: Only process bookmarks modified within this many
+                                     seconds. Must be > 0. Omit to process all matching
+                                     bookmarks (optional).
 
         Returns:
             dict: A dictionary with a "success" boolean field.
@@ -2688,7 +2722,10 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 403 admin access required).
         """
-        body = {"type": type, "status": status}
+        body: Dict[str, Any] = {"type": type, "status": status}
+        # See admin_trigger_recrawl: the key is omitted rather than sent as null.
+        if modified_within_seconds is not None:
+            body["modifiedWithinSeconds"] = modified_within_seconds
         return self._call("POST", "admin/jobs/trigger/inference", data=body)
 
     # --- Feeds ---
