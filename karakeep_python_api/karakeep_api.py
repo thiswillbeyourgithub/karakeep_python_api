@@ -10,7 +10,7 @@ import pathlib
 import json  # Still needed for spec loading if parse_spec not available, and _call
 import datetime
 import typing  # Need full import for get_type_hints resolution with forward refs
-from typing import Optional, Dict, Any, List, Callable, Tuple, Union, Type, Literal
+from typing import Optional, Any, Callable, Union, Literal
 from urllib.parse import urljoin, urlparse
 from loguru import logger
 from pydantic import BaseModel  # Import BaseModel for type checking and serialization
@@ -211,7 +211,7 @@ class KarakeepAPI:
         else:
             logger.debug(f"Using provided OpenAPI spec path: {openapi_spec_path}")
 
-        self.openapi_spec: Optional[Dict[str, Any]] = None  # Initialize attribute
+        self.openapi_spec: Optional[dict[str, Any]] = None  # Initialize attribute
         try:
             with open(openapi_spec_path, "r", encoding="utf-8") as f:
                 self.openapi_spec = json.load(f)
@@ -312,13 +312,13 @@ class KarakeepAPI:
         self,
         method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
+        params: Optional[dict[str, Any]] = None,
         data: Optional[
             Union[BaseModel, dict, list, str, bytes]
         ] = None,  # More specific type hint
-        files: Optional[Dict[str, Any]] = None,
-        extra_headers: Optional[Dict[str, str]] = None,
-    ) -> Union[Dict[str, Any], List[Any], None, bytes]:
+        files: Optional[dict[str, Any]] = None,
+        extra_headers: Optional[dict[str, str]] = None,
+    ) -> Union[dict[str, Any], list[Any], None, bytes]:
         """
         Internal method to make an HTTP call to the Karakeep API. Handles authentication,
         request formatting, response parsing, and error handling.
@@ -697,7 +697,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,  # This is the per-page limit for the API
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedBookmarks, dict[str, Any], list[Any]]:
         """
         Get bookmarks, one page at a time. Corresponds to GET /bookmarks.
 
@@ -783,7 +783,7 @@ class KarakeepAPI:
         fileName: Optional[str] = None,
         # size: Optional[int] = None, # Size is not in POST spec
         # content: Optional[str] = None, # Content is not in POST spec
-    ) -> Union[datatypes.Bookmark, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Bookmark, dict[str, Any], list[Any]]:
         """
         Create a new bookmark. Corresponds to POST /bookmarks.
 
@@ -825,7 +825,7 @@ class KarakeepAPI:
             pydantic.ValidationError: If response validation fails (and is not disabled).
         """
         # --- Construct the request body ---
-        request_body: Dict[str, Any] = {"type": type}
+        request_body: dict[str, Any] = {"type": type}
 
         # Add common optional fields if provided
         if title is not None:
@@ -896,7 +896,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedBookmarks, dict[str, Any], list[Any]]:
         """
         Search bookmarks using full-text, semantic or hybrid ranking.
         Corresponds to GET /bookmarks/search.
@@ -944,7 +944,7 @@ class KarakeepAPI:
     def check_url(
         self,
         url: str,
-    ) -> Union[datatypes.CheckUrlResponse, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.CheckUrlResponse, dict[str, Any], list[Any]]:
         """
         Check if a URL is already bookmarked. Corresponds to GET /bookmarks/check-url.
         Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
@@ -977,7 +977,7 @@ class KarakeepAPI:
         self,
         bookmark_id: str,
         include_content: bool = True,  # Default from spec
-    ) -> Union[datatypes.Bookmark, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Bookmark, dict[str, Any], list[Any]]:
         """
         Get a single bookmark by its ID. Corresponds to GET /bookmarks/{bookmarkId}.
 
@@ -1028,8 +1028,8 @@ class KarakeepAPI:
     def update_a_bookmark(
         self,
         bookmark_id: str,
-        update_data: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        update_data: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
         Allows updating various bookmark fields including metadata, content, and status.
@@ -1069,7 +1069,7 @@ class KarakeepAPI:
         max_chars: Optional[int] = None,
         cursor: Optional[str] = None,
         fetch_all: bool = False,
-    ) -> Union[datatypes.BookmarkReadableContent, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.BookmarkReadableContent, dict[str, Any], list[Any]]:
         """
         Get an agent-readable rendering of a bookmark's content.
         Corresponds to GET /bookmarks/{bookmarkId}/content.
@@ -1157,7 +1157,7 @@ class KarakeepAPI:
             return datatypes.BookmarkReadableContent.model_validate(response_data)
 
     @optional_typecheck
-    def summarize_a_bookmark(self, bookmark_id: str) -> Dict[str, Any]:
+    def summarize_a_bookmark(self, bookmark_id: str) -> dict[str, Any]:
         """
         Summarize a bookmark by its ID. Corresponds to POST /bookmarks/{bookmarkId}/summarize.
         This triggers the summarization process and returns the updated bookmark record (partially).
@@ -1183,10 +1183,10 @@ class KarakeepAPI:
     def attach_tags_to_a_bookmark(
         self,
         bookmark_id: str,
-        tag_ids: Optional[List[str]] = None,
-        tag_names: Optional[List[str]] = None,
+        tag_ids: Optional[list[str]] = None,
+        tag_names: Optional[list[str]] = None,
         attached_by: Optional[Literal["ai", "human"]] = "human",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
@@ -1236,7 +1236,7 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                tag_entry: dict[str, Any] = {"tagId": tag_id.strip()}
                 if attached_by is not None:
                     tag_entry["attachedBy"] = attached_by
                 tags_list.append(tag_entry)
@@ -1266,10 +1266,10 @@ class KarakeepAPI:
     def detach_tags_from_a_bookmark(
         self,
         bookmark_id: str,
-        tag_ids: Optional[List[str]] = None,
-        tag_names: Optional[List[str]] = None,
+        tag_ids: Optional[list[str]] = None,
+        tag_names: Optional[list[str]] = None,
         attached_by: Optional[Literal["ai", "human"]] = "human",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
 
@@ -1319,7 +1319,7 @@ class KarakeepAPI:
 
         if tag_ids:
             for tag_id in tag_ids:
-                tag_entry: Dict[str, Any] = {"tagId": tag_id.strip()}
+                tag_entry: dict[str, Any] = {"tagId": tag_id.strip()}
                 if attached_by is not None:
                     tag_entry["attachedBy"] = attached_by
                 tags_list.append(tag_entry)
@@ -1348,7 +1348,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_lists_of_a_bookmark(
         self, bookmark_id: str
-    ) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
+    ) -> Union[list[datatypes.ListModel], dict[str, Any], list[Any]]:
         """
         Get all lists associated with a specific bookmark. Corresponds to GET /bookmarks/{bookmarkId}/lists.
 
@@ -1356,7 +1356,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
 
         Returns:
-            List[datatypes.ListModel]: A list of list objects associated with the bookmark.
+            list[datatypes.ListModel]: A list of list objects associated with the bookmark.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1396,7 +1396,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_highlights_of_a_bookmark(
         self, bookmark_id: str
-    ) -> Union[List[datatypes.Highlight], Dict[str, Any], List[Any]]:
+    ) -> Union[list[datatypes.Highlight], dict[str, Any], list[Any]]:
         """
         Get all highlights associated with a specific bookmark. Corresponds to GET /bookmarks/{bookmarkId}/highlights.
 
@@ -1404,7 +1404,7 @@ class KarakeepAPI:
             bookmark_id: The ID (string) of the bookmark.
 
         Returns:
-            List[datatypes.Highlight]: A list of highlight objects associated with the bookmark.
+            list[datatypes.Highlight]: A list of highlight objects associated with the bookmark.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1459,7 +1459,7 @@ class KarakeepAPI:
             "avatar",
             "unknown",
         ],
-    ) -> Union[datatypes.BookmarkAsset, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.BookmarkAsset, dict[str, Any], list[Any]]:
         """
         Attach a new asset to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/assets.
 
@@ -1537,12 +1537,12 @@ class KarakeepAPI:
     @optional_typecheck
     def get_all_lists(
         self,
-    ) -> Union[List[datatypes.ListModel], Dict[str, Any], List[Any]]:
+    ) -> Union[list[datatypes.ListModel], dict[str, Any], list[Any]]:
         """
         Get all lists for the current user. Corresponds to GET /lists.
 
         Returns:
-            List[datatypes.ListModel]: A list of list objects.
+            list[datatypes.ListModel]: A list of list objects.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -1588,7 +1588,7 @@ class KarakeepAPI:
         list_type: Optional[Literal["manual", "smart"]] = "manual",
         query: Optional[str] = None,
         public: bool = False,
-    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.ListModel, dict[str, Any], list[Any]]:
         """
         Create a new list (manual or smart). Corresponds to POST /lists.
 
@@ -1642,7 +1642,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_list(
         self, list_id: str
-    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.ListModel, dict[str, Any], list[Any]]:
         """
         Get a single list by its ID. Corresponds to GET /lists/{listId}.
 
@@ -1695,7 +1695,7 @@ class KarakeepAPI:
         parent_id: Optional[str] = None,
         query: Optional[str] = None,
         public: Optional[bool] = None,
-    ) -> Union[datatypes.ListModel, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.ListModel, dict[str, Any], list[Any]]:
         """
         Update a list by its ID. Corresponds to PATCH /lists/{listId}.
         Allows updating various list fields including name, description, icon, parent relationship, query, and public status.
@@ -1755,7 +1755,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedBookmarks, dict[str, Any], list[Any]]:
         """
         Get the bookmarks contained within a specific list. Corresponds to GET /lists/{listId}/bookmarks.
 
@@ -1836,7 +1836,7 @@ class KarakeepAPI:
         attached_by: Optional[Literal["ai", "human", "none"]] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> Union[datatypes.PaginatedTags, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedTags, dict[str, Any], list[Any]]:
         """
         Get all tags for the current user. Corresponds to GET /tags.
 
@@ -1872,7 +1872,7 @@ class KarakeepAPI:
             return datatypes.PaginatedTags.model_validate(response_data)
 
     @optional_typecheck
-    def create_a_new_tag(self, name: str) -> Dict[str, Any]:
+    def create_a_new_tag(self, name: str) -> dict[str, Any]:
         """
         Create a new tag. Corresponds to POST /tags.
 
@@ -1902,7 +1902,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_tag(
         self, tag_id: str
-    ) -> Union[datatypes.Tag, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Tag, dict[str, Any], list[Any]]:
         """
         Get a single tag by its ID. Corresponds to GET /tags/{tagId}.
 
@@ -1946,7 +1946,7 @@ class KarakeepAPI:
         return None  # Explicitly return None for 204
 
     @optional_typecheck
-    def update_a_tag(self, tag_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_a_tag(self, tag_id: str, update_data: dict[str, Any]) -> dict[str, Any]:
         """
         Update a tag by its ID. Currently only supports updating the "name".
         Corresponds to PATCH /tags/{tagId}.
@@ -1982,7 +1982,7 @@ class KarakeepAPI:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         include_content: bool = True,  # Default from spec
-    ) -> Union[datatypes.PaginatedBookmarks, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedBookmarks, dict[str, Any], list[Any]]:
         """
         Get the bookmarks associated with a specific tag. Corresponds to GET /tags/{tagId}/bookmarks.
 
@@ -2020,7 +2020,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_all_highlights(
         self, limit: Optional[int] = None, cursor: Optional[str] = None
-    ) -> Union[datatypes.PaginatedHighlights, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.PaginatedHighlights, dict[str, Any], list[Any]]:
         """
         Get all highlights for the current user. Corresponds to GET /highlights.
 
@@ -2055,7 +2055,7 @@ class KarakeepAPI:
         color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow",
         text: Optional[str] = None,
         note: Optional[str] = None,
-    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Highlight, dict[str, Any], list[Any]]:
         """
         Create a new highlight on a bookmark. Corresponds to POST /highlights.
 
@@ -2097,7 +2097,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_highlight(
         self, highlight_id: str
-    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Highlight, dict[str, Any], list[Any]]:
         """
         Get a single highlight by its ID. Corresponds to GET /highlights/{highlightId}.
 
@@ -2125,7 +2125,7 @@ class KarakeepAPI:
     @optional_typecheck
     def delete_a_highlight(
         self, highlight_id: str
-    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Highlight, dict[str, Any], list[Any]]:
         """
         Delete a highlight by its ID. Corresponds to DELETE /highlights/{highlightId}.
         Note: Unlike most DELETE endpoints, this returns the deleted highlight object on success (status 200).
@@ -2156,7 +2156,7 @@ class KarakeepAPI:
         self,
         highlight_id: str,
         color: Optional[Literal["yellow", "red", "green", "blue"]] = None,
-    ) -> Union[datatypes.Highlight, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Highlight, dict[str, Any], list[Any]]:
         """
         Update a highlight by its ID. Currently only supports updating the "color".
         Corresponds to PATCH /highlights/{highlightId}.
@@ -2194,7 +2194,7 @@ class KarakeepAPI:
             return datatypes.Highlight.model_validate(response_data)
 
     @optional_typecheck
-    def get_current_user_info(self) -> Dict[str, Any]:
+    def get_current_user_info(self) -> dict[str, Any]:
         """
         Get information about the current authenticated user. Corresponds to GET /users/me.
 
@@ -2210,7 +2210,7 @@ class KarakeepAPI:
         return response_data
 
     @optional_typecheck
-    def get_current_user_stats(self) -> Dict[str, Any]:
+    def get_current_user_stats(self) -> dict[str, Any]:
         """
         Get statistics about the current authenticated user's data. Corresponds to GET /users/me/stats.
 
@@ -2241,7 +2241,7 @@ class KarakeepAPI:
         bookmark_quota: Optional[int] = None,
         storage_quota: Optional[int] = None,
         browser_crawling_enabled: Optional[bool] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update a user's role, bookmark quota, or storage quota. Admin access required.
         Corresponds to PUT /admin/users/{userId}.
@@ -2287,7 +2287,7 @@ class KarakeepAPI:
     @optional_typecheck
     def upload_a_new_asset(
         self, file: str
-    ) -> Union[datatypes.UploadedAsset, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.UploadedAsset, dict[str, Any], list[Any]]:
         """
         Upload a new asset file. Corresponds to POST /assets.
 
@@ -2343,12 +2343,12 @@ class KarakeepAPI:
     @optional_typecheck
     def get_all_backups(
         self,
-    ) -> Union[List[datatypes.Backup], Dict[str, Any], List[Any]]:
+    ) -> Union[list[datatypes.Backup], dict[str, Any], list[Any]]:
         """
         Get all backups for the current user. Corresponds to GET /backups.
 
         Returns:
-            List[datatypes.Backup]: A list of backup objects.
+            list[datatypes.Backup]: A list of backup objects.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -2387,7 +2387,7 @@ class KarakeepAPI:
     @optional_typecheck
     def trigger_a_new_backup(
         self,
-    ) -> Union[datatypes.Backup, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Backup, dict[str, Any], list[Any]]:
         """
         Trigger a new backup. Corresponds to POST /backups.
 
@@ -2411,7 +2411,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_backup(
         self, backup_id: str
-    ) -> Union[datatypes.Backup, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Backup, dict[str, Any], list[Any]]:
         """
         Get a single backup by its ID. Corresponds to GET /backups/{backupId}.
 
@@ -2589,7 +2589,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_asset_signed_url(
         self, asset_id: str
-    ) -> Union[datatypes.SignedAssetUrl, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.SignedAssetUrl, dict[str, Any], list[Any]]:
         """
         Get a temporary signed URL for downloading an asset.
         Corresponds to GET /assets/{assetId}/signed-url.
@@ -2632,7 +2632,7 @@ class KarakeepAPI:
         crawl_status: Literal["success", "failure", "pending", "all"] = "all",
         run_inference: bool = False,
         modified_within_seconds: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trigger a recrawl of link bookmarks. Admin only.
         Corresponds to POST /admin/jobs/trigger/recrawl.
@@ -2651,7 +2651,7 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 403 admin access required).
         """
-        body: Dict[str, Any] = {
+        body: dict[str, Any] = {
             "crawlStatus": crawl_status,
             "runInference": run_inference,
         }
@@ -2665,7 +2665,7 @@ class KarakeepAPI:
     def admin_trigger_reindex(
         self,
         modified_within_seconds: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trigger a reindex of bookmarks in the search engine. Admin only.
         Corresponds to POST /admin/jobs/trigger/reindex.
@@ -2702,7 +2702,7 @@ class KarakeepAPI:
         type: Literal["tag", "summarize"],
         status: Literal["success", "failure", "pending", "all"] = "all",
         modified_within_seconds: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trigger AI inference (tagging or summarization) on bookmarks. Admin only.
         Corresponds to POST /admin/jobs/trigger/inference.
@@ -2722,7 +2722,7 @@ class KarakeepAPI:
         Raises:
             APIError: If the API request fails (e.g., 403 admin access required).
         """
-        body: Dict[str, Any] = {"type": type, "status": status}
+        body: dict[str, Any] = {"type": type, "status": status}
         # See admin_trigger_recrawl: the key is omitted rather than sent as null.
         if modified_within_seconds is not None:
             body["modifiedWithinSeconds"] = modified_within_seconds
@@ -2733,12 +2733,12 @@ class KarakeepAPI:
     @optional_typecheck
     def get_all_feeds(
         self,
-    ) -> Union[List[datatypes.Feed], Dict[str, Any], List[Any]]:
+    ) -> Union[list[datatypes.Feed], dict[str, Any], list[Any]]:
         """
         Get all RSS feed subscriptions for the current user. Corresponds to GET /feeds.
 
         Returns:
-            List[datatypes.Feed]: A list of feed objects.
+            list[datatypes.Feed]: A list of feed objects.
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:
@@ -2769,7 +2769,7 @@ class KarakeepAPI:
         url: str,
         enabled: bool = True,
         import_tags: bool = False,
-    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Feed, dict[str, Any], list[Any]]:
         """
         Create a new RSS feed subscription. Corresponds to POST /feeds.
 
@@ -2803,7 +2803,7 @@ class KarakeepAPI:
     @optional_typecheck
     def get_a_single_feed(
         self, feed_id: str
-    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Feed, dict[str, Any], list[Any]]:
         """
         Get a single RSS feed by its ID. Corresponds to GET /feeds/{feedId}.
 
@@ -2832,7 +2832,7 @@ class KarakeepAPI:
         url: Optional[str] = None,
         enabled: Optional[bool] = None,
         import_tags: Optional[bool] = None,
-    ) -> Union[datatypes.Feed, Dict[str, Any], List[Any]]:
+    ) -> Union[datatypes.Feed, dict[str, Any], list[Any]]:
         """
         Update an RSS feed subscription. Corresponds to PATCH /feeds/{feedId}.
 
@@ -2851,7 +2851,7 @@ class KarakeepAPI:
             ValueError: If no fields are provided to update.
             APIError: If the API request fails (e.g., 404 feed not found).
         """
-        update_data: Dict[str, Any] = {}
+        update_data: dict[str, Any] = {}
         if name is not None:
             update_data["name"] = name
         if url is not None:

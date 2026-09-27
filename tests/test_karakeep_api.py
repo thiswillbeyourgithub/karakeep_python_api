@@ -306,7 +306,12 @@ def test_cli_binary_result_written_raw(
         cli_main.KarakeepAPI, method_name, lambda self, **kwargs: payload, raising=True
     )
 
-    runner = CliRunner(mix_stderr=False)
+    try:
+        # Click < 8.2 mixes stdout/stderr unless told otherwise.
+        runner = CliRunner(mix_stderr=False)
+    except TypeError:
+        # Click >= 8.2 removed mix_stderr and always separates the streams.
+        runner = CliRunner()
     result = runner.invoke(
         cli_main.cli,
         [
