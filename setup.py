@@ -40,6 +40,7 @@ setup(
             # "openapi-pydantic >= 0.5.1", # For generating datatypes.py from OpenAPI spec
             "beartype >= 0.20.2",  # Optional runtime type checking
             "pytest >= 8.3.4",
+            "pytest-cov >= 6.0.0",
             "build >= 1.2.2.post1",
             "twine >= 6.1.0",
             "bumpver >= 2024.1130",

@@ -1,11 +1,104 @@
+import json
 import os
 import pytest
 import time
 import random
 import string
 from typing import Optional
+from urllib.parse import urlparse
 import beartype  # to trigger the runtime typechecking
+import requests
 from karakeep_python_api import KarakeepAPI, datatypes
+
+
+# --- Offline HTTP fake for unit tests (no live server required) ---
+
+OFFLINE_ENDPOINT = "https://karakeep.test/api/v1/"
+
+
+class FakeResponse:
+    """Minimal stand-in for requests.Response used by the offline unit tests."""
+
+    def __init__(self, status_code=200, json_data=None, content=None, headers=None):
+        self.status_code = status_code
+        if json_data is not None:
+            self.content = json.dumps(json_data).encode("utf-8")
+        elif isinstance(content, str):
+            self.content = content.encode("utf-8")
+        else:
+            self.content = content or b""
+        self.headers = headers or {}
+
+    @property
+    def text(self):
+        return self.content.decode("utf-8", errors="replace")
+
+    def json(self):
+        return json.loads(self.content.decode("utf-8"))
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError(
+                f"{self.status_code} Error", response=self
+            )
+
+
+class FakeHTTP:
+    """Routes requests.request calls to canned FakeResponse objects and records them."""
+
+    def __init__(self):
+        self.routes = {}
+        self.calls = []
+        # KarakeepAPI.__init__ performs a connection check against users/me.
+        self.add("GET", "users/me", FakeResponse(json_data={"id": "test-user"}))
+
+    def add(self, method, path, response):
+        """Register a response for a path relative to /api/v1/ (e.g. 'bookmarks')."""
+        self.routes[(method.upper(), path.strip("/"))] = response
+
+    def __call__(self, method, url, **kwargs):
+        path = urlparse(url).path
+        # Strip the /api/v1/ prefix so routes can be registered by relative path.
+        rel_path = path.split("/api/v1/", 1)[-1].strip("/")
+        self.calls.append(
+            {"method": method.upper(), "url": url, "path": rel_path, **kwargs}
+        )
+        key = (method.upper(), rel_path)
+        if key not in self.routes:
+            raise AssertionError(f"FakeHTTP received an unrouted request: {key}")
+        response = self.routes[key]
+        if callable(response):
+            return response(method, url, **kwargs)
+        return response
+
+
+@pytest.fixture
+def fake_http(monkeypatch):
+    """Patch requests.request with an in-memory router and isolate the env vars."""
+    for var in (
+        "KARAKEEP_PYTHON_API_KEY",
+        "KARAKEEP_PYTHON_API_ENDPOINT",
+        "KARAKEEP_PYTHON_API_VERBOSE",
+        "KARAKEEP_PYTHON_API_RATE_LIMIT",
+        "KARAKEEP_PYTHON_API_DISABLE_RESPONSE_VALIDATION",
+        "KARAKEEP_PYTHON_API_VERIFY_SSL",
+        "KARAKEEP_PYTHON_API_ENSURE_ASCII",
+    ):
+        monkeypatch.delenv(var, raising=False)
+    fake = FakeHTTP()
+    monkeypatch.setattr(requests, "request", fake)
+    return fake
+
+
+@pytest.fixture
+def offline_client(fake_http):
+    """A KarakeepAPI client whose HTTP layer is fully faked."""
+    client = KarakeepAPI(
+        api_key="test-key",
+        api_endpoint=OFFLINE_ENDPOINT,
+        verbose=False,
+    )
+    return client
 
 
 @pytest.fixture
