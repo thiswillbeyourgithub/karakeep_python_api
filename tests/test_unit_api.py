@@ -238,7 +238,9 @@ def test_init_connection_check_unexpected_error(fake_http, monkeypatch):
 # --- _enforce_rate_limit ---
 
 
-def test_enforce_rate_limit_sleeps_when_calls_are_too_close(offline_client, monkeypatch):
+def test_enforce_rate_limit_sleeps_when_calls_are_too_close(
+    offline_client, monkeypatch
+):
     sleeps = []
     monkeypatch.setattr(time, "sleep", lambda s: sleeps.append(s))
     offline_client.rate_limit = 5.0
@@ -378,9 +380,7 @@ def test_call_raises_api_error_with_json_message(offline_client, fake_http):
 
 
 def test_call_truncates_long_error_bodies(offline_client, fake_http):
-    fake_http.add(
-        "GET", "broken", FakeResponse(status_code=500, content=b"x" * 2000)
-    )
+    fake_http.add("GET", "broken", FakeResponse(status_code=500, content=b"x" * 2000))
     with pytest.raises(APIError) as excinfo:
         offline_client._call("GET", "broken")
     assert excinfo.value.status_code == 500
@@ -460,60 +460,375 @@ def test_call_gives_up_after_max_retries(offline_client, fake_http, monkeypatch)
 @pytest.mark.parametrize(
     "method_name, kwargs, http_method, path, response, expected_type",
     [
-        ("get_all_bookmarks", {}, "GET", "bookmarks", PAGINATED_BOOKMARKS, datatypes.PaginatedBookmarks),
-        ("search_bookmarks", {"q": "test"}, "GET", "bookmarks/search", PAGINATED_BOOKMARKS, datatypes.PaginatedBookmarks),
-        ("check_url", {"url": "https://example.com"}, "GET", "bookmarks/check-url", {"bookmarkId": None}, datatypes.CheckUrlResponse),
-        ("get_a_single_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456", BOOKMARK, datatypes.Bookmark),
-        ("update_a_bookmark", {"bookmark_id": "bm123456", "update_data": {"title": "new"}}, "PATCH", "bookmarks/bm123456", {"id": "bm123456", "title": "new"}, dict),
-        ("summarize_a_bookmark", {"bookmark_id": "bm123456"}, "POST", "bookmarks/bm123456/summarize", {"id": "bm123456", "summary": "s"}, dict),
-        ("get_bookmark_readable_content", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/content", READABLE_CONTENT, datatypes.BookmarkReadableContent),
-        ("attach_tags_to_a_bookmark", {"bookmark_id": "bm123456", "tag_names": ["python"]}, "POST", "bookmarks/bm123456/tags", {"attached": ["tag1"]}, dict),
-        ("detach_tags_from_a_bookmark", {"bookmark_id": "bm123456", "tag_ids": ["tag1"]}, "DELETE", "bookmarks/bm123456/tags", {"detached": ["tag1"]}, dict),
-        ("get_lists_of_a_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/lists", {"lists": [LIST_MODEL]}, list),
-        ("get_highlights_of_a_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/highlights", {"highlights": [HIGHLIGHT]}, list),
-        ("attach_asset", {"bookmark_id": "bm123456", "asset_id": "a1", "asset_type": "pdf"}, "POST", "bookmarks/bm123456/assets", {"id": "a1", "assetType": "pdf"}, datatypes.BookmarkAsset),
-        ("replace_asset", {"bookmark_id": "bm123456", "asset_id": "a1", "new_asset_id": "a2"}, "PUT", "bookmarks/bm123456/assets/a1", None, type(None)),
-        ("detach_asset", {"bookmark_id": "bm123456", "asset_id": "a1"}, "DELETE", "bookmarks/bm123456/assets/a1", None, type(None)),
+        (
+            "get_all_bookmarks",
+            {},
+            "GET",
+            "bookmarks",
+            PAGINATED_BOOKMARKS,
+            datatypes.PaginatedBookmarks,
+        ),
+        (
+            "search_bookmarks",
+            {"q": "test"},
+            "GET",
+            "bookmarks/search",
+            PAGINATED_BOOKMARKS,
+            datatypes.PaginatedBookmarks,
+        ),
+        (
+            "check_url",
+            {"url": "https://example.com"},
+            "GET",
+            "bookmarks/check-url",
+            {"bookmarkId": None},
+            datatypes.CheckUrlResponse,
+        ),
+        (
+            "get_a_single_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456",
+            BOOKMARK,
+            datatypes.Bookmark,
+        ),
+        (
+            "update_a_bookmark",
+            {"bookmark_id": "bm123456", "update_data": {"title": "new"}},
+            "PATCH",
+            "bookmarks/bm123456",
+            {"id": "bm123456", "title": "new"},
+            dict,
+        ),
+        (
+            "summarize_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "POST",
+            "bookmarks/bm123456/summarize",
+            {"id": "bm123456", "summary": "s"},
+            dict,
+        ),
+        (
+            "get_bookmark_readable_content",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/content",
+            READABLE_CONTENT,
+            datatypes.BookmarkReadableContent,
+        ),
+        (
+            "attach_tags_to_a_bookmark",
+            {"bookmark_id": "bm123456", "tag_names": ["python"]},
+            "POST",
+            "bookmarks/bm123456/tags",
+            {"attached": ["tag1"]},
+            dict,
+        ),
+        (
+            "detach_tags_from_a_bookmark",
+            {"bookmark_id": "bm123456", "tag_ids": ["tag1"]},
+            "DELETE",
+            "bookmarks/bm123456/tags",
+            {"detached": ["tag1"]},
+            dict,
+        ),
+        (
+            "get_lists_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/lists",
+            {"lists": [LIST_MODEL]},
+            list,
+        ),
+        (
+            "get_highlights_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/highlights",
+            {"highlights": [HIGHLIGHT]},
+            list,
+        ),
+        (
+            "attach_asset",
+            {"bookmark_id": "bm123456", "asset_id": "a1", "asset_type": "pdf"},
+            "POST",
+            "bookmarks/bm123456/assets",
+            {"id": "a1", "assetType": "pdf"},
+            datatypes.BookmarkAsset,
+        ),
+        (
+            "replace_asset",
+            {"bookmark_id": "bm123456", "asset_id": "a1", "new_asset_id": "a2"},
+            "PUT",
+            "bookmarks/bm123456/assets/a1",
+            None,
+            type(None),
+        ),
+        (
+            "detach_asset",
+            {"bookmark_id": "bm123456", "asset_id": "a1"},
+            "DELETE",
+            "bookmarks/bm123456/assets/a1",
+            None,
+            type(None),
+        ),
         ("get_all_lists", {}, "GET", "lists", {"lists": [LIST_MODEL]}, list),
-        ("create_a_new_list", {"name": "My List", "icon": "star"}, "POST", "lists", LIST_MODEL, datatypes.ListModel),
-        ("get_a_single_list", {"list_id": "list1"}, "GET", "lists/list1", LIST_MODEL, datatypes.ListModel),
-        ("delete_a_list", {"list_id": "list1"}, "DELETE", "lists/list1", None, type(None)),
-        ("update_a_list", {"list_id": "list1", "name": "Renamed"}, "PATCH", "lists/list1", LIST_MODEL, datatypes.ListModel),
-        ("get_bookmarks_in_the_list", {"list_id": "list1"}, "GET", "lists/list1/bookmarks", PAGINATED_BOOKMARKS, datatypes.PaginatedBookmarks),
-        ("add_a_bookmark_to_a_list", {"list_id": "list1", "bookmark_id": "bm123456"}, "PUT", "lists/list1/bookmarks/bm123456", None, type(None)),
-        ("remove_a_bookmark_from_a_list", {"list_id": "list1", "bookmark_id": "bm123456"}, "DELETE", "lists/list1/bookmarks/bm123456", None, type(None)),
-        ("get_all_tags", {}, "GET", "tags", {"tags": [TAG], "nextCursor": None}, datatypes.PaginatedTags),
-        ("create_a_new_tag", {"name": " python "}, "POST", "tags", {"id": "tag1", "name": "python"}, dict),
-        ("get_a_single_tag", {"tag_id": "tag1"}, "GET", "tags/tag1", TAG, datatypes.Tag),
+        (
+            "create_a_new_list",
+            {"name": "My List", "icon": "star"},
+            "POST",
+            "lists",
+            LIST_MODEL,
+            datatypes.ListModel,
+        ),
+        (
+            "get_a_single_list",
+            {"list_id": "list1"},
+            "GET",
+            "lists/list1",
+            LIST_MODEL,
+            datatypes.ListModel,
+        ),
+        (
+            "delete_a_list",
+            {"list_id": "list1"},
+            "DELETE",
+            "lists/list1",
+            None,
+            type(None),
+        ),
+        (
+            "update_a_list",
+            {"list_id": "list1", "name": "Renamed"},
+            "PATCH",
+            "lists/list1",
+            LIST_MODEL,
+            datatypes.ListModel,
+        ),
+        (
+            "get_bookmarks_in_the_list",
+            {"list_id": "list1"},
+            "GET",
+            "lists/list1/bookmarks",
+            PAGINATED_BOOKMARKS,
+            datatypes.PaginatedBookmarks,
+        ),
+        (
+            "add_a_bookmark_to_a_list",
+            {"list_id": "list1", "bookmark_id": "bm123456"},
+            "PUT",
+            "lists/list1/bookmarks/bm123456",
+            None,
+            type(None),
+        ),
+        (
+            "remove_a_bookmark_from_a_list",
+            {"list_id": "list1", "bookmark_id": "bm123456"},
+            "DELETE",
+            "lists/list1/bookmarks/bm123456",
+            None,
+            type(None),
+        ),
+        (
+            "get_all_tags",
+            {},
+            "GET",
+            "tags",
+            {"tags": [TAG], "nextCursor": None},
+            datatypes.PaginatedTags,
+        ),
+        (
+            "create_a_new_tag",
+            {"name": " python "},
+            "POST",
+            "tags",
+            {"id": "tag1", "name": "python"},
+            dict,
+        ),
+        (
+            "get_a_single_tag",
+            {"tag_id": "tag1"},
+            "GET",
+            "tags/tag1",
+            TAG,
+            datatypes.Tag,
+        ),
         ("delete_a_tag", {"tag_id": "tag1"}, "DELETE", "tags/tag1", None, type(None)),
-        ("update_a_tag", {"tag_id": "tag1", "update_data": {"name": "new"}}, "PATCH", "tags/tag1", {"id": "tag1", "name": "new"}, dict),
-        ("get_bookmarks_with_the_tag", {"tag_id": "tag1"}, "GET", "tags/tag1/bookmarks", PAGINATED_BOOKMARKS, datatypes.PaginatedBookmarks),
-        ("get_all_highlights", {}, "GET", "highlights", {"highlights": [HIGHLIGHT], "nextCursor": None}, datatypes.PaginatedHighlights),
-        ("create_a_new_highlight", {"bookmark_id": "bm123456", "start_offset": 0, "end_offset": 5}, "POST", "highlights", HIGHLIGHT, datatypes.Highlight),
-        ("get_a_single_highlight", {"highlight_id": "hl1"}, "GET", "highlights/hl1", HIGHLIGHT, datatypes.Highlight),
-        ("delete_a_highlight", {"highlight_id": "hl1"}, "DELETE", "highlights/hl1", HIGHLIGHT, datatypes.Highlight),
-        ("update_a_highlight", {"highlight_id": "hl1", "color": "red"}, "PATCH", "highlights/hl1", HIGHLIGHT, datatypes.Highlight),
+        (
+            "update_a_tag",
+            {"tag_id": "tag1", "update_data": {"name": "new"}},
+            "PATCH",
+            "tags/tag1",
+            {"id": "tag1", "name": "new"},
+            dict,
+        ),
+        (
+            "get_bookmarks_with_the_tag",
+            {"tag_id": "tag1"},
+            "GET",
+            "tags/tag1/bookmarks",
+            PAGINATED_BOOKMARKS,
+            datatypes.PaginatedBookmarks,
+        ),
+        (
+            "get_all_highlights",
+            {},
+            "GET",
+            "highlights",
+            {"highlights": [HIGHLIGHT], "nextCursor": None},
+            datatypes.PaginatedHighlights,
+        ),
+        (
+            "create_a_new_highlight",
+            {"bookmark_id": "bm123456", "start_offset": 0, "end_offset": 5},
+            "POST",
+            "highlights",
+            HIGHLIGHT,
+            datatypes.Highlight,
+        ),
+        (
+            "get_a_single_highlight",
+            {"highlight_id": "hl1"},
+            "GET",
+            "highlights/hl1",
+            HIGHLIGHT,
+            datatypes.Highlight,
+        ),
+        (
+            "delete_a_highlight",
+            {"highlight_id": "hl1"},
+            "DELETE",
+            "highlights/hl1",
+            HIGHLIGHT,
+            datatypes.Highlight,
+        ),
+        (
+            "update_a_highlight",
+            {"highlight_id": "hl1", "color": "red"},
+            "PATCH",
+            "highlights/hl1",
+            HIGHLIGHT,
+            datatypes.Highlight,
+        ),
         ("get_current_user_info", {}, "GET", "users/me", {"id": "test-user"}, dict),
-        ("get_current_user_stats", {}, "GET", "users/me/stats", {"numBookmarks": 5}, dict),
-        ("update_user", {"user_id": "u1", "role": "admin"}, "PUT", "admin/users/u1", {"success": True}, dict),
+        (
+            "get_current_user_stats",
+            {},
+            "GET",
+            "users/me/stats",
+            {"numBookmarks": 5},
+            dict,
+        ),
+        (
+            "update_user",
+            {"user_id": "u1", "role": "admin"},
+            "PUT",
+            "admin/users/u1",
+            {"success": True},
+            dict,
+        ),
         ("get_all_backups", {}, "GET", "backups", {"backups": [BACKUP]}, list),
         ("trigger_a_new_backup", {}, "POST", "backups", BACKUP, datatypes.Backup),
-        ("get_a_single_backup", {"backup_id": "backup1"}, "GET", "backups/backup1", BACKUP, datatypes.Backup),
-        ("delete_a_backup", {"backup_id": "backup1"}, "DELETE", "backups/backup1", None, type(None)),
-        ("get_asset_signed_url", {"asset_id": "asset123"}, "GET", "assets/asset123/signed-url", SIGNED_URL, datatypes.SignedAssetUrl),
-        ("admin_trigger_recrawl", {}, "POST", "admin/jobs/trigger/recrawl", {"success": True}, dict),
-        ("admin_trigger_reindex", {}, "POST", "admin/jobs/trigger/reindex", {"success": True}, dict),
-        ("admin_trigger_inference", {"type": "tag"}, "POST", "admin/jobs/trigger/inference", {"success": True}, dict),
+        (
+            "get_a_single_backup",
+            {"backup_id": "backup1"},
+            "GET",
+            "backups/backup1",
+            BACKUP,
+            datatypes.Backup,
+        ),
+        (
+            "delete_a_backup",
+            {"backup_id": "backup1"},
+            "DELETE",
+            "backups/backup1",
+            None,
+            type(None),
+        ),
+        (
+            "get_asset_signed_url",
+            {"asset_id": "asset123"},
+            "GET",
+            "assets/asset123/signed-url",
+            SIGNED_URL,
+            datatypes.SignedAssetUrl,
+        ),
+        (
+            "admin_trigger_recrawl",
+            {},
+            "POST",
+            "admin/jobs/trigger/recrawl",
+            {"success": True},
+            dict,
+        ),
+        (
+            "admin_trigger_reindex",
+            {},
+            "POST",
+            "admin/jobs/trigger/reindex",
+            {"success": True},
+            dict,
+        ),
+        (
+            "admin_trigger_inference",
+            {"type": "tag"},
+            "POST",
+            "admin/jobs/trigger/inference",
+            {"success": True},
+            dict,
+        ),
         ("get_all_feeds", {}, "GET", "feeds", {"feeds": [FEED]}, list),
-        ("create_a_new_feed", {"name": "My Feed", "url": "https://example.com/rss.xml"}, "POST", "feeds", FEED, datatypes.Feed),
-        ("get_a_single_feed", {"feed_id": "feed1"}, "GET", "feeds/feed1", FEED, datatypes.Feed),
-        ("update_a_feed", {"feed_id": "feed1", "name": "Renamed"}, "PATCH", "feeds/feed1", FEED, datatypes.Feed),
-        ("delete_a_feed", {"feed_id": "feed1"}, "DELETE", "feeds/feed1", None, type(None)),
-        ("fetch_a_feed", {"feed_id": "feed1"}, "POST", "feeds/feed1/fetch", None, type(None)),
+        (
+            "create_a_new_feed",
+            {"name": "My Feed", "url": "https://example.com/rss.xml"},
+            "POST",
+            "feeds",
+            FEED,
+            datatypes.Feed,
+        ),
+        (
+            "get_a_single_feed",
+            {"feed_id": "feed1"},
+            "GET",
+            "feeds/feed1",
+            FEED,
+            datatypes.Feed,
+        ),
+        (
+            "update_a_feed",
+            {"feed_id": "feed1", "name": "Renamed"},
+            "PATCH",
+            "feeds/feed1",
+            FEED,
+            datatypes.Feed,
+        ),
+        (
+            "delete_a_feed",
+            {"feed_id": "feed1"},
+            "DELETE",
+            "feeds/feed1",
+            None,
+            type(None),
+        ),
+        (
+            "fetch_a_feed",
+            {"feed_id": "feed1"},
+            "POST",
+            "feeds/feed1/fetch",
+            None,
+            type(None),
+        ),
     ],
 )
 def test_endpoint_wrappers_happy_path(
-    offline_client, fake_http, method_name, kwargs, http_method, path, response, expected_type
+    offline_client,
+    fake_http,
+    method_name,
+    kwargs,
+    http_method,
+    path,
+    response,
+    expected_type,
 ):
     if response is None:
         fake_http.add(http_method, path, FakeResponse(status_code=204))
@@ -556,8 +871,16 @@ def test_disable_response_validation_returns_raw_data(
         ("get_all_lists", {}, "lists"),
         ("get_all_backups", {}, "backups"),
         ("get_all_feeds", {}, "feeds"),
-        ("get_lists_of_a_bookmark", {"bookmark_id": "bm123456"}, "bookmarks/bm123456/lists"),
-        ("get_highlights_of_a_bookmark", {"bookmark_id": "bm123456"}, "bookmarks/bm123456/highlights"),
+        (
+            "get_lists_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "bookmarks/bm123456/lists",
+        ),
+        (
+            "get_highlights_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "bookmarks/bm123456/highlights",
+        ),
     ],
 )
 def test_list_endpoints_reject_unexpected_response_shape(
@@ -577,15 +900,43 @@ def test_list_endpoints_reject_unexpected_response_shape(
         ("create_a_new_bookmark", {"type": "link"}, "'url' is required"),
         ("create_a_new_bookmark", {"type": "text"}, "'text' is required"),
         ("create_a_new_bookmark", {"type": "asset", "assetId": "a1"}, "'asset_type'"),
-        ("create_a_new_bookmark", {"type": "asset", "asset_type": "pdf"}, "'assetId' is required"),
-        ("update_a_bookmark", {"bookmark_id": "b", "update_data": {}}, "at least one field"),
+        (
+            "create_a_new_bookmark",
+            {"type": "asset", "asset_type": "pdf"},
+            "'assetId' is required",
+        ),
+        (
+            "update_a_bookmark",
+            {"bookmark_id": "b", "update_data": {}},
+            "at least one field",
+        ),
         ("attach_tags_to_a_bookmark", {"bookmark_id": "b"}, "At least one of"),
-        ("attach_tags_to_a_bookmark", {"bookmark_id": "b", "tag_ids": ["  "]}, "non-empty string"),
-        ("attach_tags_to_a_bookmark", {"bookmark_id": "b", "tag_names": [" "]}, "non-empty string"),
+        (
+            "attach_tags_to_a_bookmark",
+            {"bookmark_id": "b", "tag_ids": ["  "]},
+            "non-empty string",
+        ),
+        (
+            "attach_tags_to_a_bookmark",
+            {"bookmark_id": "b", "tag_names": [" "]},
+            "non-empty string",
+        ),
         ("detach_tags_from_a_bookmark", {"bookmark_id": "b"}, "At least one of"),
-        ("detach_tags_from_a_bookmark", {"bookmark_id": "b", "tag_ids": [""]}, "non-empty string"),
-        ("detach_tags_from_a_bookmark", {"bookmark_id": "b", "tag_names": [" "]}, "non-empty string"),
-        ("create_a_new_list", {"name": "n", "icon": "i", "list_type": "smart"}, "'query' is required"),
+        (
+            "detach_tags_from_a_bookmark",
+            {"bookmark_id": "b", "tag_ids": [""]},
+            "non-empty string",
+        ),
+        (
+            "detach_tags_from_a_bookmark",
+            {"bookmark_id": "b", "tag_names": [" "]},
+            "non-empty string",
+        ),
+        (
+            "create_a_new_list",
+            {"name": "n", "icon": "i", "list_type": "smart"},
+            "'query' is required",
+        ),
         ("update_a_list", {"list_id": "l"}, "At least one field"),
         ("create_a_new_tag", {"name": "   "}, "cannot be empty"),
         ("update_a_tag", {"tag_id": "t", "update_data": {}}, "at least one field"),
@@ -709,7 +1060,9 @@ def test_download_a_backup_returns_bytes(offline_client, fake_http):
     fake_http.add(
         "GET",
         "backups/backup123/download",
-        FakeResponse(content=b"PK\x03\x04zipdata", headers={"Content-Type": "application/zip"}),
+        FakeResponse(
+            content=b"PK\x03\x04zipdata", headers={"Content-Type": "application/zip"}
+        ),
     )
     data = offline_client.download_a_backup(backup_id="backup123")
     assert data == b"PK\x03\x04zipdata"
@@ -722,9 +1075,7 @@ def test_download_a_backup_empty_response(offline_client, fake_http):
 
 
 def test_download_a_backup_unexpected_json_raises(offline_client, monkeypatch):
-    monkeypatch.setattr(
-        offline_client, "_call", lambda *a, **k: {"error": "not bytes"}
-    )
+    monkeypatch.setattr(offline_client, "_call", lambda *a, **k: {"error": "not bytes"})
     with pytest.raises(APIError, match="Expected bytes"):
         offline_client.download_a_backup(backup_id="backup123")
 
@@ -790,9 +1141,7 @@ def test_upload_a_new_asset_verbose(fake_http, tmp_path):
     f = tmp_path / "doc.pdf"
     f.write_bytes(b"%PDF")
     fake_http.add("POST", "assets", FakeResponse(json_data=UPLOADED_ASSET))
-    assert isinstance(
-        client.upload_a_new_asset(file=str(f)), datatypes.UploadedAsset
-    )
+    assert isinstance(client.upload_a_new_asset(file=str(f)), datatypes.UploadedAsset)
 
 
 def test_upload_a_new_asset_unknown_mime_type(offline_client, fake_http, tmp_path):
@@ -808,7 +1157,12 @@ def test_upload_a_new_asset_unknown_mime_type(offline_client, fake_http, tmp_pat
 
 def test_readable_content_fetch_all_walks_cursors(offline_client, fake_http):
     pages = [
-        {**READABLE_CONTENT, "content": "part1 ", "nextCursor": "c2", "truncated": True},
+        {
+            **READABLE_CONTENT,
+            "content": "part1 ",
+            "nextCursor": "c2",
+            "truncated": True,
+        },
         {**READABLE_CONTENT, "content": "part2", "nextCursor": None},
     ]
     state = {"i": 0}
@@ -830,7 +1184,9 @@ def test_readable_content_fetch_all_walks_cursors(offline_client, fake_http):
 
 def test_readable_content_fetch_all_rejects_non_dict(offline_client, fake_http):
     fake_http.add(
-        "GET", "bookmarks/bm123456/content", FakeResponse(json_data=["not", "a", "dict"])
+        "GET",
+        "bookmarks/bm123456/content",
+        FakeResponse(json_data=["not", "a", "dict"]),
     )
     with pytest.raises(APIError, match="Unexpected response format"):
         offline_client.get_bookmark_readable_content(
@@ -905,9 +1261,7 @@ def test_verbose_client_exercises_debug_logging(fake_http, monkeypatch):
     assert client.verbose is True
 
     # JSON request/response logging (with a long body to hit truncation).
-    fake_http.add(
-        "POST", "echo", FakeResponse(json_data={"data": "x" * 2000})
-    )
+    fake_http.add("POST", "echo", FakeResponse(json_data={"data": "x" * 2000}))
     client._call("POST", "echo", data={"payload": "y" * 1000})
 
     # 204 logging.
@@ -1023,33 +1377,153 @@ def test_update_user_sends_all_provided_fields(offline_client, fake_http):
 @pytest.mark.parametrize(
     "method_name, kwargs, http_method, path, response",
     [
-        ("search_bookmarks", {"q": "x"}, "GET", "bookmarks/search", PAGINATED_BOOKMARKS),
-        ("check_url", {"url": "https://example.com"}, "GET", "bookmarks/check-url", {"bookmarkId": None}),
-        ("get_a_single_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456", BOOKMARK),
-        ("create_a_new_bookmark", {"type": "link", "url": "https://example.com"}, "POST", "bookmarks", BOOKMARK),
-        ("get_bookmark_readable_content", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/content", READABLE_CONTENT),
-        ("get_lists_of_a_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/lists", {"lists": [LIST_MODEL]}),
-        ("get_highlights_of_a_bookmark", {"bookmark_id": "bm123456"}, "GET", "bookmarks/bm123456/highlights", {"highlights": [HIGHLIGHT]}),
-        ("attach_asset", {"bookmark_id": "bm123456", "asset_id": "a1", "asset_type": "pdf"}, "POST", "bookmarks/bm123456/assets", {"id": "a1", "assetType": "pdf"}),
+        (
+            "search_bookmarks",
+            {"q": "x"},
+            "GET",
+            "bookmarks/search",
+            PAGINATED_BOOKMARKS,
+        ),
+        (
+            "check_url",
+            {"url": "https://example.com"},
+            "GET",
+            "bookmarks/check-url",
+            {"bookmarkId": None},
+        ),
+        (
+            "get_a_single_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456",
+            BOOKMARK,
+        ),
+        (
+            "create_a_new_bookmark",
+            {"type": "link", "url": "https://example.com"},
+            "POST",
+            "bookmarks",
+            BOOKMARK,
+        ),
+        (
+            "get_bookmark_readable_content",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/content",
+            READABLE_CONTENT,
+        ),
+        (
+            "get_lists_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/lists",
+            {"lists": [LIST_MODEL]},
+        ),
+        (
+            "get_highlights_of_a_bookmark",
+            {"bookmark_id": "bm123456"},
+            "GET",
+            "bookmarks/bm123456/highlights",
+            {"highlights": [HIGHLIGHT]},
+        ),
+        (
+            "attach_asset",
+            {"bookmark_id": "bm123456", "asset_id": "a1", "asset_type": "pdf"},
+            "POST",
+            "bookmarks/bm123456/assets",
+            {"id": "a1", "assetType": "pdf"},
+        ),
         ("create_a_new_list", {"name": "n", "icon": "i"}, "POST", "lists", LIST_MODEL),
         ("get_a_single_list", {"list_id": "list1"}, "GET", "lists/list1", LIST_MODEL),
-        ("update_a_list", {"list_id": "list1", "name": "n"}, "PATCH", "lists/list1", LIST_MODEL),
-        ("get_bookmarks_in_the_list", {"list_id": "list1"}, "GET", "lists/list1/bookmarks", PAGINATED_BOOKMARKS),
+        (
+            "update_a_list",
+            {"list_id": "list1", "name": "n"},
+            "PATCH",
+            "lists/list1",
+            LIST_MODEL,
+        ),
+        (
+            "get_bookmarks_in_the_list",
+            {"list_id": "list1"},
+            "GET",
+            "lists/list1/bookmarks",
+            PAGINATED_BOOKMARKS,
+        ),
         ("get_all_tags", {}, "GET", "tags", {"tags": [TAG], "nextCursor": None}),
         ("get_a_single_tag", {"tag_id": "tag1"}, "GET", "tags/tag1", TAG),
-        ("get_bookmarks_with_the_tag", {"tag_id": "tag1"}, "GET", "tags/tag1/bookmarks", PAGINATED_BOOKMARKS),
-        ("get_all_highlights", {}, "GET", "highlights", {"highlights": [HIGHLIGHT], "nextCursor": None}),
-        ("create_a_new_highlight", {"bookmark_id": "bm123456", "start_offset": 0, "end_offset": 5}, "POST", "highlights", HIGHLIGHT),
-        ("get_a_single_highlight", {"highlight_id": "hl1"}, "GET", "highlights/hl1", HIGHLIGHT),
-        ("delete_a_highlight", {"highlight_id": "hl1"}, "DELETE", "highlights/hl1", HIGHLIGHT),
-        ("update_a_highlight", {"highlight_id": "hl1", "color": "red"}, "PATCH", "highlights/hl1", HIGHLIGHT),
+        (
+            "get_bookmarks_with_the_tag",
+            {"tag_id": "tag1"},
+            "GET",
+            "tags/tag1/bookmarks",
+            PAGINATED_BOOKMARKS,
+        ),
+        (
+            "get_all_highlights",
+            {},
+            "GET",
+            "highlights",
+            {"highlights": [HIGHLIGHT], "nextCursor": None},
+        ),
+        (
+            "create_a_new_highlight",
+            {"bookmark_id": "bm123456", "start_offset": 0, "end_offset": 5},
+            "POST",
+            "highlights",
+            HIGHLIGHT,
+        ),
+        (
+            "get_a_single_highlight",
+            {"highlight_id": "hl1"},
+            "GET",
+            "highlights/hl1",
+            HIGHLIGHT,
+        ),
+        (
+            "delete_a_highlight",
+            {"highlight_id": "hl1"},
+            "DELETE",
+            "highlights/hl1",
+            HIGHLIGHT,
+        ),
+        (
+            "update_a_highlight",
+            {"highlight_id": "hl1", "color": "red"},
+            "PATCH",
+            "highlights/hl1",
+            HIGHLIGHT,
+        ),
         ("get_all_backups", {}, "GET", "backups", {"backups": [BACKUP]}),
         ("trigger_a_new_backup", {}, "POST", "backups", BACKUP),
-        ("get_a_single_backup", {"backup_id": "backup1"}, "GET", "backups/backup1", BACKUP),
-        ("get_asset_signed_url", {"asset_id": "asset123"}, "GET", "assets/asset123/signed-url", SIGNED_URL),
-        ("create_a_new_feed", {"name": "n", "url": "https://example.com/rss.xml"}, "POST", "feeds", FEED),
+        (
+            "get_a_single_backup",
+            {"backup_id": "backup1"},
+            "GET",
+            "backups/backup1",
+            BACKUP,
+        ),
+        (
+            "get_asset_signed_url",
+            {"asset_id": "asset123"},
+            "GET",
+            "assets/asset123/signed-url",
+            SIGNED_URL,
+        ),
+        (
+            "create_a_new_feed",
+            {"name": "n", "url": "https://example.com/rss.xml"},
+            "POST",
+            "feeds",
+            FEED,
+        ),
         ("get_a_single_feed", {"feed_id": "feed1"}, "GET", "feeds/feed1", FEED),
-        ("update_a_feed", {"feed_id": "feed1", "name": "n"}, "PATCH", "feeds/feed1", FEED),
+        (
+            "update_a_feed",
+            {"feed_id": "feed1", "name": "n"},
+            "PATCH",
+            "feeds/feed1",
+            FEED,
+        ),
     ],
 )
 def test_disable_response_validation_all_wrappers(
@@ -1075,6 +1549,8 @@ def test_disable_validation_upload_and_readable_content_fetch_all(fake_http, tmp
     fake_http.add(
         "GET", "bookmarks/bm123456/content", FakeResponse(json_data=READABLE_CONTENT)
     )
-    result = client.get_bookmark_readable_content(bookmark_id="bm123456", fetch_all=True)
+    result = client.get_bookmark_readable_content(
+        bookmark_id="bm123456", fetch_all=True
+    )
     assert result["content"] == READABLE_CONTENT["content"]
     assert result["nextCursor"] is None

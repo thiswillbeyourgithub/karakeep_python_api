@@ -9,7 +9,6 @@ import json
 import pytest
 from click.testing import CliRunner
 from loguru import logger
-from pydantic import BaseModel
 
 from karakeep_python_api import APIError, datatypes
 from karakeep_python_api import __main__ as cli_main
@@ -212,7 +211,8 @@ def test_cli_unexpected_error_exits_nonzero(offline_cli, monkeypatch):
 
 
 def _bookmark(bm_id):
-    return {**{"id": bm_id}, **{k: v for k, v in {
+    return {
+        "id": bm_id,
         "createdAt": "2026-01-01T00:00:00.000Z",
         "modifiedAt": None,
         "archived": False,
@@ -224,7 +224,7 @@ def _bookmark(bm_id):
         "tags": [],
         "content": {"type": "link", "url": "https://example.com"},
         "assets": [],
-    }.items()}}
+    }
 
 
 def test_cli_get_all_bookmarks_paginates_until_cursor_exhausted(
