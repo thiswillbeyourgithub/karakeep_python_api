@@ -69,6 +69,29 @@ def _is_package_record(record: Dict[str, Any]) -> bool:
     return (record["name"] or "").startswith(_PACKAGE_NAME)
 
 
+def exclude_library_records(record: Dict[str, Any]) -> bool:
+    """
+    Loguru filter rejecting the records emitted by this package.
+
+    Meant for applications that install their own stderr handler: the
+    package already prints its records through its own handler, so passing
+    ``filter=exclude_library_records`` to ``logger.add`` keeps them from being
+    printed a second time. File handlers usually do not need it, as the
+    package never writes to files.
+
+    Parameters
+    ----------
+    record : dict
+        Loguru record.
+
+    Returns
+    -------
+    bool
+        True for records that do NOT come from karakeep_python_api.
+    """
+    return not _is_package_record(record)
+
+
 def _configure_logging(level: str) -> None:
     """
     Install (or replace) the stderr handler used for this package's logs.
@@ -88,9 +111,8 @@ def _configure_logging(level: str) -> None:
       handler, while the application keeps exactly the output it had.
     If the application already replaced the default handler with its own
     catch-all handler, the library records will reach both: such
-    applications can add ``filter=lambda r: not r["name"].startswith(
-    "karakeep_python_api")`` to their handler, or remove their handlers
-    before creating the client.
+    applications should pass ``filter=exclude_library_records`` to their
+    stderr handler.
 
     Parameters
     ----------
@@ -114,7 +136,7 @@ def _configure_logging(level: str) -> None:
         logger.add(
             sys.stderr,
             level="DEBUG",
-            filter=lambda record: not _is_package_record(record),
+            filter=exclude_library_records,
         )
     if level == "DEBUG":
         log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"

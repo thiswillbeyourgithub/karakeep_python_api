@@ -1,5 +1,10 @@
 # Import API class and errors directly from the module
-from .karakeep_api import KarakeepAPI, APIError, AuthenticationError
+from .karakeep_api import (
+    KarakeepAPI,
+    APIError,
+    AuthenticationError,
+    exclude_library_records,
+)
 
 # Import the datatypes module so users can do `from karakeep_python_api.datatypes import ...`
 from . import datatypes
@@ -12,6 +17,7 @@ __all__ = [
     "KarakeepAPI",
     "APIError",
     "AuthenticationError",
+    "exclude_library_records",
     "datatypes",  # Expose the datatypes module
     "__version__",
 ]
