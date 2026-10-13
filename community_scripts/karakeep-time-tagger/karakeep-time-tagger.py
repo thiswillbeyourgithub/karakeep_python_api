@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from loguru import logger
-from karakeep_python_api import KarakeepAPI
+from karakeep_python_api import KarakeepAPI, exclude_library_records
 
 
 VERSION: str = "1.3.0"
@@ -94,17 +94,21 @@ class AddTimeToRead:
 
     def setup_logging(self, verbose: bool = False):
         """Setup loguru logging with file output and console output based on verbosity."""
-        # Remove default logger
-        # logger.remove()
+        # Remove loguru's default stderr handler, otherwise every line would be
+        # printed by it and by the console handler below.
+        logger.remove()
 
         # Add file logger with debug level
         logger.add("karakeep-time-tagger.log", level="DEBUG", rotation="10 MB")
 
-        # Add console logger based on verbosity
-        if verbose:
-            logger.add(sys.stderr, level="DEBUG")
-        else:
-            logger.add(sys.stderr, level="INFO")
+        # Add console logger based on verbosity. karakeep_python_api prints its
+        # own records through its own handler, so they are filtered out here
+        # to avoid printing them twice.
+        logger.add(
+            sys.stderr,
+            level="DEBUG" if verbose else "INFO",
+            filter=exclude_library_records,
+        )
 
     def extract_content_text(self, bookmark) -> str:
         """
