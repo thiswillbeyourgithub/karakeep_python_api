@@ -40,6 +40,91 @@ class AuthenticationError(APIError):
         super().__init__(message, status_code=401)
 
 
+# --- Logging ---
+
+# Records emitted from inside this package have a "name" starting with this
+# prefix, which is what the handler filters below rely on.
+_PACKAGE_NAME = __name__.split(".")[0]
+
+# Id of the stderr handler owned by this package. It is kept at module level
+# so that creating several KarakeepAPI instances replaces the handler instead
+# of stacking one more copy per instance (each copy printed every line again).
+_LOG_HANDLER_ID: Optional[int] = None
+
+
+def _is_package_record(record: Dict[str, Any]) -> bool:
+    """
+    Tell whether a loguru record was emitted from this package.
+
+    Parameters
+    ----------
+    record : dict
+        Loguru record.
+
+    Returns
+    -------
+    bool
+        True for records coming from karakeep_python_api modules.
+    """
+    return (record["name"] or "").startswith(_PACKAGE_NAME)
+
+
+def _configure_logging(level: str) -> None:
+    """
+    Install (or replace) the stderr handler used for this package's logs.
+
+    Loguru has a single global logger shared by the library and the calling
+    application, and every record goes to every handler. The previous
+    implementation added an unfiltered stderr handler on top of the existing
+    ones, so every line of the application (and of the library) was printed
+    twice, and once more per extra KarakeepAPI instance.
+
+    The design is now:
+    - the package handler only accepts records emitted by this package, at
+      ``level``, so it never duplicates the application's own lines;
+    - if loguru's default handler (id 0) is still installed, it is replaced by
+      an equivalent one (stderr, DEBUG, default format) that skips this
+      package's records, so library lines are printed once, by the package
+      handler, while the application keeps exactly the output it had.
+    If the application already replaced the default handler with its own
+    catch-all handler, the library records will reach both: such
+    applications can add ``filter=lambda r: not r["name"].startswith(
+    "karakeep_python_api")`` to their handler, or remove their handlers
+    before creating the client.
+
+    Parameters
+    ----------
+    level : str
+        Minimum level of library records to print, e.g. "DEBUG" or "INFO".
+    """
+    global _LOG_HANDLER_ID
+    if _LOG_HANDLER_ID is not None:
+        try:
+            logger.remove(_LOG_HANDLER_ID)
+        except ValueError:
+            # Already removed by the application, nothing to do.
+            pass
+    try:
+        logger.remove(0)
+    except ValueError:
+        # Default handler already removed by the application (or by a
+        # previous call of this function): leave the app's handlers alone.
+        pass
+    else:
+        logger.add(
+            sys.stderr,
+            level="DEBUG",
+            filter=lambda record: not _is_package_record(record),
+        )
+    if level == "DEBUG":
+        log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+        _LOG_HANDLER_ID = logger.add(
+            sys.stderr, level=level, format=log_format, filter=_is_package_record
+        )
+    else:
+        _LOG_HANDLER_ID = logger.add(sys.stderr, level=level, filter=_is_package_record)
+
+
 # --- Optional Imports ---
 
 # Optional type checking with beartype
@@ -134,17 +219,7 @@ class KarakeepAPI:
 
         # Configure logger based on verbose setting
         log_level = "DEBUG" if self.verbose else "INFO"
-        # logger.remove()  # Remove default handler
-        if self.verbose:
-            logger.add(
-                sys.stderr,
-                level=log_level,
-                format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-            )
-            logger.debug("Verbose logging enabled with detailed format.")
-        else:
-            logger.add(sys.stderr, level=log_level)  # Default format for INFO
-
+        _configure_logging(level=log_level)
         logger.debug(verbose_mess)
         logger.debug("Logger configured for level: {}", log_level)
 

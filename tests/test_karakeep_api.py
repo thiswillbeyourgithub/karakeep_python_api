@@ -2,6 +2,7 @@ import pytest
 from loguru import logger
 import os
 import subprocess
+import sys
 import random
 import string
 import time
@@ -1542,6 +1543,35 @@ def test_readable_content_of_a_text_bookmark(karakeep_client: KarakeepAPI):
                 logger.warning(
                     f"  Cleanup: failed to delete bookmark {created_id}: {e}"
                 )
+
+
+def test_logging_handler_does_not_duplicate_lines():
+    """
+    Check that the package's loguru handler prints each line exactly once.
+
+    Regression test: KarakeepAPI.__init__ used to add an unfiltered stderr
+    handler on top of loguru's default one, so every application log line
+    was printed twice (and once more per extra client instance).
+
+    It runs in a subprocess so that the global loguru configuration of the
+    test session is untouched, and calls the logging helper directly so that
+    no Karakeep server is needed.
+    """
+    code = """
+from loguru import logger
+from karakeep_python_api import karakeep_api
+# Two calls mimic two KarakeepAPI instances.
+karakeep_api._configure_logging(level="INFO")
+karakeep_api._configure_logging(level="DEBUG")
+logger.info("APP_LINE")
+# Pretend the record comes from the package itself.
+logger.patch(lambda r: r.update(name="karakeep_python_api.karakeep_api")).info("LIB_LINE")
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert result.stderr.count("APP_LINE") == 1, result.stderr
+    assert result.stderr.count("LIB_LINE") == 1, result.stderr
 
 
 # --- End of Tests ---
