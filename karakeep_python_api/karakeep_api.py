@@ -192,7 +192,7 @@ class KarakeepAPI:
     """
 
     # Version reflects the client library version, updated by bumpver
-    VERSION: str = "1.9.0"
+    VERSION: str = "1.9.1"
 
     def __init__(
         self,
