@@ -9,8 +9,6 @@ import click
 import traceback  # Moved import to top
 from typing import (
     Any,
-    List,
-    Dict,
     Optional,
     Callable,
     Union,
@@ -269,11 +267,10 @@ def create_click_command(
                         param_annotation = param_sig.annotation
                         origin = getattr(param_annotation, "__origin__", None)
 
-                        # Check if the annotation is dict/list or typing.Dict/List
+                        # Check if the annotation is dict/list or a parametrized list[...]/dict[...]
                         # and if the received value is a string (needs parsing)
                         if (
-                            param_annotation in (dict, list)
-                            or origin in (dict, list, Dict, List)
+                            param_annotation in (dict, list) or origin in (dict, list)
                         ) and isinstance(param_value, str):
                             try:
                                 # Attempt to parse the JSON string
@@ -680,8 +677,8 @@ def create_click_command(
             is_required_in_sig = False  # Optional means not required
             default_value = None  # Default for Optional is None
 
-        # Handle List[T] or Dict[K, V] - expect JSON string
-        elif origin in (list, dict, List, Dict) or annotation in (list, dict):
+        # Handle list[T] or dict[K, V] - expect JSON string
+        elif origin in (list, dict) or annotation in (list, dict):
             click_type = click.STRING  # Expect JSON string
         # Handle Literal[...] for choices
         elif origin is Literal:
