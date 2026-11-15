@@ -140,6 +140,22 @@ def test_bookmark_requires_embedding_status():
         )
 
 
+def test_bookmark_asset_parses_optional_size():
+    """``BookmarkAsset.size`` (bytes, nullable) was added by the newer spec.
+
+    It must be parsed when present and default to ``None`` when an older server
+    omits the key, instead of being silently dropped or raising.
+    """
+    with_size = datatypes.BookmarkAsset.model_validate(
+        {"id": "a1", "assetType": "pdf", "fileName": "doc.pdf", "size": 1234}
+    )
+    assert with_size.size == 1234
+    without_size = datatypes.BookmarkAsset.model_validate(
+        {"id": "a2", "assetType": "screenshot"}
+    )
+    assert without_size.size is None
+
+
 def _readable_chunk(*, content, start, end, total, next_cursor, version="v1"):
     """Build a GET /bookmarks/{id}/content payload for the offline chunking tests."""
     return {

@@ -107,6 +107,9 @@ class BookmarkAsset(BaseModel):
         "unknown",
     ]
     fileName: Optional[str] = None
+    # Size in bytes of the stored asset. Defaults to None because servers older
+    # than the spec revision that introduced it do not send the key at all.
+    size: Optional[float] = None
 
 
 class UploadedAsset(BaseModel):
