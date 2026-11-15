@@ -114,7 +114,7 @@ This package can be used as a Python library or as a command-line interface (CLI
 
 The client can be configured using the following environment variables:
 
-*   `KARAKEEP_PYTHON_API_ENDPOINT`: **Required**. The full URL of your Karakeep API, including the `/api/v1/` path (e.g., `https://karakeep.domain.com/api/v1/` or `https://try.karakeep.app/api/v1/`).
+*   `KARAKEEP_PYTHON_API_ENDPOINT`: **Required**. The full URL of your Karakeep API, including the `/api/v1/` path (e.g., `https://karakeep.domain.com/api/v1/` or `https://try.karakeep.com/api/v1/`).
 *   `KARAKEEP_PYTHON_API_KEY`: **Required**. Your Karakeep API key (Bearer token).
 *   `KARAKEEP_PYTHON_API_VERIFY_SSL`: Set to `false` to disable SSL certificate verification (default: `true`).
 *   `KARAKEEP_PYTHON_API_VERBOSE`: Set to `true` to enable verbose debug logging for the client and CLI (default: `false`).
