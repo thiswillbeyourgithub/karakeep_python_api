@@ -2126,7 +2126,9 @@ class KarakeepAPI:
             cursor: Pagination cursor for the next page (optional).
 
         Returns:
-            datatypes.PaginatedHighlights: Paginated list of highlights.
+            datatypes.PaginatedHighlights: Paginated list of highlights. Each item is a
+            datatypes.HighlightWithBookmark, i.e. a Highlight plus a ``bookmark`` field
+            holding the bookmark's title and url (None on servers predating it).
             If response validation is disabled, returns the raw API response (dict/list).
 
         Raises:

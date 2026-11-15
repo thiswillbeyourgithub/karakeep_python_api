@@ -227,8 +227,22 @@ class Highlight(BaseModel):
     createdAt: str
 
 
+class HighlightBookmarkInfo(BaseModel):
+    title: Optional[str]
+    url: Optional[str]
+
+
+class HighlightWithBookmark(Highlight):
+    # Returned by GET /highlights only: each highlight embeds a short summary of
+    # its bookmark so callers can display it without one extra request per
+    # highlight. Subclassing Highlight avoids duplicating its fields and keeps
+    # isinstance(h, Highlight) true for existing callers. Defaults to None so
+    # older servers that return plain Highlight objects still validate.
+    bookmark: Optional[HighlightBookmarkInfo] = None
+
+
 class PaginatedHighlights(BaseModel):
-    highlights: list[Highlight]
+    highlights: list[HighlightWithBookmark]
     nextCursor: Optional[str] = ""
 
 

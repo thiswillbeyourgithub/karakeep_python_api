@@ -182,6 +182,40 @@ def test_highlight_parses_prefix_and_suffix():
     assert old.prefix is None and old.suffix is None
 
 
+def test_paginated_highlights_parse_embedded_bookmark():
+    """GET /highlights now embeds ``bookmark: {title, url}`` in each highlight.
+
+    The items must parse as ``HighlightWithBookmark`` (still a ``Highlight``) with
+    the bookmark summary kept, and items from older servers without the key must
+    still validate with ``bookmark`` set to ``None``.
+    """
+    item = {
+        "bookmarkId": "bm1",
+        "startOffset": 0,
+        "endOffset": 4,
+        "text": "abcd",
+        "note": None,
+        "id": "h1",
+        "userId": "u1",
+        "createdAt": "2026-07-05T08:00:02.000Z",
+    }
+    page = datatypes.PaginatedHighlights.model_validate(
+        {
+            "highlights": [
+                {**item, "bookmark": {"title": "T", "url": "https://example.com"}},
+                item,
+            ],
+            "nextCursor": None,
+        }
+    )
+    first, second = page.highlights
+    assert isinstance(first, datatypes.HighlightWithBookmark)
+    assert isinstance(first, datatypes.Highlight)
+    assert first.bookmark.title == "T"
+    assert first.bookmark.url == "https://example.com"
+    assert second.bookmark is None
+
+
 def test_create_highlight_sends_prefix_suffix_only_when_given(monkeypatch):
     """prefix/suffix must be in the POST body when given and absent otherwise.
 
