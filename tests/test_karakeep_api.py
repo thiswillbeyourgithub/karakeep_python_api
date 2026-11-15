@@ -156,6 +156,53 @@ def test_bookmark_asset_parses_optional_size():
     assert without_size.size is None
 
 
+def test_highlight_parses_prefix_and_suffix():
+    """``Highlight.prefix``/``suffix`` (context around the span) were added by the newer spec.
+
+    They must be parsed when present and default to ``None`` when an older server
+    omits them, so the client keeps working against both server versions.
+    """
+    base = {
+        "bookmarkId": "bm1",
+        "startOffset": 10,
+        "endOffset": 20,
+        "color": "yellow",
+        "text": "highlighted",
+        "note": None,
+        "id": "h1",
+        "userId": "u1",
+        "createdAt": "2026-07-05T08:00:02.000Z",
+    }
+    new = datatypes.Highlight.model_validate(
+        {**base, "prefix": "text before ", "suffix": " text after"}
+    )
+    assert new.prefix == "text before "
+    assert new.suffix == " text after"
+    old = datatypes.Highlight.model_validate(base)
+    assert old.prefix is None and old.suffix is None
+
+
+def test_create_highlight_sends_prefix_suffix_only_when_given(monkeypatch):
+    """prefix/suffix must be in the POST body when given and absent otherwise.
+
+    Omitting them when unset keeps the request identical to what older servers
+    (which do not know these fields) received before.
+    """
+    calls = _capture_call(monkeypatch)
+    client = KarakeepAPI.__new__(KarakeepAPI)
+    # Skip response validation: the fake _call returns a dummy payload.
+    client.disable_response_validation = True
+
+    client.create_a_new_highlight(bookmark_id="bm1", start_offset=0, end_offset=5)
+    client.create_a_new_highlight(
+        bookmark_id="bm1", start_offset=0, end_offset=5, prefix="pre", suffix="suf"
+    )
+
+    assert "prefix" not in calls[0]["data"] and "suffix" not in calls[0]["data"]
+    assert calls[1]["data"]["prefix"] == "pre"
+    assert calls[1]["data"]["suffix"] == "suf"
+
+
 def _readable_chunk(*, content, start, end, total, next_cursor, version="v1"):
     """Build a GET /bookmarks/{id}/content payload for the offline chunking tests."""
     return {

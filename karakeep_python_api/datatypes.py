@@ -214,6 +214,13 @@ class Highlight(BaseModel):
     endOffset: float
     color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow"
     text: Optional[str]
+    # prefix/suffix hold the text right before/after the highlighted span. The
+    # server uses them as context to re-anchor the highlight if the offsets drift
+    # (e.g. after a re-crawl changed the content). The spec marks them required
+    # but nullable; they default to None here so responses from older servers,
+    # which do not send these keys, still validate.
+    prefix: Optional[str] = None
+    suffix: Optional[str] = None
     note: Optional[str]
     id: str
     userId: str

@@ -2152,6 +2152,8 @@ class KarakeepAPI:
         color: Optional[Literal["yellow", "red", "green", "blue"]] = "yellow",
         text: Optional[str] = None,
         note: Optional[str] = None,
+        prefix: Optional[str] = None,
+        suffix: Optional[str] = None,
     ) -> Union[datatypes.Highlight, dict[str, Any], list[Any]]:
         """
         Create a new highlight on a bookmark. Corresponds to POST /highlights.
@@ -2163,6 +2165,8 @@ class KarakeepAPI:
             color: The color of the highlight ("yellow", "red", "green", "blue"). Default is "yellow".
             text: Optional text content of the highlight.
             note: Optional note associated with the highlight.
+            prefix: Optional text immediately preceding the highlight, used by the server as context to re-anchor it if the offsets drift.
+            suffix: Optional text immediately following the highlight, same purpose as prefix.
 
         Returns:
             datatypes.Highlight: The created highlight object.
@@ -2181,6 +2185,13 @@ class KarakeepAPI:
             "text": text,
             "note": note,
         }
+        # prefix/suffix are only sent when given: they are optional in the spec,
+        # and omitting them keeps the request body identical to before for
+        # servers that predate these fields.
+        if prefix is not None:
+            highlight_data["prefix"] = prefix
+        if suffix is not None:
+            highlight_data["suffix"] = suffix
 
         response_data = self._call("POST", "highlights", data=highlight_data)
 
